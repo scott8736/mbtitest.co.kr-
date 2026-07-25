@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import TestDirectory from "../../components/TestDirectory";
 import SiteFooter from "../../components/SiteFooter";
+import SiteHeader from "../../components/SiteHeader";
 
 export const metadata: Metadata = {
   title: "무료 심리테스트 모음",
@@ -17,15 +18,7 @@ export const metadata: Metadata = {
 export default function TestsPage() {
   return (
     <main className="tests-page">
-      <header className="site-header">
-        <a className="logo" href="/" aria-label="MBTI 검사 홈">
-          <span className="brain-mark" aria-hidden="true">✦</span><span><b>MBTI 검사</b></span>
-        </a>
-        <nav className="site-nav" aria-label="주요 메뉴">
-          <a href="/">MBTI 검사</a>
-          <a className="active" href="/tests">심리테스트</a>
-        </nav>
-      </header>
+      <SiteHeader active="/tests" />
       <section className="directory-hero">
         <span className="eyebrow">무료 심리테스트</span>
         <h1>나를 알아가는<br />다양한 테스트</h1>
