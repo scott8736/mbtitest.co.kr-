@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { blogPosts } from "../lib/blog-posts";
+import { newTestSlugs } from "../lib/new-tests";
 
 export const dynamic = "force-static";
 
@@ -18,7 +19,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.8,
     },
-    ...["egen-teto", "adult-attachment", "mental-age", "love-language", "self-esteem", "burnout", "work-style"].map((test) => ({
+    ...["egen-teto", "adult-attachment", "mental-age", "love-language", "self-esteem", "burnout", "work-style", ...newTestSlugs].map((test) => ({
       url: `${base}/tests/${test}`,
       lastModified: new Date(),
       changeFrequency: "monthly" as const,
