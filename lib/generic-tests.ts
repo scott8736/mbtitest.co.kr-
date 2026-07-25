@@ -1,4 +1,5 @@
 export type ScoreMap = Record<string, number>;
+import { newGenericTests } from "./new-tests";
 
 export type GenericQuestion = {
   a: string;
@@ -197,3 +198,5 @@ genericTests["work-style"] = {
   questions:[multi("회의에서는 결론과 담당자를 빠르게 정하고 싶다","충분한 자료를 확인한 뒤 결정하고 싶다","driver","planner"),multi("사람들의 의견을 연결하는 역할이 편하다","새로운 관점을 제안하는 역할이 편하다","connector","creator"),multi("일단 실행하며 수정하는 편이다","계획과 위험을 먼저 정리하는 편이다","driver","planner"),multi("갈등에서는 모두가 말할 기회를 만드는 편이다","갈등에서는 기존과 다른 해법을 찾는 편이다","connector","creator"),multi("마감과 성과가 분명할 때 집중이 잘된다","정확한 기준과 데이터가 있을 때 집중이 잘된다","driver","planner"),multi("팀 분위기가 성과에 큰 영향을 준다","자율성과 실험 기회가 성과에 큰 영향을 준다","connector","creator"),multi("문제가 생기면 즉시 대응한다","원인을 분석해 재발을 막는다","driver","planner"),multi("동료의 강점을 살려 역할을 나눈다","익숙한 역할을 바꿔 새 방식을 시도한다","connector","creator"),multi("짧고 분명한 보고를 선호한다","근거가 자세한 보고를 선호한다","driver","planner"),multi("피드백은 관계를 고려해 전달한다","피드백에서 새로운 가능성을 함께 제안한다","connector","creator"),multi("목표를 도전적으로 잡는 편이다","목표를 현실적으로 계산하는 편이다","driver","planner"),multi("협업 과정의 신뢰가 중요하다","결과물의 독창성이 중요하다","connector","creator"),multi("업무가 밀리면 우선순위를 과감히 정한다","업무가 밀리면 일정과 자원을 다시 계산한다","driver","planner"),multi("새 팀에서는 먼저 관계를 만든다","새 팀에서는 개선할 부분부터 관찰한다","connector","creator"),multi("성과를 눈에 보이게 만드는 일이 즐겁다","복잡한 구조를 정확하게 정리하는 일이 즐겁다","driver","planner"),multi("함께 목표를 이루는 순간이 가장 보람 있다","없던 아이디어가 실제가 되는 순간이 가장 보람 있다","connector","creator")],
   results:{driver:result("driver","실행 추진형","목표를 빠르게 행동으로 바꾸는 드라이버","#d1775d",["결단력","속도","성과 집중"],"명확한 목표 앞에서 빠르게 결정하고 사람과 자원을 움직이는 실행가입니다."),planner:result("planner","분석 설계형","근거와 구조로 완성도를 높이는 플래너","#5c7ea5",["분석력","정확성","위험 관리"],"복잡한 정보를 정리하고 실수를 줄이는 계획을 세우는 데 강합니다."),connector:result("connector","협업 조율형","사람을 연결해 팀의 힘을 키우는 커넥터","#558d78",["소통","조율","신뢰 형성"],"구성원의 의견과 강점을 연결해 함께 성과를 만드는 데 강합니다."),creator:result("creator","아이디어 창조형","고정관념을 넘어 새 가능성을 여는 크리에이터","#8a6bc1",["창의성","실험","변화 감지"],"익숙한 방식에서 벗어나 새로운 관점과 해결책을 제안하는 데 강합니다.")}
 };
+
+Object.assign(genericTests, newGenericTests);
