@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import TestDirectory from "../../components/TestDirectory";
 import SiteFooter from "../../components/SiteFooter";
 import SiteHeader from "../../components/SiteHeader";
+import AdUnit, { ADSENSE_DISPLAY_SLOT } from "../../components/AdUnit";
 
 export const metadata: Metadata = {
   title: "무료 심리테스트 모음",
@@ -24,6 +25,7 @@ export default function TestsPage() {
         <h1>나를 알아가는<br />다양한 테스트</h1>
         <p>성격, 연애, 마음건강, 직장생활까지 궁금한 주제를 선택해 보세요.<br />완성된 테스트만 검사 시작 버튼이 표시됩니다.</p>
       </section>
+      <AdUnit slot={ADSENSE_DISPLAY_SLOT} label="테스트 목록 광고" />
       <section className="directory-section" aria-label="심리테스트 목록">
         <TestDirectory />
       </section>
