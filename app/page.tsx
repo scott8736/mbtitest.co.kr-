@@ -280,7 +280,7 @@ export default function Home() {
             <div className="faq">
               <h2>MBTI 검사 자주 묻는 질문</h2>
               <details><summary>MBTI 검사는 무료인가요?</summary><p>네. 회원가입이나 결제 없이 40개 문항에 답하고 결과를 바로 확인할 수 있습니다.</p></details>
-              <details><summary>검사 시간은 얼마나 걸리나요?</summary><p>보통 약 5~7분이 걸립니다. 너무 오래 고민하기보다 평소 모습에 가까운 답을 선택해 주세요.</p></details>
+              <details><summary>검사 시간은 얼마나 걸리나요?</summary><p>보통 약 4분이 걸립니다. 너무 오래 고민하기보다 평소 모습에 가까운 답을 선택해 주세요.</p></details>
               <details><summary>MBTI 결과가 매번 달라질 수 있나요?</summary><p>현재의 환경, 역할, 컨디션과 답변 기준에 따라 결과가 달라질 수 있습니다. 한 번의 결과로 자신을 단정하지 않는 것이 좋습니다.</p></details>
               <details><summary>성격테스트 결과를 어떻게 활용하나요?</summary><p>나의 소통 방식과 선호를 이해하거나 서로의 차이를 대화하는 참고 자료로 활용할 수 있습니다.</p></details>
               <details><summary>전문 심리검사를 대신할 수 있나요?</summary><p>아닙니다. 이 검사는 자기이해를 위한 간이 성격테스트이며 전문적인 심리 평가나 진단을 대신하지 않습니다.</p></details>
@@ -333,9 +333,9 @@ export default function Home() {
           <div className="related-results mbti-related">
             <span className="eyebrow">NEXT TEST</span><h2>지금 결과와 이어서 해보세요</h2>
             <div>
-              <a href="/tests/adult-attachment"><span>연애</span><strong>성인 애착유형 테스트</strong><small>24문항 · 약 5분</small><i>내 애착유형 확인하기 →</i></a>
-              <a href="/tests/egen-teto"><span>성격</span><strong>에겐·테토 성향 테스트</strong><small>20문항 · 약 3~4분</small><i>에겐·테토 비율 보기 →</i></a>
-              <a href="/tests/mental-age"><span>재미</span><strong>정신연령 테스트</strong><small>15문항 · 약 2~3분</small><i>내 마음 나이 확인하기 →</i></a>
+              <a href="/tests/adult-attachment"><span>연애</span><strong>성인 애착유형 테스트</strong><small>24문항 · 약 3분</small><i>내 애착유형 확인하기 →</i></a>
+              <a href="/tests/egen-teto"><span>성격</span><strong>에겐·테토 성향 테스트</strong><small>20문항 · 약 2~3분</small><i>에겐·테토 비율 보기 →</i></a>
+              <a href="/tests/mental-age"><span>재미</span><strong>정신연령 테스트</strong><small>15문항 · 약 2분</small><i>내 마음 나이 확인하기 →</i></a>
             </div>
           </div>
         </section>
