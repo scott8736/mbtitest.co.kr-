@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ContentHeader from "../../../components/ContentHeader";
 import SiteFooter from "../../../components/SiteFooter";
+import ShareButtons from "../../../components/ShareButtons";
 import { blogPosts, getBlogPost } from "../../../lib/blog-posts";
 
 export const dynamicParams = false;
@@ -33,6 +34,20 @@ export async function generateMetadata({
       publishedTime: post.publishedAt,
       modifiedTime: post.updatedAt,
       siteName: "MBTI 검사",
+      images: [
+        {
+          url: "/images/og/mbti-test-share.png",
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.description,
+      images: ["/images/og/mbti-test-share.png"],
     },
   };
 }
@@ -152,6 +167,7 @@ export default async function BlogArticlePage({
           </div>
 
           <aside className="article-sidebar">
+            <ShareButtons title={post.title} url={url} />
             <div>
               <span>이 글의 핵심 키워드</span>
               {post.keywords.map((keyword) => (
