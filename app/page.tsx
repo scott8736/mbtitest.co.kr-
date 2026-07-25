@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import TestDirectory from "../components/TestDirectory";
 import AdUnit from "../components/AdUnit";
 import SiteFooter from "../components/SiteFooter";
+import SiteHeader from "../components/SiteHeader";
 
 type Axis = "EI" | "SN" | "TF" | "JP";
 type Answer = 1 | -1;
@@ -179,20 +180,7 @@ export default function Home() {
           }),
         }}
       />
-      <header className="site-header">
-        <button className="logo" onClick={() => setScreen("home")} aria-label="처음으로">
-          <BrainMark /><span><b>MBTI 검사</b></span>
-        </button>
-        <div className="header-meta" aria-label="검사 안내">
-          <span>◇ 40개 문항</span><i />
-          <span>◷ 약 6분</span><i />
-          <span>♧ 결과 즉시 확인</span>
-        </div>
-        <nav className="site-nav" aria-label="주요 메뉴">
-          <a className="active" href="/">MBTI 검사</a>
-          <a href="/tests">심리테스트</a>
-        </nav>
-      </header>
+      <SiteHeader active="/" />
 
       {screen === "home" && (
         <>
