@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import ContentHeader from "../../../components/ContentHeader";
 import SiteFooter from "../../../components/SiteFooter";
 import ShareButtons from "../../../components/ShareButtons";
+import AdUnit, { ADSENSE_IN_ARTICLE_SLOT } from "../../../components/AdUnit";
 import { blogPosts, getBlogPost } from "../../../lib/blog-posts";
 
 export const dynamicParams = false;
@@ -125,6 +126,13 @@ export default async function BlogArticlePage({
                 <p key={paragraph}>{paragraph}</p>
               ))}
             </section>
+
+            <AdUnit
+              slot={ADSENSE_IN_ARTICLE_SLOT}
+              format="fluid"
+              layout="in-article"
+              label="블로그 본문 광고"
+            />
 
             <aside className="article-inline-cta">
               <span>{post.cta.eyebrow}</span>
