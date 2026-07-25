@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import TestDirectory from "../components/TestDirectory";
-import AdUnit from "../components/AdUnit";
+import AdUnit, { ADSENSE_DISPLAY_SLOT } from "../components/AdUnit";
 import SiteFooter from "../components/SiteFooter";
 import SiteHeader from "../components/SiteHeader";
 
@@ -206,7 +206,7 @@ export default function Home() {
               ["J · P", "생활 방식", "계획 또는 유연함"],
             ].map(([code, title, desc]) => <article key={code}><b>{code}</b><div><strong>{title}</strong><span>{desc}</span></div></article>)}
           </section>
-          <AdUnit slot={process.env.NEXT_PUBLIC_ADSENSE_HOME_SLOT} label="메인 콘텐츠 광고" />
+          <AdUnit slot={ADSENSE_DISPLAY_SLOT} label="메인 콘텐츠 광고" />
           <section className="home-note">
             <p>성격은 네 글자로 끝나지 않습니다.</p>
             <h2>결과보다 중요한 건<br />나를 이해하는 과정이에요.</h2>
@@ -276,7 +276,7 @@ export default function Home() {
                 <p>이 사이트의 무료 MBTI 검사는 자기이해를 돕기 위해 네 가지 선호 지표를 간단히 살펴보는 비공식 성격테스트입니다. 의료·상담 목적의 심리검사, 채용 평가 또는 공식 MBTI® 검사를 대신하지 않습니다. 중요한 결정을 내릴 때는 검사 결과 하나로 사람의 능력이나 적합성을 판단하지 마세요.</p>
               </div>
             </section>
-            <AdUnit slot={process.env.NEXT_PUBLIC_ADSENSE_CONTENT_SLOT} label="콘텐츠 내 광고" />
+            <AdUnit slot={ADSENSE_DISPLAY_SLOT} label="콘텐츠 내 광고" />
             <div className="faq">
               <h2>MBTI 검사 자주 묻는 질문</h2>
               <details><summary>MBTI 검사는 무료인가요?</summary><p>네. 회원가입이나 결제 없이 40개 문항에 답하고 결과를 바로 확인할 수 있습니다.</p></details>
@@ -329,7 +329,7 @@ export default function Home() {
           <div className="growth-plan mbti-growth"><span>GROWTH POINT</span><h2>나를 더 편안하게 만드는 실천</h2>{typeDetails[result].growth.map((x, i) => <p key={x}><b>{String(i + 1).padStart(2, "0")}</b>{x}</p>)}</div>
           <div className="result-actions"><button className="primary-button" onClick={share}>결과 공유하기 <span>↗</span></button><button className="secondary-button" onClick={downloadResult}>결과 이미지 저장</button><button className="secondary-button" onClick={start}>다시 검사하기</button></div>
           <p className="disclaimer">본 테스트는 자기이해를 위한 간이 성격 테스트이며, 전문적인 심리 진단을 대신하지 않습니다.</p>
-          <AdUnit slot={process.env.NEXT_PUBLIC_ADSENSE_RESULT_SLOT} label="검사 결과 광고" />
+          <AdUnit slot={ADSENSE_DISPLAY_SLOT} label="검사 결과 광고" />
           <div className="related-results mbti-related">
             <span className="eyebrow">NEXT TEST</span><h2>지금 결과와 이어서 해보세요</h2>
             <div>
