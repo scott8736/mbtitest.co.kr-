@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import ContentHeader from "../../components/ContentHeader";
 import SiteFooter from "../../components/SiteFooter";
-export const metadata:Metadata={title:"MBTI 16가지 유형별 특징",description:"INTJ, ENFP, ISTJ 등 MBTI 16가지 성격유형의 특징과 강점, 관계 성향을 한눈에 확인하세요.",alternates:{canonical:"/types"}};
-const groups=[
-  ["분석형 NT","논리와 전략, 새로운 아이디어를 중시합니다.",[["INTJ","전략가","큰 그림과 장기 계획"],["INTP","사색가","원리 탐구와 논리 분석"],["ENTJ","통솔자","목표 설정과 빠른 실행"],["ENTP","변론가","새로운 가능성과 토론"]]],
-  ["외교형 NF","사람의 성장과 의미, 깊은 연결을 중시합니다.",[["INFJ","옹호자","통찰과 신념"],["INFP","중재자","가치와 상상력"],["ENFJ","사회운동가","공감형 리더십"],["ENFP","활동가","열정과 가능성"]]],
-  ["관리자형 SJ","책임과 안정, 현실적인 실행을 중시합니다.",[["ISTJ","관리자","정확성과 책임감"],["ISFJ","수호자","세심한 돌봄"],["ESTJ","경영자","조직력과 추진력"],["ESFJ","집정관","협력과 관계 형성"]]],
-  ["탐험가형 SP","경험과 감각, 유연한 대응을 중시합니다.",[["ISTP","재주꾼","실용적 문제 해결"],["ISFP","예술가","감수성과 적응력"],["ESTP","사업가","현장 판단과 행동"],["ESFP","연예인","밝은 에너지와 센스"]]],
-];
-export default function Page(){return <main><ContentHeader active="/types"/><section className="content-hero"><span className="eyebrow">16 PERSONALITY TYPES</span><h1>MBTI 16가지 유형<br/>한눈에 보기</h1><p>네 가지 성격 지표의 조합으로 만들어지는 16개 유형의 대표 특징을 살펴보세요.</p><a className="content-cta" href="/">내 MBTI 검사하기 →</a></section><section className="content-body">{groups.map(([title,desc,items])=><section className="type-section" key={title as string}><div><h2>{title as string}</h2><p>{desc as string}</p></div><div className="seo-card-grid">{(items as string[][]).map(([code,name,trait])=><article key={code}><b>{code}</b><h3>{name}</h3><p>{trait}</p><a href="/compatibility">궁합 알아보기 →</a></article>)}</div></section>)}</section><SiteFooter/></main>}
+import { mbtiCodes, profiles } from "../../lib/mbti-content";
+import styles from "../../lib/mbti.module.css";
+export const metadata:Metadata={title:"MBTI 16가지 유형별 특징 총정리",description:"INTJ부터 ESFP까지 MBTI 16가지 성격유형의 특징, 장단점, 연애, 직업, 스트레스 반응과 궁합을 유형별로 자세히 확인하세요.",alternates:{canonical:"/types"}};
+const groups=["분석형 NT","외교형 NF","관리자형 SJ","탐험가형 SP"];
+export default function Page(){return <main className={styles.page}><ContentHeader active="/types"/><header className={styles.hero}><span className={styles.eyebrow}>16 PERSONALITY TYPES</span><h1>MBTI 16가지 유형<br/>특징 총정리</h1><p>유형별 핵심 성향부터 연애, 호감 신호, 직업·업무, 스트레스 반응과 궁합까지 자세히 살펴보세요.</p><div className={styles.actions}><a href="/">내 MBTI 검사하기</a><a href="/compatibility">MBTI 궁합 보기</a></div></header><section className={styles.body}><section className={styles.answer}><strong>MBTI 16가지 유형은 어떻게 나뉘나요?</strong><p>에너지 방향 E·I, 정보 인식 S·N, 판단 기준 T·F, 생활 방식 J·P의 네 가지 선호 지표를 조합해 16가지 유형으로 구분합니다. 유형은 능력의 우열이 아니라 어떤 방식이 더 자연스럽고 편한지를 설명하는 참고 자료입니다.</p></section>{groups.map(group=><section className={styles.section} key={group}><h2>{group}</h2><div className={styles.typeGrid}>{mbtiCodes.filter(code=>profiles[code].group===group).map(code=>{const p=profiles[code];return <a className={styles.typeCard} href={`/types/${code}`} key={code}><b>{p.code}</b><strong>{p.name}</strong><span>{p.tagline}</span><i>{p.code} 상세 설명 →</i></a>})}</div></section>)}<section className={styles.cta}><h2>설명보다 먼저 내 유형을 확인해 보세요</h2><p>40개 질문으로 네 가지 성향 지표를 확인할 수 있습니다.</p><a href="/">무료 MBTI 검사 시작하기 →</a></section></section><SiteFooter/></main>}
