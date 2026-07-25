@@ -117,7 +117,7 @@ export const genericTests: Record<string, GenericTest> = {
     title: "에겐녀·테토녀 성향 테스트",
     eyebrow: "EGEN · TETO",
     description: "공감과 관계 중심의 에겐 성향, 추진력과 행동 중심의 테토 성향 중 지금의 나는 어느 쪽에 가까운지 확인해 보세요.",
-    duration: "약 3~4분",
+    duration: "약 2~3분",
     disclaimer: "실제 호르몬 수치를 측정하는 의학적 검사가 아니라, 대중문화 속 에겐·테토 이미지를 활용한 재미형 성향 테스트입니다.",
     dimensions: [{ key: "egen", label: "에겐 성향" }, { key: "teto", label: "테토 성향" }],
     questions: egenTetoQuestions,
@@ -130,7 +130,7 @@ export const genericTests: Record<string, GenericTest> = {
     },
   },
   "adult-attachment": {
-    slug:"adult-attachment", title:"성인 애착유형 테스트", eyebrow:"ADULT ATTACHMENT", description:"관계 불안과 친밀감 회피의 두 축으로 연애와 가까운 관계에서 반복되는 나의 애착 패턴을 살펴봅니다.", duration:"약 5분", disclaimer:"자기이해를 위한 간이 테스트이며 전문적인 심리 평가나 상담을 대신하지 않습니다.",
+    slug:"adult-attachment", title:"성인 애착유형 테스트", eyebrow:"ADULT ATTACHMENT", description:"관계 불안과 친밀감 회피의 두 축으로 연애와 가까운 관계에서 반복되는 나의 애착 패턴을 살펴봅니다.", duration:"약 3분", disclaimer:"자기이해를 위한 간이 테스트이며 전문적인 심리 평가나 상담을 대신하지 않습니다.",
     dimensions:[{key:"anxiety",label:"관계 불안"},{key:"avoidance",label:"친밀감 회피"},{key:"secure",label:"안정 반응"}],
     questions:attachmentQuestions, related:["egen-teto","mental-age","mbti"],
     evaluation:"attachment",
@@ -142,7 +142,7 @@ export const genericTests: Record<string, GenericTest> = {
     }
   },
   "mental-age": {
-    slug:"mental-age",title:"정신연령 테스트",eyebrow:"MENTAL AGE",description:"호기심, 책임감, 변화 적응과 감정 표현을 통해 지금 내 마음의 나이를 재미있게 확인해 보세요.",duration:"약 2~3분",disclaimer:"실제 지능이나 정신 상태를 측정하는 검사가 아닌 재미형 자기이해 테스트입니다.",
+    slug:"mental-age",title:"정신연령 테스트",eyebrow:"MENTAL AGE",description:"호기심, 책임감, 변화 적응과 감정 표현을 통해 지금 내 마음의 나이를 재미있게 확인해 보세요.",duration:"약 2분",disclaimer:"실제 지능이나 정신 상태를 측정하는 검사가 아닌 재미형 자기이해 테스트입니다.",
     dimensions:[{key:"young",label:"호기심 에너지"},{key:"mature",label:"안정·책임감"}],questions:mentalAgeQuestions,related:["mbti","egen-teto","adult-attachment"],
     evaluation:"mental-age",
     results:{
@@ -167,7 +167,7 @@ const result = (key:string,name:string,tagline:string,color:string,traits:string
 });
 
 genericTests["love-language"] = {
-  slug:"love-language",title:"5가지 사랑의 언어 테스트",eyebrow:"LOVE LANGUAGE",description:"사랑을 주고받을 때 가장 크게 마음에 닿는 표현 방식을 확인해 보세요.",duration:"약 4분",disclaimer:"관계의 소통을 돕는 재미형 자기이해 테스트이며 전문 상담을 대신하지 않습니다.",evaluation:"max-score",related:["adult-attachment","egen-teto","mbti"],
+  slug:"love-language",title:"5가지 사랑의 언어 테스트",eyebrow:"LOVE LANGUAGE",description:"사랑을 주고받을 때 가장 크게 마음에 닿는 표현 방식을 확인해 보세요.",duration:"약 3분",disclaimer:"관계의 소통을 돕는 재미형 자기이해 테스트이며 전문 상담을 대신하지 않습니다.",evaluation:"max-score",related:["adult-attachment","egen-teto","mbti"],
   dimensions:[{key:"words",label:"인정하는 말"},{key:"time",label:"함께하는 시간"},{key:"gift",label:"선물"},{key:"service",label:"봉사"},{key:"touch",label:"스킨십"}],
   questions:[
     multi("다정한 칭찬을 들을 때 사랑받는 느낌이 든다","둘만의 시간을 온전히 보낼 때 사랑받는 느낌이 든다","words","time"),multi("작은 선물에도 나를 생각한 마음이 느껴진다","말없이 일을 도와줄 때 고마움이 크다","gift","service"),multi("손을 잡거나 안아줄 때 마음이 놓인다","진심 어린 응원이 오래 기억에 남는다","touch","words"),multi("휴대폰 없이 대화하는 시간이 중요하다","필요한 것을 미리 챙겨주는 행동이 중요하다","time","service"),multi("기념일의 작은 선물이 설렌다","자연스러운 포옹이 더 설렌다","gift","touch"),multi("힘들 때 잘하고 있다는 말을 듣고 싶다","힘들 때 곁에 오래 있어주길 바란다","words","time"),multi("내 취향을 기억한 선물에 감동한다","바쁜 일을 대신 처리해주면 감동한다","gift","service"),multi("애정 표현을 말로 자주 듣고 싶다","가까이 앉아 온기를 느끼고 싶다","words","touch"),multi("함께 새로운 경험을 하는 것이 좋다","특별하지 않아도 선물을 주고받는 것이 좋다","time","gift"),multi("약속을 행동으로 지켜주는 사람이 좋다","스킨십으로 마음을 표현하는 사람이 좋다","service","touch"),multi("고맙다는 말을 구체적으로 듣고 싶다","내 일에 시간을 내어 함께해주길 바란다","words","time"),multi("필요한 순간 실제 도움을 받으면 든든하다","가볍게 어깨를 토닥여주면 든든하다","service","touch"),multi("여행에서 기념품을 고르는 일이 즐겁다","여행 계획을 함께 짜는 시간이 즐겁다","gift","time"),multi("내 장점을 말해주는 표현이 좋다","나를 위해 수고를 감수하는 행동이 좋다","words","service"),multi("오래 간직할 물건이 사랑의 증표처럼 느껴진다","따뜻한 포옹이 사랑의 증표처럼 느껴진다","gift","touch")],
@@ -181,19 +181,19 @@ genericTests["love-language"] = {
 };
 
 genericTests["self-esteem"] = {
-  slug:"self-esteem",title:"자존감 패턴 테스트",eyebrow:"SELF ESTEEM",description:"실수·비교·관계 속에서 나를 대하는 현재의 태도와 회복 패턴을 살펴봅니다.",duration:"약 4분",disclaimer:"현재의 자기인식 경향을 살펴보는 간이 테스트이며 심리 진단을 대신하지 않습니다.",evaluation:"max-score",related:["burnout","work-style","mbti"],dimensions:[{key:"stable",label:"안정형"},{key:"growth",label:"성장형"},{key:"sensitive",label:"평가민감형"}],
+  slug:"self-esteem",title:"자존감 패턴 테스트",eyebrow:"SELF ESTEEM",description:"실수·비교·관계 속에서 나를 대하는 현재의 태도와 회복 패턴을 살펴봅니다.",duration:"약 3분",disclaimer:"현재의 자기인식 경향을 살펴보는 간이 테스트이며 심리 진단을 대신하지 않습니다.",evaluation:"max-score",related:["burnout","work-style","mbti"],dimensions:[{key:"stable",label:"안정형"},{key:"growth",label:"성장형"},{key:"sensitive",label:"평가민감형"}],
   questions:[multi("실수해도 나의 가치까지 낮아진 것은 아니라고 생각한다","실수하면 내가 부족한 사람처럼 느껴진다","stable","sensitive"),multi("부족한 점은 연습으로 달라질 수 있다","잘하지 못할 것 같으면 시작을 미룬다","growth","sensitive"),multi("다른 사람의 성공을 자극으로 활용한다","다른 사람의 성공을 보면 내가 초라해진다","growth","sensitive"),multi("거절당해도 서로의 조건이 달랐다고 생각한다","거절당하면 오래 자책한다","stable","sensitive"),multi("칭찬이 없어도 내가 한 노력을 안다","칭찬이 없으면 잘한 것인지 불안하다","stable","sensitive"),multi("모르는 것을 편하게 질문할 수 있다","모르는 모습을 보이는 것이 창피하다","growth","sensitive"),multi("내 장점과 약점을 함께 인정한다","단점 하나가 보이면 장점도 의미 없어 보인다","stable","sensitive"),multi("작은 진전도 성장으로 기록한다","완벽한 결과가 아니면 실패처럼 느낀다","growth","sensitive"),multi("불편한 부탁은 거절할 수 있다","싫어도 관계가 걱정돼 받아준다","stable","sensitive"),multi("비판에서 필요한 부분만 골라 듣는다","비판을 들으면 하루 종일 마음에 남는다","growth","sensitive"),multi("내 감정을 존중하며 쉬어갈 수 있다","쉬면 뒤처지는 것 같아 불안하다","stable","sensitive"),multi("과거보다 달라진 점을 확인한다","항상 부족한 점부터 찾는다","growth","sensitive"),multi("나와 다른 의견도 나를 부정하는 것은 아니다","의견이 거절되면 나까지 거절된 느낌이다","stable","sensitive"),multi("도전의 결과보다 배운 점을 본다","성공 가능성이 높을 때만 도전한다","growth","sensitive"),multi("나는 존재만으로도 존중받을 가치가 있다","쓸모를 증명해야 인정받을 수 있다고 느낀다","stable","sensitive")],
   results:{stable:result("stable","안정 자존감형","나의 가치와 결과를 구분하는 단단한 중심형","#568d7e",["자기 존중","건강한 경계","감정 회복"],"성과가 흔들려도 자신의 기본적인 가치를 비교적 안정적으로 지킵니다."),growth:result("growth","성장 자존감형","부족함을 가능성으로 바꾸는 발전형","#6681cf",["학습 태도","도전","회복 탄력성"],"완벽하지 않아도 배우고 달라질 수 있다는 믿음으로 자신을 키워갑니다."),sensitive:result("sensitive","평가 민감형","인정의 신호에 마음이 크게 움직이는 섬세형","#bb728e",["높은 기준","관계 감수성","인정 욕구"],"타인의 반응과 결과가 자기평가에 큰 영향을 주는 시기입니다. 이는 고정된 성격이 아니라 돌볼 수 있는 패턴입니다.")}
 };
 
 genericTests["burnout"] = {
-  slug:"burnout",title:"번아웃·스트레스 테스트",eyebrow:"BURNOUT CHECK",description:"업무 피로, 감정 소진, 회복 여력을 통해 현재의 번아웃 신호를 점검합니다.",duration:"약 3분",disclaimer:"의학적 진단이 아닙니다. 심한 무기력·불면·우울이 지속되면 전문가와 상담하세요.",evaluation:"max-score",related:["self-esteem","work-style","mbti"],dimensions:[{key:"green",label:"회복 가능"},{key:"yellow",label:"주의"},{key:"red",label:"소진"}],
+  slug:"burnout",title:"번아웃·스트레스 테스트",eyebrow:"BURNOUT CHECK",description:"업무 피로, 감정 소진, 회복 여력을 통해 현재의 번아웃 신호를 점검합니다.",duration:"약 2분",disclaimer:"의학적 진단이 아닙니다. 심한 무기력·불면·우울이 지속되면 전문가와 상담하세요.",evaluation:"max-score",related:["self-esteem","work-style","mbti"],dimensions:[{key:"green",label:"회복 가능"},{key:"yellow",label:"주의"},{key:"red",label:"소진"}],
   questions:[multi("퇴근 후 비교적 잘 회복된다","퇴근 후에도 아무것도 할 힘이 없다","green","red"),multi("일의 우선순위를 조절할 수 있다","모든 일이 급하고 통제할 수 없게 느껴진다","green","red"),multi("주말에 쉬면 에너지가 돌아온다","쉬어도 피로가 거의 줄지 않는다","green","red"),multi("업무에서 보람을 느끼는 순간이 있다","일의 의미가 전혀 느껴지지 않는다","green","red"),multi("동료와 대화할 여유가 있다","사람을 상대하는 것 자체가 버겁다","green","red"),multi("실수 후 다시 집중할 수 있다","작은 실수에도 무너지고 자책한다","green","red"),multi("잠드는 데 큰 어려움이 없다","업무 생각 때문에 잠들기 어렵다","green","red"),multi("식사와 생활 리듬이 비교적 일정하다","식사나 수면 리듬이 크게 무너졌다","green","red"),multi("도움을 요청하거나 일을 나눌 수 있다","도움을 요청할 여유조차 없다고 느낀다","green","red"),multi("휴식할 때 죄책감이 크지 않다","쉬는 동안에도 불안과 죄책감이 든다","green","yellow"),multi("출근 생각이 들어도 감당할 수 있다","출근을 생각하면 몸과 마음이 강하게 거부한다","green","red"),multi("예민해져도 이유를 알고 조절한다","사소한 일에도 화가 나거나 무감각해진다","green","yellow"),multi("최근 웃거나 즐거운 순간이 있었다","최근 즐거움을 거의 느끼지 못했다","green","red"),multi("일과 나 자신을 구분할 수 있다","성과가 곧 나의 가치처럼 느껴진다","green","yellow"),multi("앞으로 나아질 방법이 떠오른다","아무리 해도 달라질 것 같지 않다","green","red")],
   results:{green:result("green","회복 가능 단계","피로가 있어도 회복 리듬이 살아 있는 상태","#4f9278",["회복력","생활 균형","자기 조절"],"현재 스트레스가 있더라도 휴식과 조절을 통해 에너지를 되찾을 여력이 있습니다."),yellow:result("yellow","번아웃 주의 단계","몸과 마음이 속도를 줄여달라고 보내는 신호","#d09a4e",["누적 피로","예민함","회복 필요"],"피로와 긴장이 쌓이기 시작했습니다. 업무량과 회복 시간을 의식적으로 조정할 필요가 있습니다."),red:result("red","소진 위험 단계","버티기보다 보호와 지원이 먼저 필요한 상태","#c65f68",["정서 소진","무기력","지원 필요"],"현재 소진 신호가 여러 영역에서 나타납니다. 혼자 견디기보다 업무 조정과 주변의 도움을 우선하세요.")}
 };
 
 genericTests["work-style"] = {
-  slug:"work-style",title:"직장인 업무성향 테스트",eyebrow:"WORK STYLE",description:"협업·실행·분석·아이디어 방식에서 나의 대표 업무 스타일을 확인합니다.",duration:"약 5분",disclaimer:"직무 적합성을 단정하는 평가가 아닌 협업 방식 이해를 위한 참고 테스트입니다.",evaluation:"max-score",related:["burnout","self-esteem","mbti"],dimensions:[{key:"driver",label:"추진형"},{key:"planner",label:"분석형"},{key:"connector",label:"협업형"},{key:"creator",label:"창의형"}],
+  slug:"work-style",title:"직장인 업무성향 테스트",eyebrow:"WORK STYLE",description:"협업·실행·분석·아이디어 방식에서 나의 대표 업무 스타일을 확인합니다.",duration:"약 3분",disclaimer:"직무 적합성을 단정하는 평가가 아닌 협업 방식 이해를 위한 참고 테스트입니다.",evaluation:"max-score",related:["burnout","self-esteem","mbti"],dimensions:[{key:"driver",label:"추진형"},{key:"planner",label:"분석형"},{key:"connector",label:"협업형"},{key:"creator",label:"창의형"}],
   questions:[multi("회의에서는 결론과 담당자를 빠르게 정하고 싶다","충분한 자료를 확인한 뒤 결정하고 싶다","driver","planner"),multi("사람들의 의견을 연결하는 역할이 편하다","새로운 관점을 제안하는 역할이 편하다","connector","creator"),multi("일단 실행하며 수정하는 편이다","계획과 위험을 먼저 정리하는 편이다","driver","planner"),multi("갈등에서는 모두가 말할 기회를 만드는 편이다","갈등에서는 기존과 다른 해법을 찾는 편이다","connector","creator"),multi("마감과 성과가 분명할 때 집중이 잘된다","정확한 기준과 데이터가 있을 때 집중이 잘된다","driver","planner"),multi("팀 분위기가 성과에 큰 영향을 준다","자율성과 실험 기회가 성과에 큰 영향을 준다","connector","creator"),multi("문제가 생기면 즉시 대응한다","원인을 분석해 재발을 막는다","driver","planner"),multi("동료의 강점을 살려 역할을 나눈다","익숙한 역할을 바꿔 새 방식을 시도한다","connector","creator"),multi("짧고 분명한 보고를 선호한다","근거가 자세한 보고를 선호한다","driver","planner"),multi("피드백은 관계를 고려해 전달한다","피드백에서 새로운 가능성을 함께 제안한다","connector","creator"),multi("목표를 도전적으로 잡는 편이다","목표를 현실적으로 계산하는 편이다","driver","planner"),multi("협업 과정의 신뢰가 중요하다","결과물의 독창성이 중요하다","connector","creator"),multi("업무가 밀리면 우선순위를 과감히 정한다","업무가 밀리면 일정과 자원을 다시 계산한다","driver","planner"),multi("새 팀에서는 먼저 관계를 만든다","새 팀에서는 개선할 부분부터 관찰한다","connector","creator"),multi("성과를 눈에 보이게 만드는 일이 즐겁다","복잡한 구조를 정확하게 정리하는 일이 즐겁다","driver","planner"),multi("함께 목표를 이루는 순간이 가장 보람 있다","없던 아이디어가 실제가 되는 순간이 가장 보람 있다","connector","creator")],
   results:{driver:result("driver","실행 추진형","목표를 빠르게 행동으로 바꾸는 드라이버","#d1775d",["결단력","속도","성과 집중"],"명확한 목표 앞에서 빠르게 결정하고 사람과 자원을 움직이는 실행가입니다."),planner:result("planner","분석 설계형","근거와 구조로 완성도를 높이는 플래너","#5c7ea5",["분석력","정확성","위험 관리"],"복잡한 정보를 정리하고 실수를 줄이는 계획을 세우는 데 강합니다."),connector:result("connector","협업 조율형","사람을 연결해 팀의 힘을 키우는 커넥터","#558d78",["소통","조율","신뢰 형성"],"구성원의 의견과 강점을 연결해 함께 성과를 만드는 데 강합니다."),creator:result("creator","아이디어 창조형","고정관념을 넘어 새 가능성을 여는 크리에이터","#8a6bc1",["창의성","실험","변화 감지"],"익숙한 방식에서 벗어나 새로운 관점과 해결책을 제안하는 데 강합니다.")}
 };
