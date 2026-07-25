@@ -1,0 +1,6 @@
+import type { Metadata } from "next";
+import ContentHeader from "../../components/ContentHeader";
+import SiteFooter from "../../components/SiteFooter";
+export const metadata:Metadata={title:"MBTI·심리테스트 콘텐츠",description:"MBTI 유형, 궁합, 애착유형, 자존감과 번아웃에 관한 이해하기 쉬운 심리 콘텐츠를 확인하세요.",alternates:{canonical:"/blog"}};
+const posts=[["MBTI","MBTI 검사 결과가 매번 달라지는 이유","환경과 역할에 따라 답변이 달라지는 원리를 알아봅니다.","/result"],["관계","MBTI 궁합표보다 먼저 확인할 3가지","연락, 갈등, 회복 방식의 차이를 살펴봅니다.","/compatibility"],["성격","E와 I는 사교성의 차이일까?","외향과 내향을 에너지 회복 관점에서 이해합니다.","/types"],["연애","불안형·회피형 애착의 관계 패턴","가까움과 거리 두기가 반복되는 이유를 알아봅니다.","/tests/adult-attachment"],["마음건강","번아웃 초기 신호와 회복 방법","무기력과 누적 피로를 점검하고 회복 계획을 세웁니다.","/tests/burnout"],["자기이해","자존감이 흔들릴 때 나타나는 패턴","평가와 비교 속에서 나를 지키는 방법을 살펴봅니다.","/tests/self-esteem"]];
+export default function Page(){return <main><ContentHeader active="/blog"/><section className="content-hero"><span className="eyebrow">MBTI · PSYCHOLOGY</span><h1>나를 이해하는<br/>MBTI·심리 콘텐츠</h1><p>검사 결과를 일상과 관계에서 건강하게 활용할 수 있도록 쉽게 설명합니다.</p></section><section className="content-body"><div className="blog-grid">{posts.map(([tag,title,desc,href])=><article key={title}><span>{tag}</span><h2>{title}</h2><p>{desc}</p><a href={href}>자세히 보기 →</a></article>)}</div></section><SiteFooter/></main>}
