@@ -621,3 +621,146 @@ button:focus-visible,a:focus-visible,input:focus-visible { outline:3px solid rgb
   .related-articles { padding:75px 20px; }
   .related-articles>div { grid-template-columns:1fr; }
 }
+
+/* Unified responsive navigation and sharing */
+.global-header {
+  position:sticky;
+  top:0;
+  z-index:60;
+  height:76px;
+  gap:22px;
+  border-bottom-color:rgba(23,42,70,.1);
+  background:rgba(255,254,251,.9);
+  box-shadow:0 8px 30px rgba(23,42,70,.05);
+}
+.global-header .logo { flex:none; color:var(--navy); }
+.desktop-nav { margin-left:auto; display:flex; align-items:center; gap:2px; }
+.desktop-nav a {
+  min-height:44px;
+  padding:0 12px;
+  display:inline-flex;
+  align-items:center;
+  border-radius:10px;
+  color:#626b7b;
+  font-size:13px;
+  font-weight:750;
+  text-decoration:none;
+  white-space:nowrap;
+}
+.desktop-nav a:hover,.desktop-nav a:focus-visible { color:var(--navy); background:#f0edf9; }
+.desktop-nav a.active { color:var(--violet); background:#eee9ff; }
+.header-cta {
+  min-height:44px;
+  padding:0 17px;
+  display:inline-flex;
+  align-items:center;
+  border-radius:11px;
+  background:var(--navy);
+  color:white;
+  font-size:13px;
+  font-weight:850;
+  text-decoration:none;
+  white-space:nowrap;
+}
+.menu-toggle,.mobile-nav,.menu-backdrop { display:none; }
+.article-share { padding:24px; border:1px solid var(--line); border-radius:18px; background:white; }
+.article-share>span { display:block; margin-bottom:14px; color:#8e9298; font-size:11px; font-weight:800; }
+.article-share button {
+  width:100%;
+  min-height:44px;
+  margin-top:8px;
+  border:1px solid #ded8ed;
+  border-radius:10px;
+  background:#f5f1ff;
+  color:var(--violet);
+  font-weight:800;
+  cursor:pointer;
+}
+.article-share button:first-of-type { border-color:var(--violet); background:var(--violet); color:white; }
+
+@media (max-width:1080px) {
+  .global-header { padding:0 24px; }
+  .desktop-nav,.header-cta { display:none; }
+  .menu-toggle {
+    width:46px;
+    height:46px;
+    margin-left:auto;
+    padding:11px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:5px;
+    border:1px solid rgba(23,42,70,.14);
+    border-radius:12px;
+    background:white;
+    cursor:pointer;
+  }
+  .menu-toggle span { width:100%; height:2px; border-radius:3px; background:var(--navy); transition:.2s ease; }
+  .menu-toggle[aria-expanded="true"] span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
+  .menu-toggle[aria-expanded="true"] span:nth-child(2) { opacity:0; }
+  .menu-toggle[aria-expanded="true"] span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
+  .menu-backdrop {
+    position:fixed;
+    inset:0;
+    z-index:49;
+    display:block;
+    border:0;
+    background:rgba(8,18,38,.48);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .22s ease;
+  }
+  .menu-backdrop.is-open { opacity:1; pointer-events:auto; }
+  .mobile-nav {
+    position:fixed;
+    top:76px;
+    right:0;
+    z-index:55;
+    width:min(88vw,380px);
+    height:calc(100dvh - 76px);
+    padding:28px 24px;
+    display:flex;
+    flex-direction:column;
+    background:#fffefa;
+    box-shadow:-24px 0 60px rgba(8,18,38,.16);
+    transform:translateX(104%);
+    visibility:hidden;
+    transition:transform .24s ease,visibility .24s;
+  }
+  .mobile-nav.is-open { transform:translateX(0); visibility:visible; }
+  .mobile-nav-label { margin-bottom:15px; color:#aaa2bb; font-size:10px; font-weight:900; letter-spacing:.18em; }
+  .mobile-nav>a:not(.mobile-nav-cta) {
+    min-height:58px;
+    padding:0 6px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    border-bottom:1px solid var(--line);
+    color:var(--navy);
+    font-size:18px;
+    font-weight:800;
+    text-decoration:none;
+  }
+  .mobile-nav>a.active { color:var(--violet); }
+  .mobile-nav a i { font-style:normal; font-weight:400; }
+  .mobile-nav-cta {
+    min-height:56px;
+    margin-top:auto;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:13px;
+    background:linear-gradient(135deg,var(--violet),#5541a8);
+    color:white;
+    font-weight:850;
+    text-decoration:none;
+  }
+  body.menu-open { overflow:hidden; }
+}
+
+@media (max-width:620px) {
+  .global-header { height:68px; padding:0 16px; }
+  .global-header .logo { font-size:18px; }
+  .global-header .brain-mark { width:32px; height:32px; }
+  .mobile-nav { top:68px; height:calc(100dvh - 68px); }
+}
