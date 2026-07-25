@@ -81,12 +81,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body>
+      <head>
+        <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
+        <link rel="preconnect" href="https://googleads.g.doubleclick.net" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="//pagead2.googlesyndication.com" />
         <script
           async
           crossOrigin="anonymous"
+          data-cfasync="false"
           src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
         />
+      </head>
+      <body>
         {children}
       </body>
     </html>
