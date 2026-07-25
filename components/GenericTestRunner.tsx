@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import type { GenericTest, ScoreMap } from "../lib/generic-tests";
 import { testCatalog } from "../lib/test-catalog";
 import SiteFooter from "./SiteFooter";
+import SiteHeader from "./SiteHeader";
 
 export default function GenericTestRunner({ test }: { test: GenericTest }) {
   const [screen, setScreen] = useState<"intro" | "test" | "result">("intro");
@@ -101,10 +102,7 @@ export default function GenericTestRunner({ test }: { test: GenericTest }) {
 
   return (
     <main className="generic-test" style={{ "--test-accent": result?.color || "#7657D6" } as React.CSSProperties}>
-      <header className="site-header">
-        <a className="logo" href="/"><span className="brain-mark">✦</span><b>MBTI 검사</b></a>
-        <nav className="site-nav"><a href="/">MBTI 검사</a><a className="active" href="/tests">심리테스트</a></nav>
-      </header>
+      <SiteHeader active="/tests" />
 
       {screen === "intro" && (
         <>
