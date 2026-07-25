@@ -1,3 +1,5 @@
+import { newSeoPosts } from "./new-seo-posts";
+
 export type BlogSection = {
   heading: string;
   paragraphs: string[];
@@ -22,6 +24,7 @@ export type BlogPost = {
 const commonDate = "2026-07-25";
 
 export const blogPosts: BlogPost[] = [
+  ...newSeoPosts,
   {
     slug: "mbti-test-guide",
     category: "MBTI 기초",
