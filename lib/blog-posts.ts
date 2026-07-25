@@ -1,4 +1,5 @@
 import { newSeoPosts } from "./new-seo-posts";
+import { celebrityPosts } from "./celebrity-posts";
 
 export type BlogSection = {
   heading: string;
@@ -24,6 +25,7 @@ export type BlogPost = {
 const commonDate = "2026-07-25";
 
 export const blogPosts: BlogPost[] = [
+  ...celebrityPosts,
   ...newSeoPosts,
   {
     slug: "mbti-test-guide",
