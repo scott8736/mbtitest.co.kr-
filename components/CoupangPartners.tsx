@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import AdUnit, { ADSENSE_DISPLAY_SLOT } from "./AdUnit";
 
 const widgetDocument = `<!doctype html>
 <html lang="ko">
@@ -34,43 +35,62 @@ export default function CoupangPartners() {
   if (!pathname || pathname === "/") return null;
 
   return (
-    <aside
-      aria-label="쿠팡 파트너스 광고"
-      style={{
-        width: "100%",
-        padding: "48px 16px 36px",
-        borderTop: "1px solid #e1e5dc",
-        background: "#fffefa",
-        textAlign: "center",
-      }}
+    <section
+      aria-label="페이지 하단 추천 및 광고"
+      style={{ width: "100%", background: "#fffefa" }}
     >
-      <span
+      <div
         style={{
-          display: "block",
-          marginBottom: 10,
-          color: "#92978f",
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: ".08em",
+          width: "100%",
+          padding: "52px 16px 44px",
+          borderTop: "1px solid #e1e5dc",
         }}
       >
-        추천 상품 · 광고
-      </span>
-      <iframe
-        title="쿠팡 파트너스 추천 상품"
-        srcDoc={widgetDocument}
-        loading="lazy"
-        referrerPolicy="strict-origin-when-cross-origin"
+        <div style={{ maxWidth: 960, margin: "0 auto" }}>
+          <AdUnit
+            key={`footer-ad-${pathname}`}
+            slot={ADSENSE_DISPLAY_SLOT}
+            label="페이지 하단 디스플레이 광고"
+          />
+        </div>
+      </div>
+      <aside
+        aria-label="쿠팡 파트너스 광고"
         style={{
-          display: "block",
-          width: "min(680px, 100%)",
-          height: 140,
-          margin: "0 auto",
-          border: 0,
-          overflow: "hidden",
-          background: "transparent",
+          width: "100%",
+          padding: "36px 16px 42px",
+          borderTop: "1px solid #edf0e9",
+          textAlign: "center",
         }}
-      />
-    </aside>
+      >
+        <span
+          style={{
+            display: "block",
+            marginBottom: 10,
+            color: "#92978f",
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: ".08em",
+          }}
+        >
+          추천 상품 · 광고
+        </span>
+        <iframe
+          key={`coupang-${pathname}`}
+          title="쿠팡 파트너스 추천 상품"
+          srcDoc={widgetDocument}
+          referrerPolicy="strict-origin-when-cross-origin"
+          style={{
+            display: "block",
+            width: "min(680px, 100%)",
+            height: 140,
+            margin: "0 auto",
+            border: 0,
+            overflow: "hidden",
+            background: "transparent",
+          }}
+        />
+      </aside>
+    </section>
   );
 }
