@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import AdUnit from "../../components/AdUnit";
 import ContentHeader from "../../components/ContentHeader";
 import SiteFooter from "../../components/SiteFooter";
 import { blogCategories, blogPosts } from "../../lib/blog-posts";
@@ -70,6 +71,8 @@ export default function BlogPage() {
         </p>
       </section>
 
+      <AdUnit label="심리 콘텐츠 상단 광고" />
+
       {blogCategories
         .filter((category) => category !== "전체")
         .map((category) => {
@@ -97,6 +100,8 @@ export default function BlogPage() {
             </section>
           );
         })}
+
+      <AdUnit placement="inArticle" label="심리 콘텐츠 하단 광고" />
 
       <section className="blog-hub-cta">
         <div>
