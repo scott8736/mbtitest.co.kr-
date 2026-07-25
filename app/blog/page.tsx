@@ -14,6 +14,14 @@ export const metadata: Metadata = {
     description: "나를 이해하고 관계를 돌아보는 MBTI·심리 콘텐츠와 무료 테스트",
     url: "https://mbtitest.co.kr/blog/",
     type: "website",
+    images: [
+      {
+        url: "/images/og/mbti-test-share.png",
+        width: 1200,
+        height: 630,
+        alt: "무료 MBTI 검사와 심리테스트 가이드",
+      },
+    ],
   },
 };
 
