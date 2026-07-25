@@ -5,6 +5,7 @@ import type { GenericTest, ScoreMap } from "../lib/generic-tests";
 import { testCatalog } from "../lib/test-catalog";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
+import AdUnit, { ADSENSE_DISPLAY_SLOT } from "./AdUnit";
 
 export default function GenericTestRunner({ test }: { test: GenericTest }) {
   const [screen, setScreen] = useState<"intro" | "test" | "result">("intro");
@@ -119,6 +120,7 @@ export default function GenericTestRunner({ test }: { test: GenericTest }) {
             )}
             <button className="primary-button" onClick={start}>무료 테스트 시작 <span>→</span></button>
           </section>
+          <AdUnit slot={ADSENSE_DISPLAY_SLOT} label="테스트 시작 전 광고" />
           <section className="generic-explain">
             <h2>이 테스트에서 확인할 수 있어요</h2>
             <div>{test.dimensions.map((dimension) => <article key={dimension.key}><b>{dimension.label}</b><p>일상과 관계에서 나타나는 나의 현재 성향을 질문을 통해 살펴봅니다.</p></article>)}</div>
@@ -150,6 +152,7 @@ export default function GenericTestRunner({ test }: { test: GenericTest }) {
           <h1>{displayName}</h1>
           <p className="rich-tagline">{result.tagline}</p>
           <p className="rich-summary">{result.summary}</p>
+          <AdUnit slot={ADSENSE_DISPLAY_SLOT} label="테스트 결과 광고" />
           <div className="trait-pills">{result.traits.map((trait) => <span key={trait}>{trait}</span>)}</div>
           <div className="rich-result-grid">
             <article><span>01</span><h2>빛나는 강점</h2>{result.strengths.map((x) => <p key={x}>✦ {x}</p>)}</article>
