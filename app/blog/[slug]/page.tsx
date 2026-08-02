@@ -130,7 +130,7 @@ export default async function BlogArticlePage({
             <AdUnit
               slot={ADSENSE_IN_ARTICLE_SLOT}
               format="fluid"
-              layout="in-article"
+              placement="inArticle"
               label="블로그 본문 광고"
             />
 
