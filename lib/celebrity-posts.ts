@@ -1,5 +1,7 @@
 import type { BlogPost } from "./blog-posts";
 
+// FUNdex public ranking checked: 2026-07-28
+
 const date = "2026-08-03";
 
 export const celebrityPosts: BlogPost[] = [
