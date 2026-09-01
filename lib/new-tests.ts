@@ -277,7 +277,7 @@ export const newTestCatalog: TestCatalogItem[] = seeds.map((seed) => ({
   duration: "약 2분",
   icon: seed.icon,
   color: seed.color,
-  href: `/tests/${seed.slug}`,
+  href: `/tests/${seed.slug}/`,
   status: "published",
   keywords: seed.keywords,
 }));

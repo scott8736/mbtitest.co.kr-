@@ -45,10 +45,10 @@ export default function BlogPage() {
             지금의 나에게 맞는 테스트로 이어지는 실용적인 가이드를 제공합니다.
           </p>
           <div className="blog-hero-actions">
-            <a className="primary-button" href="/">
+            <a className="primary-button" href="/tests/mbti/">
               무료 MBTI 검사 시작하기
             </a>
-            <a className="secondary-link" href="/tests">
+            <a className="secondary-link" href="/tests/">
               전체 심리테스트 보기 →
             </a>
           </div>
