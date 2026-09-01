@@ -107,7 +107,6 @@ export default function AdUnit({
       data-ad-placement={placement}
       data-ad-state="pending"
     >
-      <span className="ad-label">광고</span>
       <ins
         ref={adRef}
         className="adsbygoogle"

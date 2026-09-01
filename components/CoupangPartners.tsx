@@ -62,18 +62,6 @@ export default function CoupangPartners() {
           textAlign: "center",
         }}
       >
-        <span
-          style={{
-            display: "block",
-            marginBottom: 10,
-            color: "#92978f",
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: ".08em",
-          }}
-        >
-          추천 상품 · 광고
-        </span>
         <iframe
           key={`coupang-${pathname}`}
           title="쿠팡 파트너스 추천 상품"

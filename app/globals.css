@@ -385,7 +385,6 @@ button:focus-visible,a:focus-visible,input:focus-visible { outline:3px solid rgb
   line-height:1.6;
   text-align:center;
 }
-.ad-label { display:block; margin-bottom:7px; color:#9690a2; font-size:10px; text-align:center; }
 .site-footer {
   padding:42px clamp(24px,6vw,88px);
   display:flex;
