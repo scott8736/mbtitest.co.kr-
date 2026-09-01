@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import AdUnit from "../../../components/AdUnit";
 import ContentHeader from "../../../components/ContentHeader";
 import SiteFooter from "../../../components/SiteFooter";
 import ShareButtons from "../../../components/ShareButtons";
-import AdUnit, { ADSENSE_IN_ARTICLE_SLOT } from "../../../components/AdUnit";
 import { blogPosts, getBlogPost } from "../../../lib/blog-posts";
 
 export const dynamicParams = false;
@@ -66,6 +66,15 @@ export default async function BlogArticlePage({
   const related = post.relatedSlugs
     .map((relatedSlug) => getBlogPost(relatedSlug))
     .filter((item): item is NonNullable<typeof item> => Boolean(item));
+  const articleLength = [
+    ...post.intro,
+    ...post.sections.flatMap((section) => [
+      section.heading,
+      ...section.paragraphs,
+      ...(section.bullets || []),
+    ]),
+  ].join("").length;
+  const showLowerArticleAd = articleLength >= 2400;
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -122,17 +131,23 @@ export default async function BlogArticlePage({
         <div className="blog-article-layout">
           <div className="blog-article-content">
             <section className="article-intro">
-              {post.intro.map((paragraph) => (
+              {post.intro.slice(0, 2).map((paragraph) => (
                 <p key={paragraph}>{paragraph}</p>
               ))}
             </section>
 
             <AdUnit
-              slot={ADSENSE_IN_ARTICLE_SLOT}
-              format="fluid"
               placement="inArticle"
-              label="블로그 본문 광고"
+              label={`${post.title} 본문 광고`}
             />
+
+            {post.intro.length > 2 && (
+              <section className="article-intro article-intro-followup">
+                {post.intro.slice(2).map((paragraph) => (
+                  <p key={paragraph}>{paragraph}</p>
+                ))}
+              </section>
+            )}
 
             <aside className="article-inline-cta">
               <span>{post.cta.eyebrow}</span>
@@ -157,6 +172,30 @@ export default async function BlogArticlePage({
                 )}
               </section>
             ))}
+
+            {showLowerArticleAd && (
+              <AdUnit
+                placement="inArticle"
+                label={`${post.title} 하단 광고`}
+              />
+            )}
+
+            {post.sources && post.sources.length > 0 && (
+              <section className="article-section article-sources">
+                <span>SOURCE</span>
+                <h2>확인한 출처</h2>
+                <p>화제성 순위와 MBTI 정보는 아래 공개 자료를 기준으로 확인했습니다.</p>
+                <ul>
+                  {post.sources.map((source) => (
+                    <li key={source.href}>
+                      <a href={source.href} target="_blank" rel="noreferrer">
+                        {source.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
             <aside className="article-disclaimer">
               <strong>콘텐츠 이용 안내</strong>

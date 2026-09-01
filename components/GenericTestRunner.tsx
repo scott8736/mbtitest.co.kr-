@@ -3,9 +3,9 @@
 import { useMemo, useState } from "react";
 import type { GenericTest, ScoreMap } from "../lib/generic-tests";
 import { testCatalog } from "../lib/test-catalog";
+import AdUnit from "./AdUnit";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
-import AdUnit, { ADSENSE_DISPLAY_SLOT } from "./AdUnit";
 
 export default function GenericTestRunner({ test }: { test: GenericTest }) {
   const [screen, setScreen] = useState<"intro" | "test" | "result">("intro");
@@ -120,12 +120,12 @@ export default function GenericTestRunner({ test }: { test: GenericTest }) {
             )}
             <button className="primary-button" onClick={start}>무료 테스트 시작 <span>→</span></button>
           </section>
-          <AdUnit slot={ADSENSE_DISPLAY_SLOT} label="테스트 시작 전 광고" />
           <section className="generic-explain">
             <h2>이 테스트에서 확인할 수 있어요</h2>
             <div>{test.dimensions.map((dimension) => <article key={dimension.key}><b>{dimension.label}</b><p>일상과 관계에서 나타나는 나의 현재 성향을 질문을 통해 살펴봅니다.</p></article>)}</div>
             <p className="test-disclaimer">{test.disclaimer}</p>
           </section>
+          <AdUnit label={`${test.title} 시작 전 광고`} />
         </>
       )}
 
@@ -152,7 +152,6 @@ export default function GenericTestRunner({ test }: { test: GenericTest }) {
           <h1>{displayName}</h1>
           <p className="rich-tagline">{result.tagline}</p>
           <p className="rich-summary">{result.summary}</p>
-          <AdUnit slot={ADSENSE_DISPLAY_SLOT} label="테스트 결과 광고" />
           <div className="trait-pills">{result.traits.map((trait) => <span key={trait}>{trait}</span>)}</div>
           <div className="rich-result-grid">
             <article><span>01</span><h2>빛나는 강점</h2>{result.strengths.map((x) => <p key={x}>✦ {x}</p>)}</article>
@@ -163,6 +162,7 @@ export default function GenericTestRunner({ test }: { test: GenericTest }) {
           <div className="growth-plan"><span>나를 위한 작은 실천</span><h2>오늘부터 이렇게 해보세요</h2>{result.growth.map((x, i) => <p key={x}><b>{String(i + 1).padStart(2, "0")}</b>{x}</p>)}</div>
           <div className="result-actions"><button className="primary-button" onClick={share}>결과 공유하기 <span>↗</span></button><button className="secondary-button" onClick={downloadCard}>결과 이미지 저장</button><button className="secondary-button" onClick={start}>다시 검사하기</button></div>
           <p className="disclaimer">{test.disclaimer}</p>
+          <AdUnit label={`${test.title} 결과 광고`} />
           <div className="related-results"><span className="eyebrow">NEXT TEST</span><h2>나를 더 알아보는 다음 테스트</h2><div>{related.map((item) => item && <a href={item.href} key={item.slug}><span>{item.category}</span><strong>{item.title}</strong><small>{item.duration} · {item.questionCount}문항</small><i>시작하기 →</i></a>)}</div></div>
         </section>
       )}

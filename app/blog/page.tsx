@@ -101,7 +101,7 @@ export default function BlogPage() {
           );
         })}
 
-      <AdUnit placement="inArticle" label="심리 콘텐츠 하단 광고" />
+      <AdUnit label="심리 콘텐츠 하단 광고" />
 
       <section className="blog-hub-cta">
         <div>

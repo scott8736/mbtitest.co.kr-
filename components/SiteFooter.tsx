@@ -17,19 +17,7 @@ export default function SiteFooter() {
           <a href="/about">사이트 소개</a>
           <a href="/privacy">개인정보처리방침</a>
         </nav>
-        <p
-          style={{
-            flexBasis: "100%",
-            width: "100%",
-            margin: "22px 0 0",
-            paddingTop: 18,
-            borderTop: "1px solid rgba(255,255,255,.14)",
-            color: "rgba(255,255,255,.66)",
-            fontSize: 12,
-            lineHeight: 1.6,
-            textAlign: "center",
-          }}
-        >
+        <p className="partners-disclosure">
           파트너스 활동의 일환으로, 수수료 제공받음
         </p>
       </footer>

@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import AdUnit, { ADSENSE_DISPLAY_SLOT } from "./AdUnit";
+import AdUnit from "./AdUnit";
 
 const widgetDocument = `<!doctype html>
 <html lang="ko">
@@ -49,7 +49,6 @@ export default function CoupangPartners() {
         <div style={{ maxWidth: 960, margin: "0 auto" }}>
           <AdUnit
             key={`footer-ad-${pathname}`}
-            slot={ADSENSE_DISPLAY_SLOT}
             label="페이지 하단 디스플레이 광고"
           />
         </div>

@@ -33,7 +33,7 @@ export const testCatalog: TestCatalogItem[] = [
     duration: "약 4분",
     icon: "✦",
     color: "#527263",
-    href: "/",
+    href: "/test",
     status: "published",
     keywords: ["MBTI 검사", "엠비티아이 검사", "성격테스트"],
   },

@@ -283,3 +283,4 @@ export function pairInsight(a: MbtiCode, b: MbtiCode) {
     tip: `${A.code}는 “${A.communication.split(".")[0]}”는 점을, ${B.code}는 “${B.communication.split(".")[0]}”는 점을 기억하면 대화가 훨씬 수월해집니다.`,
   };
 }
+

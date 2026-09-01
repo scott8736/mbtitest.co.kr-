@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 import TestDirectory from "../components/TestDirectory";
-import AdUnit, { ADSENSE_DISPLAY_SLOT } from "../components/AdUnit";
+import AdUnit from "../components/AdUnit";
 import SiteFooter from "../components/SiteFooter";
 import SiteHeader from "../components/SiteHeader";
 
@@ -95,10 +96,39 @@ function BrainMark() {
 }
 
 export default function Home() {
-  const [screen, setScreen] = useState<"home" | "test" | "result">("home");
+  const pathname = usePathname();
+  const screen: "home" | "test" | "result" = pathname === "/test"
+    ? "test"
+    : pathname === "/mbti-result"
+      ? "result"
+      : "home";
   const [index, setIndex] = useState(0);
   const [scores, setScores] = useState<Record<Axis, number>>({ EI: 0, SN: 0, TF: 0, JP: 0 });
   const [result, setResult] = useState("INFJ");
+  const [resultReady, setResultReady] = useState(screen !== "result");
+
+  useEffect(() => {
+    if (screen !== "result") return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const saved = sessionStorage.getItem("mbti-test-result");
+      if (!saved) {
+        location.replace("/test");
+        return;
+      }
+      const parsed = JSON.parse(saved) as { result: string; scores: Record<Axis, number> };
+      if (!typeData[parsed.result] || !parsed.scores) throw new Error("invalid result");
+      timer = setTimeout(() => {
+        setResult(parsed.result);
+        setScores(parsed.scores);
+        setResultReady(true);
+      }, 0);
+    } catch {
+      sessionStorage.removeItem("mbti-test-result");
+      location.replace("/test");
+    }
+    return () => { if (timer) clearTimeout(timer); };
+  }, [screen]);
 
   const progress = ((index + 1) / questions.length) * 100;
   const resultInfo = typeData[result];
@@ -112,10 +142,8 @@ export default function Home() {
   }, [scores, result]);
 
   const start = () => {
-    setScores({ EI: 0, SN: 0, TF: 0, JP: 0 });
-    setIndex(0);
-    setScreen("test");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    sessionStorage.removeItem("mbti-test-result");
+    location.assign("/test");
   };
 
   const answer = (value: Answer) => {
@@ -126,10 +154,8 @@ export default function Home() {
       setIndex(index + 1);
     } else {
       const type = `${next.EI >= 0 ? "E" : "I"}${next.SN >= 0 ? "S" : "N"}${next.TF >= 0 ? "T" : "F"}${next.JP >= 0 ? "J" : "P"}`;
-      setScores(next);
-      setResult(type);
-      setScreen("result");
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      sessionStorage.setItem("mbti-test-result", JSON.stringify({ result: type, scores: next }));
+      location.assign("/mbti-result");
     }
   };
 
@@ -189,7 +215,7 @@ export default function Home() {
               <span className="eyebrow">FREE PERSONALITY TEST</span>
               <h1>나를 이해하는<br /><em>가장 선명한 질문</em></h1>
               <p>40개의 일상적인 질문으로 알아보는 무료 MBTI 검사.<br />지금의 나와 더 가까운 문장을 골라보세요.</p>
-              <button className="primary-button" onClick={start}>무료 MBTI 검사 시작 <span>→</span></button>
+              <a className="primary-button" href="/test">무료 MBTI 검사 시작 <span>→</span></a>
               <div className="trust-chips"><span>✓ 가입 없음</span><span>⚡ 결과 즉시 확인</span></div>
             </div>
             <div className="hero-floating-card" aria-label="검사 특징">
@@ -198,6 +224,7 @@ export default function Home() {
               <div><i>E · I</i><i>S · N</i><i>T · F</i><i>J · P</i></div>
             </div>
           </section>
+          <AdUnit key="home-start-ad" label="검사 시작 전 광고" />
           <section className="dimension-strip">
             {[
               ["E · I", "에너지 방향", "함께 또는 혼자"],
@@ -206,7 +233,6 @@ export default function Home() {
               ["J · P", "생활 방식", "계획 또는 유연함"],
             ].map(([code, title, desc]) => <article key={code}><b>{code}</b><div><strong>{title}</strong><span>{desc}</span></div></article>)}
           </section>
-          <AdUnit slot={ADSENSE_DISPLAY_SLOT} label="메인 콘텐츠 광고" />
           <section className="home-note">
             <p>성격은 네 글자로 끝나지 않습니다.</p>
             <h2>결과보다 중요한 건<br />나를 이해하는 과정이에요.</h2>
@@ -276,7 +302,7 @@ export default function Home() {
                 <p>이 사이트의 무료 MBTI 검사는 자기이해를 돕기 위해 네 가지 선호 지표를 간단히 살펴보는 비공식 성격테스트입니다. 의료·상담 목적의 심리검사, 채용 평가 또는 공식 MBTI® 검사를 대신하지 않습니다. 중요한 결정을 내릴 때는 검사 결과 하나로 사람의 능력이나 적합성을 판단하지 마세요.</p>
               </div>
             </section>
-            <AdUnit slot={ADSENSE_DISPLAY_SLOT} label="콘텐츠 내 광고" />
+            <AdUnit label="콘텐츠 내 광고" />
             <div className="faq">
               <h2>MBTI 검사 자주 묻는 질문</h2>
               <details><summary>MBTI 검사는 무료인가요?</summary><p>네. 회원가입이나 결제 없이 40개 문항에 답하고 결과를 바로 확인할 수 있습니다.</p></details>
@@ -291,7 +317,7 @@ export default function Home() {
 
       {screen === "test" && (
         <section className="test-shell">
-          <div className="test-top"><button onClick={() => setScreen("home")}>← 나가기</button><span>{index + 1} / {questions.length}</span></div>
+          <div className="test-top"><a href="/">← 나가기</a><span>{index + 1} / {questions.length}</span></div>
           <div className="progress"><i style={{ width: `${progress}%` }} /></div>
           <div className="question-card">
             <span className="question-kicker">둘 중 나와 더 가까운 문장은?</span>
@@ -306,13 +332,14 @@ export default function Home() {
         </section>
       )}
 
-      {screen === "result" && (
+      {screen === "result" && resultReady && (
         <section className="result-shell" style={{ "--result-color": resultInfo.color } as React.CSSProperties}>
           <span className="result-kicker">검사가 완료되었습니다</span>
           <div className="result-code">{result}</div>
           <h1>{resultInfo.name}</h1>
           <p className="result-tagline">{resultInfo.tagline}</p>
           <p className="result-description">{resultInfo.description}</p>
+          <AdUnit key={`result-top-${result}`} label="MBTI 결과 상단 광고" />
           <div className="result-grid">
             <article className="axis-card">
               <h2>나의 성향 지표</h2>
@@ -326,10 +353,10 @@ export default function Home() {
             <article><span>WORK</span><h2>일과 협업 스타일</h2><p>{typeDetails[result].work}</p></article>
             <article><span>RECOVERY</span><h2>스트레스 신호와 회복</h2><p>{typeDetails[result].stress}</p></article>
           </div>
+          <AdUnit key={`result-middle-${result}`} placement="inArticle" label="MBTI 결과 본문 광고" />
           <div className="growth-plan mbti-growth"><span>GROWTH POINT</span><h2>나를 더 편안하게 만드는 실천</h2>{typeDetails[result].growth.map((x, i) => <p key={x}><b>{String(i + 1).padStart(2, "0")}</b>{x}</p>)}</div>
           <div className="result-actions"><button className="primary-button" onClick={share}>결과 공유하기 <span>↗</span></button><button className="secondary-button" onClick={downloadResult}>결과 이미지 저장</button><button className="secondary-button" onClick={start}>다시 검사하기</button></div>
           <p className="disclaimer">본 테스트는 자기이해를 위한 간이 성격 테스트이며, 전문적인 심리 진단을 대신하지 않습니다.</p>
-          <AdUnit slot={ADSENSE_DISPLAY_SLOT} label="검사 결과 광고" />
           <div className="related-results mbti-related">
             <span className="eyebrow">NEXT TEST</span><h2>지금 결과와 이어서 해보세요</h2>
             <div>
