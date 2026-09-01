@@ -8,7 +8,7 @@ import SiteHeader from "../../components/SiteHeader";
 export const metadata: Metadata = {
   title: "무료 MBTI 검사 40문항",
   description: "40개 문항으로 진행하는 무료 MBTI 검사입니다.",
-  alternates: { canonical: "/tests/mbti/" },
+  alternates: { canonical: "/test/" },
   robots: { index: false, follow: true },
 };
 

@@ -8,8 +8,8 @@ export default function MbtiHome() {
           <section className="hero wellness-hero">
             <div className="hero-copy">
               <span className="eyebrow">FREE PERSONALITY TEST</span>
-              <h1>나를 이해하는<br /><em>가장 선명한 질문</em></h1>
-              <p>40개의 일상적인 질문으로 알아보는 무료 MBTI 검사.<br />지금의 나와 더 가까운 문장을 골라보세요.</p>
+              <h1>무료 MBTI 검사<br /><em>나를 이해하는 가장 선명한 질문</em></h1>
+              <p>40개의 일상적인 질문으로 알아보는 무료 MBTI 검사. <br />지금의 나와 더 가까운 문장을 골라보세요.</p>
               <a className="primary-button" href="/tests/mbti/">무료 MBTI 검사 시작 <span>→</span></a>
               <div className="trust-chips"><span>✓ 가입 없음</span><span>⚡ 결과 즉시 확인</span></div>
             </div>

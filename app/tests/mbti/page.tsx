@@ -9,6 +9,10 @@ export const metadata: Metadata = {
     "40개 문항으로 진행하는 무료 MBTI 검사입니다. 회원가입 없이 약 4분이면 16가지 성격유형 결과를 바로 확인할 수 있습니다.",
   keywords: ["MBTI 검사", "무료 MBTI 검사", "엠비티아이 검사", "MBTI 성격유형검사", "40문항 MBTI"],
   alternates: { canonical: "/tests/mbti/" },
+  // 같은 주제의 본문은 홈(/)에 있습니다. 이 URL 은 40문항을 푸는 화면이라
+  // 색인 대상에서 빼고 검색 신호를 홈으로 모읍니다. follow 는 유지해
+  // 여기서 나가는 내부 링크 가치는 그대로 흐르게 합니다.
+  robots: { index: false, follow: true },
   openGraph: {
     type: "website",
     url: "https://mbtitest.co.kr/tests/mbti/",
