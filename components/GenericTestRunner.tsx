@@ -6,6 +6,7 @@ import { testCatalog } from "../lib/test-catalog";
 import AdUnit from "./AdUnit";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
+import TestGuide from "./TestGuide";
 
 export default function GenericTestRunner({ test, resultOnly = false }: { test: GenericTest; resultOnly?: boolean }) {
   const [screen, setScreen] = useState<"intro" | "test" | "result">(resultOnly ? "result" : "intro");
@@ -133,7 +134,7 @@ export default function GenericTestRunner({ test, resultOnly = false }: { test: 
         <>
           <section className="generic-intro">
             <span className="eyebrow">{test.eyebrow}</span>
-            <h1>{test.title}</h1>
+            <h1>{test.heading || test.title}</h1>
             <p>{test.description}</p>
             <div className="generic-meta"><span>{test.questions.length}문항</span><span>{test.duration}</span><span>가입 없음</span></div>
             {test.slug === "egen-teto" && (
@@ -144,12 +145,15 @@ export default function GenericTestRunner({ test, resultOnly = false }: { test: 
             )}
             <button className="primary-button" onClick={start}>무료 테스트 시작 <span>→</span></button>
           </section>
+          {!test.whatYouLearn?.length && (
           <section className="generic-explain">
             <h2>이 테스트에서 확인할 수 있어요</h2>
             <div>{test.dimensions.map((dimension) => <article key={dimension.key}><b>{dimension.label}</b><p>일상과 관계에서 나타나는 나의 현재 성향을 질문을 통해 살펴봅니다.</p></article>)}</div>
             <p className="test-disclaimer">{test.disclaimer}</p>
           </section>
+          )}
           <AdUnit position="testIntro" label={`${test.title} 시작 전 광고`} />
+          <TestGuide test={test} />
         </>
       )}
 
