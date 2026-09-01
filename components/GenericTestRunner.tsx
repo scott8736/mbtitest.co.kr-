@@ -1,14 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { GenericTest, ScoreMap } from "../lib/generic-tests";
 import { testCatalog } from "../lib/test-catalog";
 import AdUnit from "./AdUnit";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
 
-export default function GenericTestRunner({ test }: { test: GenericTest }) {
-  const [screen, setScreen] = useState<"intro" | "test" | "result">("intro");
+export default function GenericTestRunner({ test, resultOnly = false }: { test: GenericTest; resultOnly?: boolean }) {
+  const [screen, setScreen] = useState<"intro" | "test" | "result">(resultOnly ? "result" : "intro");
   const [index, setIndex] = useState(0);
   const [scores, setScores] = useState<ScoreMap>({});
   const [resultKey, setResultKey] = useState(Object.keys(test.results)[0]);
@@ -25,7 +25,30 @@ export default function GenericTestRunner({ test }: { test: GenericTest }) {
     [test.related],
   );
 
+  useEffect(() => {
+    if (!resultOnly) return;
+    const saved = sessionStorage.getItem(`test-result:${test.slug}`);
+    if (!saved) {
+      location.replace(`/tests/${test.slug}`);
+      return;
+    }
+    try {
+      const parsed = JSON.parse(saved) as { resultKey: string; scores: ScoreMap; gender: "" | "여성" | "남성" };
+      if (!test.results[parsed.resultKey]) throw new Error("invalid result");
+      setResultKey(parsed.resultKey);
+      setScores(parsed.scores || {});
+      setGender(parsed.gender || "");
+    } catch {
+      sessionStorage.removeItem(`test-result:${test.slug}`);
+      location.replace(`/tests/${test.slug}`);
+    }
+  }, [resultOnly, test]);
+
   const start = () => {
+    if (resultOnly) {
+      location.assign(`/tests/${test.slug}`);
+      return;
+    }
     setScores({});
     setIndex(0);
     setScreen("test");
@@ -39,10 +62,11 @@ export default function GenericTestRunner({ test }: { test: GenericTest }) {
       setScores(next);
       setIndex(index + 1);
     } else {
+      const nextResultKey = evaluateTest(test, next);
       setScores(next);
-      setResultKey(evaluateTest(test, next));
-      setScreen("result");
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      setResultKey(nextResultKey);
+      sessionStorage.setItem(`test-result:${test.slug}`, JSON.stringify({ resultKey: nextResultKey, scores: next, gender }));
+      location.assign(`/tests/${test.slug}/result`);
     }
   };
 
