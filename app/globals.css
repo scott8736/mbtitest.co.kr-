@@ -792,3 +792,112 @@ main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% -
   .global-header .brain-mark { width:32px; height:32px; }
   .mobile-nav { top:68px; height:calc(100dvh - 68px); }
 }
+
+/* ── 검사 안내 본문 (components/TestGuide.tsx) ────────────────── */
+.test-guide { padding:0 24px 100px; background:var(--paper); }
+.test-guide > * { max-width:960px; margin-left:auto; margin-right:auto; }
+
+.guide-toc {
+  display:flex; flex-wrap:wrap; gap:8px;
+  padding:22px 0 0; margin-bottom:56px;
+}
+.guide-toc a {
+  padding:9px 16px; border:1px solid var(--line); border-radius:99px;
+  background:var(--white); color:var(--ink);
+  font-size:14px; font-weight:600; text-decoration:none;
+}
+.guide-toc a:hover { border-color:var(--violet); color:var(--violet); }
+
+.guide-section { margin-bottom:72px; scroll-margin-top:104px; }
+.guide-section > h2 {
+  margin:0 0 20px; font-size:clamp(28px,3.6vw,40px);
+  letter-spacing:-.05em; line-height:1.3;
+}
+.guide-section > p { margin:0 0 16px; color:var(--muted); font-size:17px; line-height:1.85; }
+.guide-lead { max-width:720px; }
+
+.guide-list { margin:0; padding-left:22px; color:var(--muted); font-size:17px; line-height:1.85; }
+.guide-list li { margin-bottom:10px; }
+.guide-list li::marker { color:var(--violet); }
+.guide-disclaimer {
+  margin:22px 0 0; padding:16px 18px; border-radius:14px;
+  background:var(--white); border:1px solid var(--line);
+  color:var(--muted); font-size:15px; line-height:1.75;
+}
+
+/* 유형별 상세 가이드 */
+.guide-types { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+.guide-types article {
+  padding:30px; border:1px solid var(--line); border-left:4px solid var(--guide-accent,var(--violet));
+  border-radius:20px; background:var(--white); text-align:left;
+}
+.guide-types h3 { margin:0 0 6px; font-size:24px; letter-spacing:-.04em; }
+.guide-tagline { margin:0 0 14px; color:var(--guide-accent,var(--violet)); font-weight:700; font-size:15px; }
+.guide-types p { margin:0 0 16px; color:var(--muted); font-size:16px; line-height:1.8; }
+.guide-types h4 {
+  margin:20px 0 8px; font-size:13px; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--ink); opacity:.62;
+}
+.guide-types ul { margin:0; padding-left:20px; color:var(--muted); font-size:16px; line-height:1.75; }
+.guide-types li { margin-bottom:6px; }
+.guide-types li::marker { color:var(--guide-accent,var(--violet)); }
+.guide-traits { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:4px; }
+.guide-traits span {
+  padding:6px 13px; border-radius:99px; font-size:13px; font-weight:600;
+  background:color-mix(in srgb,var(--guide-accent,var(--violet)) 12%,transparent);
+  color:var(--guide-accent,var(--violet));
+}
+
+/* 궁합표 */
+.guide-table-scroll { overflow-x:auto; }
+.guide-table {
+  width:100%; min-width:520px; border-collapse:collapse;
+  background:var(--white); border:1px solid var(--line); border-radius:16px; overflow:hidden;
+}
+.guide-table th, .guide-table td {
+  padding:16px 18px; text-align:left; font-size:16px; line-height:1.7;
+  border-bottom:1px solid var(--line);
+}
+.guide-table thead th {
+  font-size:13px; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--muted); font-weight:600; background:var(--paper);
+}
+.guide-table tbody th { white-space:nowrap; font-weight:700; color:var(--ink); }
+.guide-table tbody td { color:var(--muted); }
+.guide-table tbody tr:last-child th, .guide-table tbody tr:last-child td { border-bottom:0; }
+
+/* FAQ */
+.guide-faq { display:grid; gap:10px; }
+.guide-faq details {
+  padding:20px 24px; border:1px solid var(--line); border-radius:16px; background:var(--white);
+}
+.guide-faq summary {
+  cursor:pointer; font-weight:700; font-size:17px; color:var(--ink);
+  list-style:none; display:flex; justify-content:space-between; gap:16px; align-items:center;
+}
+.guide-faq summary::-webkit-details-marker { display:none; }
+.guide-faq summary::after { content:"+"; color:var(--violet); font-size:22px; font-weight:400; }
+.guide-faq details[open] summary::after { content:"−"; }
+.guide-faq p { margin:14px 0 0; color:var(--muted); font-size:16px; line-height:1.85; }
+
+/* 추천 테스트 */
+.guide-related { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+.guide-related a {
+  min-height:190px; padding:24px; display:flex; flex-direction:column;
+  border:1px solid var(--line); border-radius:20px; background:var(--white);
+  color:var(--ink); text-decoration:none;
+}
+.guide-related a:hover { border-color:var(--violet); }
+.guide-related span { font-size:12px; font-weight:700; color:var(--violet); }
+.guide-related strong { margin:12px 0 8px; font-size:19px; line-height:1.4; letter-spacing:-.03em; }
+.guide-related small { color:var(--muted); font-size:14px; }
+.guide-related i { margin-top:auto; font-style:normal; font-size:14px; font-weight:700; color:var(--violet); }
+
+@media (max-width:900px) {
+  .guide-types, .guide-related { grid-template-columns:1fr; }
+}
+@media (max-width:620px) {
+  .test-guide { padding:0 18px 70px; }
+  .guide-section { margin-bottom:54px; }
+  .guide-types article { padding:24px 20px; }
+}
