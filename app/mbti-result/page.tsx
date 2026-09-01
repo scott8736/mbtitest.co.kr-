@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import AdUnit from "../../components/AdUnit";
 import MbtiResult from "../../components/MbtiResult";
 import SiteFooter from "../../components/SiteFooter";
 import SiteHeader from "../../components/SiteHeader";
@@ -14,6 +15,7 @@ export default function MbtiResultPage() {
   return (
     <main>
       <SiteHeader active="/tests/mbti" />
+      <AdUnit position="resultTop" label="MBTI 결과 최상단 광고" />
       <MbtiResult />
       <SiteFooter />
     </main>

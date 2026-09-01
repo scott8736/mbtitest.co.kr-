@@ -155,6 +155,7 @@ export default function GenericTestRunner({ test, resultOnly = false }: { test: 
 
       {screen === "test" && (
         <section className="test-shell">
+          <AdUnit key={`test-top-${test.slug}`} position="testTop" label={`${test.title} 진행 화면 상단 광고`} />
           <div className="test-top"><button onClick={() => setScreen("intro")}>← 나가기</button><span>{index + 1} / {test.questions.length}</span></div>
           <div className="progress"><i style={{ width: `${((index + 1) / test.questions.length) * 100}%` }} /></div>
           <div className="question-card">
@@ -171,13 +172,13 @@ export default function GenericTestRunner({ test, resultOnly = false }: { test: 
 
       {screen === "result" && (
         <section className="rich-result">
+          <AdUnit key={`result-top-${resultKey}`} position="resultTop" label={`${test.title} 결과 최상단 광고`} />
           <span className="result-kicker">테스트가 완료되었습니다</span>
           <div className="result-symbol" style={{ background: result.color }}>{result.name.slice(0, 2)}</div>
           <h1>{displayName}</h1>
           <p className="rich-tagline">{result.tagline}</p>
           <p className="rich-summary">{result.summary}</p>
           <div className="trait-pills">{result.traits.map((trait) => <span key={trait}>{trait}</span>)}</div>
-          <AdUnit key={`result-top-${resultKey}`} position="resultTop" label={`${test.title} 결과 상단 광고`} />
           <div className="rich-result-grid">
             <article><span>01</span><h2>빛나는 강점</h2>{result.strengths.map((x) => <p key={x}>✦ {x}</p>)}</article>
             <article><span>02</span><h2>주의할 패턴</h2>{result.cautions.map((x) => <p key={x}>○ {x}</p>)}</article>

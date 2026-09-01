@@ -25,6 +25,7 @@ export type AdPosition =
   | "resultTop"
   | "resultMiddle"
   | "resultBottom"
+  | "testTop"
   | "testIntro"
   | "testListFeed"
   | "blogListFeed"
@@ -48,8 +49,9 @@ export const adSlots: Record<AdPosition, AdSlotConfig> = {
   resultMiddle: { slot: IN_ARTICLE_UNIT, format: "inArticle", name: "결과 본문 중간" },
   resultBottom: { slot: NEW_UNIT, format: "multiplex", name: "결과 하단(멀티플렉스)" },
 
-  // 검사 시작 화면 — 문항 진행 중에는 광고를 넣지 않습니다(오클릭 방지).
+  // 검사 화면 — 최상단에만 두고, 질문 카드·답변 버튼 주변에는 넣지 않습니다.
   testIntro: { slot: DISPLAY_UNIT, format: "display", name: "검사 시작 전" },
+  testTop: { slot: DISPLAY_UNIT, format: "display", name: "검사 화면 상단" },
 
   // 목록 화면 — 카드 사이에 섞이는 인피드 형식이 자연스럽습니다.
   testListFeed: { slot: NEW_UNIT, format: "inFeed", name: "테스트 목록 인피드" },

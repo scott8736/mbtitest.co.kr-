@@ -87,7 +87,6 @@ export default function MbtiResult() {
       <h1>{resultInfo.name}</h1>
       <p className="result-tagline">{resultInfo.tagline}</p>
       <p className="result-description">{resultInfo.description}</p>
-      <AdUnit key={`result-top-${result}`} position="resultTop" label="MBTI 결과 상단 광고" />
       <div className="result-grid">
         <article className="axis-card">
           <h2>나의 성향 지표</h2>
