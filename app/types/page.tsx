@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "MBTI 16가지 유형별 특징",
   description:
     "INTJ, ENFP, ISTJ 등 MBTI 16가지 성격유형의 특징과 강점, 관계 성향을 한눈에 확인하세요.",
-  alternates: { canonical: "/types" },
+  alternates: { canonical: "/types/" },
 };
 
 const groups = [
@@ -85,8 +85,8 @@ export default function Page() {
                   <b>{code}</b>
                   <h3>{name}</h3>
                   <p>{trait}</p>
-                  <a href={`/types/${code.toLowerCase()}`}>{code} 상세 설명 →</a>
-                  <a href={`/compatibility/${code.toLowerCase()}`}>{code} 궁합 알아보기 →</a>
+                  <a href={`/types/${code.toLowerCase()}/`}>{code} 상세 설명 →</a>
+                  <a href={`/compatibility/${code.toLowerCase()}/`}>{code} 궁합 알아보기 →</a>
                 </article>
               ))}
             </div>
@@ -105,7 +105,7 @@ export default function Page() {
             <a className="primary" href="/">
               무료 MBTI 검사 시작하기
             </a>
-            <a href="/compatibility">내 유형의 궁합 보기 →</a>
+            <a href="/compatibility/">내 유형의 궁합 보기 →</a>
           </div>
         </section>
       </section>

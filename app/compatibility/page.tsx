@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: "MBTI 궁합표와 유형별 관계",
   description:
     "MBTI 궁합을 소통, 갈등, 생활 방식 관점에서 확인하고 관계를 더 편안하게 만드는 방법을 알아보세요.",
-  alternates: { canonical: "/compatibility" },
+  alternates: { canonical: "/compatibility/" },
 };
 
 const pairs = [
@@ -51,7 +51,7 @@ export default function Page() {
                 <b>{profiles[code].code}</b>
                 <h3>{profiles[code].name} 궁합</h3>
                 <p>{profiles[code].tagline}</p>
-                <a href={`/compatibility/${code}`}>{profiles[code].code} 궁합 전체 보기 →</a>
+                <a href={`/compatibility/${code}/`}>{profiles[code].code} 궁합 전체 보기 →</a>
               </article>
             ))}
           </div>
@@ -64,7 +64,7 @@ export default function Page() {
               <b>{pair}</b>
               <h3>{title}</h3>
               <p>{desc}</p>
-              <a href="/tests/mbti-love-compatibility">연애 궁합 테스트 →</a>
+              <a href="/tests/mbti-love-compatibility/">연애 궁합 테스트 →</a>
             </article>
           ))}
         </div>
@@ -76,10 +76,10 @@ export default function Page() {
             <p>소통, 갈등 해결, 생활 방식에 관한 12문항으로 선호하는 궁합을 알아봅니다.</p>
           </div>
           <div>
-            <a className="primary" href="/tests/mbti-love-compatibility">
+            <a className="primary" href="/tests/mbti-love-compatibility/">
               MBTI 연애 궁합 테스트
             </a>
-            <a href="/types">16가지 유형 다시 보기 →</a>
+            <a href="/types/">16가지 유형 다시 보기 →</a>
           </div>
         </section>
 

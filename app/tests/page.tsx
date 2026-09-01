@@ -8,11 +8,11 @@ export const metadata: Metadata = {
   title: "무료 심리테스트 모음",
   description:
     "MBTI 검사부터 애착유형, 사랑의 언어, 자존감, 번아웃까지 무료 심리테스트를 한곳에서 확인하세요.",
-  alternates: { canonical: "/tests" },
+  alternates: { canonical: "/tests/" },
   openGraph: {
     title: "무료 심리테스트 모음 | MBTI 검사",
     description: "회원가입 없이 간편하게 즐기는 무료 성격·연애·마음건강 테스트",
-    url: "/tests",
+    url: "/tests/",
   },
 };
 

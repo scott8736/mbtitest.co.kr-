@@ -29,7 +29,7 @@ export default function GenericTestRunner({ test, resultOnly = false }: { test: 
     if (!resultOnly) return;
     const saved = sessionStorage.getItem(`test-result:${test.slug}`);
     if (!saved) {
-      location.replace(`/tests/${test.slug}`);
+      location.replace(`/tests/${test.slug}/`);
       return;
     }
     try {
@@ -40,13 +40,13 @@ export default function GenericTestRunner({ test, resultOnly = false }: { test: 
       setGender(parsed.gender || "");
     } catch {
       sessionStorage.removeItem(`test-result:${test.slug}`);
-      location.replace(`/tests/${test.slug}`);
+      location.replace(`/tests/${test.slug}/`);
     }
   }, [resultOnly, test]);
 
   const start = () => {
     if (resultOnly) {
-      location.assign(`/tests/${test.slug}`);
+      location.assign(`/tests/${test.slug}/`);
       return;
     }
     setScores({});
@@ -66,7 +66,7 @@ export default function GenericTestRunner({ test, resultOnly = false }: { test: 
       setScores(next);
       setResultKey(nextResultKey);
       sessionStorage.setItem(`test-result:${test.slug}`, JSON.stringify({ resultKey: nextResultKey, scores: next, gender }));
-      location.assign(`/tests/${test.slug}/result`);
+      location.assign(`/tests/${test.slug}/result/`);
     }
   };
 

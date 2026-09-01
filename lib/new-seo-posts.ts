@@ -22,7 +22,7 @@ export const newSeoPosts: BlogPost[] = [
       { heading: "독립적인 연애는 무관심과 다릅니다", paragraphs: ["혼자 있는 시간과 각자의 취미를 지키려는 태도는 애정 부족이 아닐 수 있습니다. 상대가 필요한 거리와 연락 방식을 구체적으로 말하면 추측으로 생기는 불안을 줄일 수 있습니다."], bullets: ["연락이 필요한 시간대 정하기", "혼자 있는 시간이 필요한 이유 설명하기", "함께하는 시간에는 서로에게 집중하기"] },
       { heading: "결과를 관계 대화에 활용하는 방법", paragraphs: ["결과 이름보다 내가 선택한 문장에 주목하세요. 상대에게 바라는 행동을 비난 없이 설명하고, 상대의 표현 중 내가 놓치고 있던 신호가 무엇인지 함께 찾아보는 것이 좋습니다."] },
     ],
-    cta: { eyebrow: "12문항 · 약 2분", title: "나의 연애 성향은 어떤 유형일까요?", description: "애정 표현과 관계에서 중요하게 보는 기준을 확인하세요.", href: "/tests/love-tendency", label: "연애 성향 테스트 시작하기" },
+    cta: { eyebrow: "12문항 · 약 2분", title: "나의 연애 성향은 어떤 유형일까요?", description: "애정 표현과 관계에서 중요하게 보는 기준을 확인하세요.", href: "/tests/love-tendency/", label: "연애 성향 테스트 시작하기" },
     relatedSlugs: ["dating-style-contact-guide", "love-ability-guide", "love-language-guide"],
   },
   {
@@ -44,7 +44,7 @@ export const newSeoPosts: BlogPost[] = [
       { heading: "갈등을 해결하는 속도도 다릅니다", paragraphs: ["바로 이야기해야 마음이 놓이는 사람이 있고 감정을 정리할 시간이 있어야 차분하게 말할 수 있는 사람이 있습니다. 잠시 쉬기로 했다면 대화를 다시 시작할 시간을 함께 정해야 방치된 느낌을 줄일 수 있습니다."] },
       { heading: "커플 연락 규칙은 구체적이어야 합니다", paragraphs: ["연락을 잘하자는 추상적인 약속보다 서로 실행할 수 있는 기준을 정하세요."], bullets: ["출근·퇴근처럼 중요한 시점에 짧게 알리기", "몇 시간 이상 답하기 어려울 때 미리 말하기", "다툼 중 잠시 쉴 경우 다시 대화할 시간 정하기"] },
     ],
-    cta: { eyebrow: "12문항 · 약 2분", title: "나의 연락·데이트 스타일을 확인하세요", description: "연락, 데이트, 갈등 해결 방식으로 연애 스타일을 알아봅니다.", href: "/tests/dating-style", label: "연애 스타일 테스트 시작하기" },
+    cta: { eyebrow: "12문항 · 약 2분", title: "나의 연락·데이트 스타일을 확인하세요", description: "연락, 데이트, 갈등 해결 방식으로 연애 스타일을 알아봅니다.", href: "/tests/dating-style/", label: "연애 스타일 테스트 시작하기" },
     relatedSlugs: ["love-tendency-guide", "adult-attachment-guide", "love-ability-guide"],
   },
   {
@@ -66,7 +66,7 @@ export const newSeoPosts: BlogPost[] = [
       { heading: "SJ와 SP는 생활 속도에서 차이가 나타납니다", paragraphs: ["SJ 성향은 약속과 계획의 일관성을, SP 성향은 현재 상황에 맞는 유연함을 편하게 느낄 수 있습니다. 계획을 지켜야 하는 영역과 즉흥적으로 바꿀 수 있는 영역을 나누면 서로의 장점을 활용할 수 있습니다."] },
       { heading: "좋은 궁합은 조합보다 조율 능력에 가깝습니다", paragraphs: ["갈등이 없는 커플보다 갈등 후 회복하는 방법을 아는 커플이 관계를 안정적으로 유지합니다."], bullets: ["공감과 해결 중 무엇이 먼저 필요한지 묻기", "혼자 회복하는 시간을 거절로 해석하지 않기", "연락·돈·시간에 대한 현실적인 기준 합의하기"] },
     ],
-    cta: { eyebrow: "12문항 · 약 2분", title: "나와 잘 맞는 MBTI 관계 스타일은?", description: "소통과 생활 방식으로 선호하는 MBTI 궁합을 확인하세요.", href: "/tests/mbti-love-compatibility", label: "MBTI 연애 궁합 테스트 시작하기" },
+    cta: { eyebrow: "12문항 · 약 2분", title: "나와 잘 맞는 MBTI 관계 스타일은?", description: "소통과 생활 방식으로 선호하는 MBTI 궁합을 확인하세요.", href: "/tests/mbti-love-compatibility/", label: "MBTI 연애 궁합 테스트 시작하기" },
     relatedSlugs: ["love-tendency-guide", "mbti-t-vs-f", "dating-style-contact-guide"],
   },
   {
@@ -88,7 +88,7 @@ export const newSeoPosts: BlogPost[] = [
       { heading: "갈등 회복에는 사과 이후의 변화가 필요합니다", paragraphs: ["좋은 사과는 잘못을 인정하고 상대가 받은 영향을 이해하며 다음 행동을 제안합니다. 같은 문제가 반복된다면 감정적인 화해보다 실행 가능한 규칙을 정해야 합니다."] },
       { heading: "건강한 경계가 관계를 오래가게 합니다", paragraphs: ["사랑하는 사람의 모든 요구를 받아주는 것이 관계 능력은 아닙니다. 감당할 수 없는 부탁과 필요한 혼자만의 시간을 설명할 수 있어야 애정이 의무와 소진으로 바뀌는 것을 막을 수 있습니다."] },
     ],
-    cta: { eyebrow: "12문항 · 약 2분", title: "현재 나의 연애 강점은 무엇일까요?", description: "공감·표현·갈등 해결·관계 균형 능력을 확인하세요.", href: "/tests/love-ability", label: "연애 능력 테스트 시작하기" },
+    cta: { eyebrow: "12문항 · 약 2분", title: "현재 나의 연애 강점은 무엇일까요?", description: "공감·표현·갈등 해결·관계 균형 능력을 확인하세요.", href: "/tests/love-ability/", label: "연애 능력 테스트 시작하기" },
     relatedSlugs: ["love-tendency-guide", "dating-style-contact-guide", "self-esteem-patterns"],
   },
   {
@@ -110,7 +110,7 @@ export const newSeoPosts: BlogPost[] = [
       { heading: "기분 소비는 감정 조절 방식일 수 있습니다", paragraphs: ["힘든 날 작은 소비로 기분을 바꾸는 행동 자체가 문제는 아닙니다. 다만 불안과 피로가 반복될 때마다 구매가 유일한 회복 방법이 되면 지출과 감정이 함께 흔들릴 수 있습니다."] },
       { heading: "후회를 줄이는 세 가지 질문", paragraphs: ["결제 전에 짧게 멈추고 다음 질문을 확인해 보세요."], bullets: ["지금 필요한 것인가, 감정을 바꾸고 싶은 것인가", "일주일 뒤에도 같은 가격으로 사고 싶은가", "비슷한 물건이나 경험을 이미 가지고 있는가"] },
     ],
-    cta: { eyebrow: "12문항 · 약 2분", title: "나는 어떤 소비에서 만족을 느낄까요?", description: "돈을 쓰는 기준과 후회 패턴으로 소비 성향을 확인하세요.", href: "/tests/spending-style", label: "소비 성향 테스트 시작하기" },
+    cta: { eyebrow: "12문항 · 약 2분", title: "나는 어떤 소비에서 만족을 느낄까요?", description: "돈을 쓰는 기준과 후회 패턴으로 소비 성향을 확인하세요.", href: "/tests/spending-style/", label: "소비 성향 테스트 시작하기" },
     relatedSlugs: ["self-esteem-patterns", "burnout-signs", "self-reflection-guide"],
   },
   {
@@ -132,7 +132,7 @@ export const newSeoPosts: BlogPost[] = [
       { heading: "마감 질주형은 인공적인 중간 마감이 필요합니다", paragraphs: ["압박이 생겨야 집중이 올라오는 사람은 최종 마감만 두면 막판에 모든 에너지를 사용하게 됩니다. 다른 사람에게 중간 결과를 보여주는 약속을 만들면 긴박감을 안전하게 앞당길 수 있습니다."] },
       { heading: "흥미 유목형은 변화와 보상을 설계하세요", paragraphs: ["반복 작업을 짧은 단위로 나누고 장소나 도구를 바꾸면 새로운 자극을 만들 수 있습니다."], bullets: ["25분 집중 후 짧은 보상 정하기", "시각적으로 진행률 표시하기", "지루한 일과 재미있는 일을 번갈아 배치하기"] },
     ],
-    cta: { eyebrow: "12문항 · 약 2분", title: "나는 왜 자꾸 일을 미룰까요?", description: "게으름 뒤에 있는 에너지와 동기 패턴을 확인하세요.", href: "/tests/lazy-mbti", label: "게으름 MBTI 테스트 시작하기" },
+    cta: { eyebrow: "12문항 · 약 2분", title: "나는 왜 자꾸 일을 미룰까요?", description: "게으름 뒤에 있는 에너지와 동기 패턴을 확인하세요.", href: "/tests/lazy-mbti/", label: "게으름 MBTI 테스트 시작하기" },
     relatedSlugs: ["burnout-signs", "perfectionism-guide", "self-reflection-guide"],
   },
   {
@@ -154,7 +154,7 @@ export const newSeoPosts: BlogPost[] = [
       { heading: "카리스마는 명확함과 배려의 균형입니다", paragraphs: ["분명한 의견은 신뢰를 줄 수 있지만 상대의 말을 끊거나 결론을 서두르면 강압적으로 느껴질 수 있습니다. 먼저 상대의 관점을 확인한 뒤 의견을 말하면 자신감과 존중을 함께 보여줄 수 있습니다."] },
       { heading: "첫인상은 이후의 행동으로 수정됩니다", paragraphs: ["처음의 인상은 관계의 결론이 아닙니다. 반복되는 약속, 대화 태도, 도움을 주고받는 경험이 쌓이면서 사람에 대한 평가는 계속 달라집니다. 첫 만남을 완벽하게 만들려 하기보다 일관된 태도를 유지하는 편이 중요합니다."] },
     ],
-    cta: { eyebrow: "12문항 · 약 2분", title: "사람들이 느끼는 나의 첫인상은?", description: "처음 만난 자리에서 나타나는 말투와 행동을 확인하세요.", href: "/tests/first-impression", label: "첫인상 테스트 시작하기" },
+    cta: { eyebrow: "12문항 · 약 2분", title: "사람들이 느끼는 나의 첫인상은?", description: "처음 만난 자리에서 나타나는 말투와 행동을 확인하세요.", href: "/tests/first-impression/", label: "첫인상 테스트 시작하기" },
     relatedSlugs: ["self-esteem-patterns", "personality-guide", "love-tendency-guide"],
   },
   {
@@ -176,7 +176,7 @@ export const newSeoPosts: BlogPost[] = [
       { heading: "오래된 우정도 표현이 필요합니다", paragraphs: ["자주 연락하지 않아도 편안한 관계가 있지만, 이해해주겠지라는 생각만으로 감사와 관심을 생략하면 연결이 약해질 수 있습니다. 짧은 안부와 중요한 날을 기억하는 행동이 관계의 신뢰를 유지합니다."] },
       { heading: "건강한 우정에는 경계가 있습니다", paragraphs: ["친구의 어려움을 돕는 일과 친구의 모든 문제를 대신 책임지는 일은 다릅니다. 감당할 수 있는 범위를 솔직하게 말하고 서로의 시간과 다른 관계를 존중해야 우정이 부담으로 변하지 않습니다."] },
     ],
-    cta: { eyebrow: "12문항 · 약 2분", title: "친구 사이에서 나는 어떤 역할일까요?", description: "우리 우정을 상징하는 나침반·담요·불꽃·닻을 확인하세요.", href: "/tests/friendship-symbol", label: "우정 징표 테스트 시작하기" },
+    cta: { eyebrow: "12문항 · 약 2분", title: "친구 사이에서 나는 어떤 역할일까요?", description: "우리 우정을 상징하는 나침반·담요·불꽃·닻을 확인하세요.", href: "/tests/friendship-symbol/", label: "우정 징표 테스트 시작하기" },
     relatedSlugs: ["emotional-boundaries-guide", "adult-attachment-guide", "self-reflection-guide"],
   },
   {
@@ -198,7 +198,7 @@ export const newSeoPosts: BlogPost[] = [
       { heading: "단단한 벽과 건강한 경계는 다릅니다", paragraphs: ["건강한 경계는 상대를 차단하는 것이 아니라 허용할 수 있는 행동과 어려운 행동을 설명하는 것입니다. 반복적으로 경계를 무시하는 관계에는 거리가 필요하지만, 한 번의 실수까지 모든 신뢰의 끝으로 판단할 필요는 없습니다."] },
       { heading: "회복을 위한 대화 공식", paragraphs: ["감정이 조금 가라앉은 뒤 사실, 감정, 필요, 요청의 순서로 말해보세요."], bullets: ["어떤 행동이 있었는지 평가 없이 설명하기", "그때 느낀 감정을 한두 단어로 말하기", "앞으로 필요한 행동을 구체적으로 요청하기"] },
     ],
-    cta: { eyebrow: "12문항 · 약 2분", title: "나는 상처를 받으면 어떻게 반응할까요?", description: "마음을 보호하는 현재의 감정 반응을 확인하세요.", href: "/tests/dont-get-hurt", label: "상처받지 마 테스트 시작하기" },
+    cta: { eyebrow: "12문항 · 약 2분", title: "나는 상처를 받으면 어떻게 반응할까요?", description: "마음을 보호하는 현재의 감정 반응을 확인하세요.", href: "/tests/dont-get-hurt/", label: "상처받지 마 테스트 시작하기" },
     relatedSlugs: ["friendship-style-guide", "self-esteem-patterns", "adult-attachment-guide"],
   },
   {
@@ -220,7 +220,7 @@ export const newSeoPosts: BlogPost[] = [
       { heading: "행동하면서 배우는 사람도 있습니다", paragraphs: ["충분히 생각해야만 자신을 이해할 수 있는 것은 아닙니다. 작은 시도를 하고 결과를 돌아보는 방식은 머릿속 예상과 실제 감정의 차이를 알려줍니다. 실패를 성격의 증거가 아니라 정보로 보는 태도가 중요합니다."] },
       { heading: "스스로에게 던질 네 가지 질문", paragraphs: ["결정을 앞두거나 감정이 복잡할 때 다음 질문을 활용해보세요."], bullets: ["지금 내가 실제로 느끼는 감정은 무엇인가", "이 상황에서 지키고 싶은 가치는 무엇인가", "두려움이 없다면 어떤 선택을 하고 싶은가", "지금 할 수 있는 가장 작은 행동은 무엇인가"] },
     ],
-    cta: { eyebrow: "12문항 · 약 2분", title: "나는 어떤 방식으로 나를 이해할까요?", description: "기록·대화·경험·관찰 중 나에게 맞는 성찰 방식을 찾으세요.", href: "/tests/self-reflection", label: "자아 성찰 테스트 시작하기" },
+    cta: { eyebrow: "12문항 · 약 2분", title: "나는 어떤 방식으로 나를 이해할까요?", description: "기록·대화·경험·관찰 중 나에게 맞는 성찰 방식을 찾으세요.", href: "/tests/self-reflection/", label: "자아 성찰 테스트 시작하기" },
     relatedSlugs: ["lazy-mbti-procrastination", "self-esteem-patterns", "emotional-boundaries-guide"],
   },
 ];

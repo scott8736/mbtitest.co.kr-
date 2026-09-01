@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description:
     "MBTI 4가지 지표, 유형별 차이, 궁합, 애착유형, 번아웃, 자존감과 사랑의 언어를 쉽게 설명하는 심리테스트 콘텐츠입니다.",
   keywords: ["MBTI 검사", "심리테스트", "성격테스트", "MBTI 궁합", "애착유형 테스트"],
-  alternates: { canonical: "/blog" },
+  alternates: { canonical: "/blog/" },
   openGraph: {
     title: "MBTI 검사·심리테스트 가이드",
     description: "나를 이해하고 관계를 돌아보는 MBTI·심리 콘텐츠와 무료 테스트",
@@ -109,7 +109,7 @@ export default function BlogPage() {
           <h2>테스트로 현재의 나부터 확인해 보세요</h2>
           <p>가입 없이 바로 시작하고 결과에 맞는 성격·관계 콘텐츠를 이어서 볼 수 있습니다.</p>
         </div>
-        <a href="/tests">나에게 맞는 심리테스트 찾기</a>
+        <a href="/tests/">나에게 맞는 심리테스트 찾기</a>
       </section>
       <SiteFooter />
     </main>
