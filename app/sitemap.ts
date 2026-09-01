@@ -1,83 +1,18 @@
 import type { MetadataRoute } from "next";
-import { blogPosts } from "../lib/blog-posts";
-import { mbtiCodes } from "../lib/mbti-content";
-import { newTestSlugs } from "../lib/new-tests";
+import { SITE_ORIGIN, siteUrls } from "../lib/site-urls";
 
 export const dynamic = "force-static";
 
-// trailingSlash: true 설정이므로 사이트맵 주소도 모두 슬래시로 끝내
-// 불필요한 308 리다이렉트가 생기지 않게 합니다.
-const base = "https://mbtitest.co.kr";
-const url = (path: string) => `${base}${path}`;
-
+/**
+ * 실제로 /sitemap.xml 을 응답하는 곳은 worker/index.ts 입니다.
+ * trailingSlash: true 때문에 이 라우트가 어느 경로로도 잡히지 않아서인데,
+ * 주소 목록은 lib/site-urls.ts 한 곳에서 가져오므로 둘이 어긋나지 않습니다.
+ */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
-
-  return [
-    {
-      url: url("/"),
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 1,
-    },
-    {
-      url: url("/tests/mbti/"),
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.95,
-    },
-    {
-      url: url("/tests/"),
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    ...[
-      "egen-teto",
-      "adult-attachment",
-      "mental-age",
-      "love-language",
-      "self-esteem",
-      "burnout",
-      "work-style",
-      ...newTestSlugs,
-    ].map((test) => ({
-      url: url(`/tests/${test}/`),
-      lastModified: now,
-      changeFrequency: "monthly" as const,
-      priority: 0.9,
-    })),
-    ...["result", "types", "compatibility", "blog"].map((page) => ({
-      url: url(`/${page}/`),
-      lastModified: now,
-      changeFrequency: "weekly" as const,
-      priority: 0.8,
-    })),
-    ...mbtiCodes.flatMap((type) => [
-      {
-        url: url(`/types/${type}/`),
-        lastModified: new Date("2026-07-25"),
-        changeFrequency: "monthly" as const,
-        priority: 0.85,
-      },
-      {
-        url: url(`/compatibility/${type}/`),
-        lastModified: new Date("2026-07-25"),
-        changeFrequency: "monthly" as const,
-        priority: 0.82,
-      },
-    ]),
-    ...blogPosts.map((post) => ({
-      url: url(`/blog/${post.slug}/`),
-      lastModified: new Date(post.updatedAt),
-      changeFrequency: "monthly" as const,
-      priority: 0.75,
-    })),
-    ...["about", "contact", "privacy"].map((page) => ({
-      url: url(`/${page}/`),
-      lastModified: now,
-      changeFrequency: "yearly" as const,
-      priority: 0.3,
-    })),
-  ];
+  return siteUrls().map(({ path, lastModified, changeFrequency, priority }) => ({
+    url: `${SITE_ORIGIN}${path}`,
+    lastModified,
+    changeFrequency,
+    priority,
+  }));
 }
