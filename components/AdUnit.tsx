@@ -31,7 +31,7 @@ export default function AdUnit({
   const resolvedSlot = slot || slots[placement];
   const resolvedFormat = format || (placement === "inArticle" ? "fluid" : "auto");
   const wrapperRef = useRef<HTMLElement>(null);
-  const adRef = useRef<HTMLElement>(null);
+  const adRef = useRef<HTMLModElement>(null);
   const requestedRef = useRef(false);
 
   useEffect(() => {
