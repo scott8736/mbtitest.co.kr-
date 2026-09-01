@@ -38,7 +38,7 @@ export default function Page() {
       </section>
 
       <section className="content-body">
-        <AdUnit label="MBTI 궁합 상단 광고" />
+        <AdUnit position="articleTop" label="MBTI 궁합 상단 광고" />
 
         <section className="type-section">
           <div>
@@ -101,7 +101,7 @@ export default function Page() {
           </p>
         </section>
 
-        <AdUnit label="MBTI 궁합 하단 광고" />
+        <AdUnit position="pageFooter" label="MBTI 궁합 하단 광고" />
       </section>
       <SiteFooter />
     </main>

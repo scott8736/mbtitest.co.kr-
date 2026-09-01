@@ -137,7 +137,7 @@ export default async function BlogArticlePage({
             </section>
 
             <AdUnit
-              placement="inArticle"
+              position="articleBody"
               label={`${post.title} 본문 광고`}
             />
 
@@ -175,7 +175,7 @@ export default async function BlogArticlePage({
 
             {showLowerArticleAd && (
               <AdUnit
-                placement="inArticle"
+                position="articleBody"
                 label={`${post.title} 하단 광고`}
               />
             )}

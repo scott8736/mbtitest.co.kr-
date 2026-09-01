@@ -87,7 +87,7 @@ export default function MbtiResult() {
       <h1>{resultInfo.name}</h1>
       <p className="result-tagline">{resultInfo.tagline}</p>
       <p className="result-description">{resultInfo.description}</p>
-      <AdUnit key={`result-top-${result}`} label="MBTI 결과 상단 광고" />
+      <AdUnit key={`result-top-${result}`} position="resultTop" label="MBTI 결과 상단 광고" />
       <div className="result-grid">
         <article className="axis-card">
           <h2>나의 성향 지표</h2>
@@ -101,7 +101,7 @@ export default function MbtiResult() {
         <article><span>WORK</span><h2>일과 협업 스타일</h2><p>{typeDetails[result].work}</p></article>
         <article><span>RECOVERY</span><h2>스트레스 신호와 회복</h2><p>{typeDetails[result].stress}</p></article>
       </div>
-      <AdUnit key={`result-middle-${result}`} placement="inArticle" label="MBTI 결과 본문 광고" />
+      <AdUnit key={`result-middle-${result}`} position="resultMiddle" label="MBTI 결과 본문 광고" />
       <div className="growth-plan mbti-growth"><span>GROWTH POINT</span><h2>나를 더 편안하게 만드는 실천</h2>{typeDetails[result].growth.map((x, i) => <p key={x}><b>{String(i + 1).padStart(2, "0")}</b>{x}</p>)}</div>
       <div className="result-actions"><button className="primary-button" onClick={share}>결과 공유하기 <span>↗</span></button><button className="secondary-button" onClick={downloadResult}>결과 이미지 저장</button><button className="secondary-button" onClick={start}>다시 검사하기</button></div>
       <p className="disclaimer">본 테스트는 자기이해를 위한 간이 성격 테스트이며, 전문적인 심리 진단을 대신하지 않습니다.</p>
@@ -113,7 +113,7 @@ export default function MbtiResult() {
           <a href={`/compatibility/${result.toLowerCase()}/`}><span>궁합</span><strong>{result} MBTI 궁합</strong><small>잘 맞는 유형과 소통 방법</small><i>{result} 궁합 보기 →</i></a>
         </div>
       </div>
-      <AdUnit key={`result-bottom-${result}`} label="MBTI 결과 하단 광고" />
+      <AdUnit key={`result-bottom-${result}`} position="resultBottom" label="MBTI 결과 하단 광고" />
       <div className="related-results mbti-related">
         <span className="eyebrow">NEXT TEST</span><h2>지금 결과와 이어서 해보세요</h2>
         <div>

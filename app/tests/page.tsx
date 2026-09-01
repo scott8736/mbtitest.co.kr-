@@ -28,7 +28,7 @@ export default function TestsPage() {
       <section className="directory-section" aria-label="심리테스트 목록">
         <TestDirectory />
       </section>
-      <AdUnit label="테스트 목록 광고" />
+      <AdUnit position="testListFeed" label="테스트 목록 인피드 광고" />
       <section className="directory-note">
         <h2>새로운 테스트가 계속 추가됩니다</h2>
         <p>각 테스트는 자기이해를 돕는 참고 자료이며 전문적인 심리 평가나 의료적 진단을 대신하지 않습니다.</p>
