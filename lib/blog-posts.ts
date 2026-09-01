@@ -185,7 +185,7 @@ export const blogPosts: BlogPost[] = [
       { heading: "궁합을 볼 때 피해야 할 해석", paragraphs: ["상대의 모든 행동을 유형 탓으로 돌리거나, 유형을 이유로 무례한 행동을 정당화해서는 안 됩니다. 신뢰, 존중, 책임감은 어떤 조합에서도 별도로 확인해야 하는 관계의 기본입니다."] },
       { heading: "궁합표를 대화 질문으로 바꾸기", paragraphs: ["'우리는 잘 맞을까?'보다 '나는 갈등 후 바로 대화하고 싶은데 너는 시간이 필요한가?', '계획 변경은 언제 알려주면 좋은가?'처럼 실제 행동을 묻는 편이 관계에 도움이 됩니다."] },
     ],
-    cta: { eyebrow: "16가지 유형 조합", title: "두 사람의 MBTI 관계 포인트를 확인하세요", description: "유형 조합별 강점과 조심할 대화 방식을 가볍게 살펴볼 수 있습니다.", href: "/compatibility", label: "MBTI 궁합 확인하기" },
+    cta: { eyebrow: "16가지 유형 조합", title: "두 사람의 MBTI 관계 포인트를 확인하세요", description: "유형 조합별 강점과 조심할 대화 방식을 가볍게 살펴볼 수 있습니다.", href: "/compatibility/", label: "MBTI 궁합 확인하기" },
     relatedSlugs: ["mbti-e-vs-i", "mbti-t-vs-f", "attachment-style-guide"],
   },
   {
@@ -205,7 +205,7 @@ export const blogPosts: BlogPost[] = [
       { heading: "한 사람에게 한 유형만 나타나지는 않습니다", paragraphs: ["상대와 상황에 따라 안정적이던 사람이 불안해지거나, 특정 관계에서만 회피 행동이 강해질 수 있습니다. 결과는 현재 관계에서 반복되는 반응을 관찰하는 출발점으로 보는 것이 좋습니다."] },
       { heading: "관계를 조금 더 안정적으로 만드는 연습", paragraphs: ["감정이 올라왔을 때 바로 결론을 내리기보다 사실과 해석을 구분해 적어보고, 필요한 것을 비난 없이 구체적으로 요청해 보세요. 어려움이 지속되고 일상 기능에 영향을 준다면 전문 상담을 고려할 수 있습니다."], bullets: ["연락이 늦었다는 사실과 사랑이 식었다는 해석을 구분하기", "혼자 정리할 시간이 필요하다면 돌아올 시간을 함께 알리기", "상대의 반응을 시험하기보다 필요한 안심을 직접 요청하기"] },
     ],
-    cta: { eyebrow: "24문항 · 약 3분", title: "관계에서 반복되는 나의 애착 패턴은?", description: "안정형·불안형·회피형 경향을 가볍게 점검해 보세요. 의료적 진단을 대신하지 않습니다.", href: "/tests/adult-attachment", label: "애착유형 테스트 시작하기" },
+    cta: { eyebrow: "24문항 · 약 3분", title: "관계에서 반복되는 나의 애착 패턴은?", description: "안정형·불안형·회피형 경향을 가볍게 점검해 보세요. 의료적 진단을 대신하지 않습니다.", href: "/tests/adult-attachment/", label: "애착유형 테스트 시작하기" },
     relatedSlugs: ["mbti-compatibility-guide", "love-language-guide", "self-esteem-patterns"],
   },
   {
@@ -224,7 +224,7 @@ export const blogPosts: BlogPost[] = [
       { heading: "회복은 에너지 누수를 줄이는 것부터", paragraphs: ["더 열심히 쉬려고 계획하기보다 현재 에너지를 가장 많이 빼앗는 업무와 관계를 찾는 것이 먼저입니다. 미룰 일, 위임할 일, 기준을 낮출 일을 구분해 회복 공간을 만들어 보세요."] },
       { heading: "일상에서 시작하는 회복 계획", paragraphs: ["수면 시간을 일정하게 맞추고, 업무 종료 시점을 정하고, 짧은 산책처럼 몸의 긴장을 낮추는 행동을 반복하는 것이 도움이 됩니다. 상태가 심하거나 우울감과 불안이 지속된다면 의료기관이나 전문상담기관의 도움을 받으세요."] },
     ],
-    cta: { eyebrow: "18문항 · 약 2분", title: "현재 나의 소진 신호를 가볍게 점검하세요", description: "업무 피로와 정서적 소진 경향을 확인하고 회복 계획을 세워보세요.", href: "/tests/burnout", label: "번아웃 테스트 시작하기" },
+    cta: { eyebrow: "18문항 · 약 2분", title: "현재 나의 소진 신호를 가볍게 점검하세요", description: "업무 피로와 정서적 소진 경향을 확인하고 회복 계획을 세워보세요.", href: "/tests/burnout/", label: "번아웃 테스트 시작하기" },
     relatedSlugs: ["self-esteem-patterns", "mbti-j-vs-p", "mbti-result-changes"],
   },
   {
@@ -244,7 +244,7 @@ export const blogPosts: BlogPost[] = [
       { heading: "완벽해야 시작할 수 있다고 느낍니다", paragraphs: ["실패가 능력 전체에 대한 평가처럼 느껴지면 준비만 오래 하고 시도는 미루게 됩니다. 작은 실험으로 시작하고 결과와 자신의 가치를 분리하는 연습이 필요합니다."] },
       { heading: "자존감을 회복하는 작은 기준", paragraphs: ["막연한 긍정 문장보다 지킬 수 있는 약속을 작게 정하고 실행한 기록을 남겨보세요. 친한 사람에게 말하듯 자신에게도 구체적이고 현실적인 언어를 사용하는 것이 도움이 됩니다."], bullets: ["성과가 아니라 과정에서 지킨 행동 기록하기", "비교를 촉발하는 환경과 사용 시간을 조절하기", "거절할 때 설명을 길게 하기보다 가능한 범위를 말하기"] },
     ],
-    cta: { eyebrow: "20문항 · 약 3분", title: "지금 나를 바라보는 태도를 점검해 보세요", description: "평가와 비교 속에서 나타나는 자기 존중의 현재 패턴을 확인합니다.", href: "/tests/self-esteem", label: "자존감 테스트 시작하기" },
+    cta: { eyebrow: "20문항 · 약 3분", title: "지금 나를 바라보는 태도를 점검해 보세요", description: "평가와 비교 속에서 나타나는 자기 존중의 현재 패턴을 확인합니다.", href: "/tests/self-esteem/", label: "자존감 테스트 시작하기" },
     relatedSlugs: ["burnout-signs", "attachment-style-guide", "love-language-guide"],
   },
   {
@@ -265,7 +265,7 @@ export const blogPosts: BlogPost[] = [
       { heading: "스킨십", paragraphs: ["손잡기, 포옹처럼 동의된 신체적 접촉을 통해 안정감과 애정을 느끼는 방식입니다. 서로의 경계와 편안함을 존중하는 것이 가장 중요합니다."] },
       { heading: "한 가지 언어로 고정되지 않습니다", paragraphs: ["상황과 관계에 따라 필요한 표현은 달라질 수 있습니다. 결과를 상대에게 요구하는 근거로 사용하기보다 서로의 선호를 묻고 새로운 표현을 시도하는 대화의 출발점으로 활용하세요."] },
     ],
-    cta: { eyebrow: "20문항 · 약 3분", title: "나는 어떤 표현에서 사랑을 크게 느낄까요?", description: "다섯 가지 사랑의 언어 중 현재 나에게 중요한 표현 방식을 확인해 보세요.", href: "/tests/love-language", label: "사랑의 언어 테스트 시작하기" },
+    cta: { eyebrow: "20문항 · 약 3분", title: "나는 어떤 표현에서 사랑을 크게 느낄까요?", description: "다섯 가지 사랑의 언어 중 현재 나에게 중요한 표현 방식을 확인해 보세요.", href: "/tests/love-language/", label: "사랑의 언어 테스트 시작하기" },
     relatedSlugs: ["attachment-style-guide", "mbti-compatibility-guide", "self-esteem-patterns"],
   },
   {
@@ -285,7 +285,7 @@ export const blogPosts: BlogPost[] = [
       { heading: "성별과 호르몬을 단정하면 안 됩니다", paragraphs: ["에겐녀·테토녀·에겐남·테토남이라는 이름 때문에 실제 에스트로겐이나 테스토스테론 수치와 연결하기 쉽지만, 온라인 성향 구분만으로 호르몬 상태를 알 수 없습니다. 건강과 관련된 판단은 의료적 검사를 통해 확인해야 합니다."] },
       { heading: "테스트는 재미와 자기이해용으로 활용하세요", paragraphs: ["결과를 매력이나 우열의 기준으로 보지 말고 내가 공감과 실행 중 어느 방식을 자연스럽게 사용하는지 살펴보는 가벼운 질문으로 활용하는 것이 좋습니다."] },
     ],
-    cta: { eyebrow: "20문항 · 약 2분", title: "나는 에겐과 테토 중 어디에 가까울까요?", description: "호르몬 검사가 아닌 대중문화 기반의 재미있는 성향 테스트입니다.", href: "/tests/egen-teto", label: "에겐·테토 테스트 시작하기" },
+    cta: { eyebrow: "20문항 · 약 2분", title: "나는 에겐과 테토 중 어디에 가까울까요?", description: "호르몬 검사가 아닌 대중문화 기반의 재미있는 성향 테스트입니다.", href: "/tests/egen-teto/", label: "에겐·테토 테스트 시작하기" },
     relatedSlugs: ["mbti-t-vs-f", "love-language-guide", "mbti-test-guide"],
   },
   {
@@ -304,7 +304,7 @@ export const blogPosts: BlogPost[] = [
       { heading: "상황에 따라 결과가 달라집니다", paragraphs: ["업무에서는 신중하고 책임감 있게 행동하지만 친구들과 있을 때는 장난기와 호기심이 커질 수 있습니다. 현재 어떤 역할을 떠올리며 답했는지에 따라 결과가 달라집니다."] },
       { heading: "결과에서 확인할 것은 숫자보다 패턴", paragraphs: ["나이 숫자 자체보다 변화에 얼마나 열려 있는지, 감정과 책임 사이에서 어떤 균형을 선택하는지 살펴보세요. 부족한 점을 판단하기보다 최근의 생활 태도를 돌아보는 계기로 활용하면 좋습니다."] },
     ],
-    cta: { eyebrow: "15문항 · 약 2분", title: "지금 내 마음의 나이는 몇 살일까요?", description: "호기심과 책임감, 변화에 대한 태도로 현재 마음의 나이를 재미있게 확인합니다.", href: "/tests/mental-age", label: "정신연령 테스트 시작하기" },
+    cta: { eyebrow: "15문항 · 약 2분", title: "지금 내 마음의 나이는 몇 살일까요?", description: "호기심과 책임감, 변화에 대한 태도로 현재 마음의 나이를 재미있게 확인합니다.", href: "/tests/mental-age/", label: "정신연령 테스트 시작하기" },
     relatedSlugs: ["self-esteem-patterns", "mbti-result-changes", "egen-teto-difference"],
   },
 ];

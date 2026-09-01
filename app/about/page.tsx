@@ -5,13 +5,13 @@ import SiteFooter from "../../components/SiteFooter";
 export const metadata: Metadata = {
   title: "사이트 소개",
   description: "MBTI 검사와 무료 심리테스트 사이트의 운영 목적과 테스트 이용 안내입니다.",
-  alternates: { canonical: "/about" },
+  alternates: { canonical: "/about/" },
 };
 
 export default function AboutPage() {
   return (
     <main className="info-page">
-      <header className="simple-header"><Link className="logo" href="/"><span className="brain-mark">✦</span><b>MBTI 검사</b></Link><Link href="/tests">심리테스트 보기</Link></header>
+      <header className="simple-header"><Link className="logo" href="/"><span className="brain-mark">✦</span><b>MBTI 검사</b></Link><Link href="/tests/">심리테스트 보기</Link></header>
       <article className="info-article">
         <span className="eyebrow">ABOUT</span>
         <h1>나를 이해하는 질문을<br />더 쉽고 편안하게</h1>

@@ -5,13 +5,13 @@ import SiteFooter from "../../components/SiteFooter";
 export const metadata: Metadata = {
   title: "문의하기",
   description: "MBTI 검사 사이트의 오류 신고, 제휴 및 콘텐츠 관련 문의 안내입니다.",
-  alternates: { canonical: "/contact" },
+  alternates: { canonical: "/contact/" },
 };
 
 export default function ContactPage() {
   return (
     <main className="info-page">
-      <header className="simple-header"><Link className="logo" href="/"><span className="brain-mark">✦</span><b>MBTI 검사</b></Link><Link href="/tests">심리테스트 보기</Link></header>
+      <header className="simple-header"><Link className="logo" href="/"><span className="brain-mark">✦</span><b>MBTI 검사</b></Link><Link href="/tests/">심리테스트 보기</Link></header>
       <article className="info-article">
         <span className="eyebrow">CONTACT</span>
         <h1>서비스 문의</h1>

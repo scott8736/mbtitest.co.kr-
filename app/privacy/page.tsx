@@ -5,13 +5,13 @@ import SiteFooter from "../../components/SiteFooter";
 export const metadata: Metadata = {
   title: "개인정보처리방침",
   description: "MBTI 검사 사이트의 개인정보 및 쿠키·광고 이용 안내입니다.",
-  alternates: { canonical: "/privacy" },
+  alternates: { canonical: "/privacy/" },
 };
 
 export default function PrivacyPage() {
   return (
     <main className="info-page">
-      <header className="simple-header"><Link className="logo" href="/"><span className="brain-mark">✦</span><b>MBTI 검사</b></Link><Link href="/tests">심리테스트 보기</Link></header>
+      <header className="simple-header"><Link className="logo" href="/"><span className="brain-mark">✦</span><b>MBTI 검사</b></Link><Link href="/tests/">심리테스트 보기</Link></header>
       <article className="info-article policy-copy">
         <span className="eyebrow">PRIVACY</span>
         <h1>개인정보처리방침</h1>
