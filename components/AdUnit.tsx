@@ -1,6 +1,12 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import {
+  ADSENSE_CLIENT,
+  adAttributes,
+  resolveAdSlot,
+  type AdPosition,
+} from "../lib/ad-slots";
 
 declare global {
   interface Window {
@@ -8,28 +14,17 @@ declare global {
   }
 }
 
-export const ADSENSE_CLIENT = "ca-pub-8646375689901020";
-export const ADSENSE_DISPLAY_SLOT = "4581470308";
-export const ADSENSE_IN_ARTICLE_SLOT = "5081143693";
-
-const slots = {
-  display: ADSENSE_DISPLAY_SLOT,
-  inArticle: ADSENSE_IN_ARTICLE_SLOT,
-} as const;
+export { ADSENSE_CLIENT };
 
 export default function AdUnit({
-  slot,
-  placement = "display",
-  format,
-  label = "광고",
+  position = "pageFooter",
+  label,
 }: {
-  slot?: string;
-  placement?: keyof typeof slots;
-  format?: "auto" | "fluid" | "rectangle";
+  /** 자리 이름. 슬롯 ID와 형식은 lib/ad-slots.ts 에서 가져옵니다. */
+  position?: AdPosition;
   label?: string;
 }) {
-  const resolvedSlot = slot || slots[placement];
-  const resolvedFormat = format || (placement === "inArticle" ? "fluid" : "auto");
+  const { slot, format, layoutKey, name } = resolveAdSlot(position);
   const wrapperRef = useRef<HTMLElement>(null);
   const adRef = useRef<HTMLModElement>(null);
   const requestedRef = useRef(false);
@@ -59,7 +54,8 @@ export default function AdUnit({
         return;
       }
 
-      const minimumWidth = placement === "inArticle" ? 250 : 1;
+      // 인아티클·인피드·멀티플렉스는 좁은 폭에서 렌더가 실패하므로 폭을 먼저 확인합니다.
+      const minimumWidth = format === "display" ? 1 : 250;
       if (ad.getBoundingClientRect().width < minimumWidth) return;
 
       attempts += 1;
@@ -97,14 +93,14 @@ export default function AdUnit({
       cancelAnimationFrame(animationFrame);
       if (retryTimer) clearTimeout(retryTimer);
     };
-  }, [placement, resolvedSlot]);
+  }, [format, slot]);
 
   return (
     <aside
       ref={wrapperRef}
       className="ad-unit"
-      aria-label={label}
-      data-ad-placement={placement}
+      aria-label={label || name}
+      data-ad-placement={position}
       data-ad-state="pending"
     >
       <ins
@@ -112,10 +108,8 @@ export default function AdUnit({
         className="adsbygoogle"
         style={{ display: "block" }}
         data-ad-client={ADSENSE_CLIENT}
-        data-ad-slot={resolvedSlot}
-        data-ad-format={resolvedFormat}
-        data-ad-layout={placement === "inArticle" ? "in-article" : undefined}
-        data-full-width-responsive="true"
+        data-ad-slot={slot}
+        {...adAttributes(format, layoutKey)}
       />
     </aside>
   );

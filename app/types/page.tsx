@@ -71,7 +71,7 @@ export default function Page() {
       </section>
 
       <section className="content-body">
-        <AdUnit label="16가지 유형 상단 광고" />
+        <AdUnit position="articleTop" label="16가지 유형 상단 광고" />
 
         {groups.map(([title, desc, items]) => (
           <section className="type-section" key={title as string}>
@@ -93,7 +93,7 @@ export default function Page() {
           </section>
         ))}
 
-        <AdUnit label="16가지 유형 하단 광고" />
+        <AdUnit position="pageFooter" label="16가지 유형 하단 광고" />
 
         <section className="related-page-cta">
           <div>

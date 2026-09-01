@@ -71,7 +71,7 @@ export default function BlogPage() {
         </p>
       </section>
 
-      <AdUnit label="심리 콘텐츠 상단 광고" />
+      <AdUnit position="articleTop" label="심리 콘텐츠 상단 광고" />
 
       {blogCategories
         .filter((category) => category !== "전체")
@@ -101,7 +101,7 @@ export default function BlogPage() {
           );
         })}
 
-      <AdUnit label="심리 콘텐츠 하단 광고" />
+      <AdUnit position="blogListFeed" label="심리 콘텐츠 목록 인피드 광고" />
 
       <section className="blog-hub-cta">
         <div>

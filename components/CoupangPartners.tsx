@@ -49,6 +49,7 @@ export default function CoupangPartners() {
         <div style={{ maxWidth: 960, margin: "0 auto" }}>
           <AdUnit
             key={`footer-ad-${pathname}`}
+            position="pageFooter"
             label="페이지 하단 디스플레이 광고"
           />
         </div>

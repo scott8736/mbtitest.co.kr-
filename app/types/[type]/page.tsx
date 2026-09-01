@@ -45,12 +45,12 @@ export default async function TypePage({params}:{params:Promise<{type:string}>})
     </header>
     <article className={styles.body}>
       <section className={styles.answer}><strong>{p.code}는 어떤 성격인가요?</strong><p>{p.summary}</p></section>
-      <AdUnit label={`${p.code} 유형 상단 광고`} />
+      <AdUnit position="articleTop" label={`${p.code} 유형 상단 광고`} />
       <nav className={styles.toc} aria-label="페이지 목차"><a href="#core">핵심 성향</a><a href="#strengths">강점과 주의점</a><a href="#love">연애와 호감 신호</a><a href="#work">직업·업무</a><a href="#stress">스트레스</a><a href="#communication">소통 방법</a><a href="#compatibility">유형별 궁합</a><a href="#faq">자주 묻는 질문</a></nav>
       <section id="core" className={styles.section}><h2>{p.code} 핵심 성향과 사고방식</h2><p>{p.core}</p><h3>{p.code}를 이해하는 핵심</h3><p>{p.misconception}</p></section>
       <section id="strengths" className={styles.section}><h2>{p.code} 장점과 주의할 점</h2><div className={styles.grid}><div className={styles.card}><h3>대표적인 강점</h3><ul>{p.strengths.map(x=><li key={x}>{x}</li>)}</ul></div><div className={styles.card}><h3>성장할 때 살펴볼 점</h3><ul>{p.cautions.map(x=><li key={x}>{x}</li>)}</ul></div></div></section>
       <section id="love" className={styles.section}><h2>{p.code} 연애 특징</h2><p>{p.love}</p><h3>{p.code}가 호감 있을 때 보내는 신호</h3><p>{p.signal}</p></section>
-      <AdUnit placement="inArticle" label={`${p.code} 유형 본문 광고`} />
+      <AdUnit position="articleBody" label={`${p.code} 유형 본문 광고`} />
       <section id="work" className={styles.section}><h2>{p.code} 직업·업무·공부 스타일</h2><p>{p.work}</p><p>유형은 직업 적성을 결정하는 검사가 아닙니다. 실제 선택에서는 능력, 경험, 흥미, 생활 조건을 함께 고려해야 합니다.</p></section>
       <section id="stress" className={styles.section}><h2>{p.code}가 스트레스받을 때</h2><p>{p.stress}</p></section>
       <section id="communication" className={styles.section}><h2>{p.code}와 편안하게 소통하는 방법</h2><p>{p.communication}</p></section>

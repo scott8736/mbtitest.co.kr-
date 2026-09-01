@@ -149,7 +149,7 @@ export default function GenericTestRunner({ test, resultOnly = false }: { test: 
             <div>{test.dimensions.map((dimension) => <article key={dimension.key}><b>{dimension.label}</b><p>일상과 관계에서 나타나는 나의 현재 성향을 질문을 통해 살펴봅니다.</p></article>)}</div>
             <p className="test-disclaimer">{test.disclaimer}</p>
           </section>
-          <AdUnit label={`${test.title} 시작 전 광고`} />
+          <AdUnit position="testIntro" label={`${test.title} 시작 전 광고`} />
         </>
       )}
 
@@ -177,16 +177,18 @@ export default function GenericTestRunner({ test, resultOnly = false }: { test: 
           <p className="rich-tagline">{result.tagline}</p>
           <p className="rich-summary">{result.summary}</p>
           <div className="trait-pills">{result.traits.map((trait) => <span key={trait}>{trait}</span>)}</div>
+          <AdUnit key={`result-top-${resultKey}`} position="resultTop" label={`${test.title} 결과 상단 광고`} />
           <div className="rich-result-grid">
             <article><span>01</span><h2>빛나는 강점</h2>{result.strengths.map((x) => <p key={x}>✦ {x}</p>)}</article>
             <article><span>02</span><h2>주의할 패턴</h2>{result.cautions.map((x) => <p key={x}>○ {x}</p>)}</article>
             <article className="wide"><span>03</span><h2>관계 속의 나</h2><p>{result.relationship}</p></article>
             <article className="wide"><span>04</span><h2>일상과 성장</h2><p>{result.dailyLife}</p></article>
           </div>
+          <AdUnit key={`result-middle-${resultKey}`} position="resultMiddle" label={`${test.title} 결과 본문 광고`} />
           <div className="growth-plan"><span>나를 위한 작은 실천</span><h2>오늘부터 이렇게 해보세요</h2>{result.growth.map((x, i) => <p key={x}><b>{String(i + 1).padStart(2, "0")}</b>{x}</p>)}</div>
           <div className="result-actions"><button className="primary-button" onClick={share}>결과 공유하기 <span>↗</span></button><button className="secondary-button" onClick={downloadCard}>결과 이미지 저장</button><button className="secondary-button" onClick={start}>다시 검사하기</button></div>
           <p className="disclaimer">{test.disclaimer}</p>
-          <AdUnit label={`${test.title} 결과 광고`} />
+          <AdUnit key={`result-bottom-${resultKey}`} position="resultBottom" label={`${test.title} 결과 하단 광고`} />
           <div className="related-results"><span className="eyebrow">NEXT TEST</span><h2>나를 더 알아보는 다음 테스트</h2><div>{related.map((item) => item && <a href={item.href} key={item.slug}><span>{item.category}</span><strong>{item.title}</strong><small>{item.duration} · {item.questionCount}문항</small><i>시작하기 →</i></a>)}</div></div>
         </section>
       )}
