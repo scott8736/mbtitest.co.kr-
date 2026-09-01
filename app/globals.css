@@ -373,6 +373,9 @@ button:focus-visible,a:focus-visible,input:focus-visible { outline:3px solid rgb
 .ad-unit .adsbygoogle { width:100%; min-width:250px; }
 .ad-unit[data-ad-state="filled"] { background:transparent; }
 .ad-unit[data-ad-state="unfilled"] { display:none; }
+.ad-unit[data-ad-placement="testTop"] { margin:0 auto 26px; }
+.ad-unit[data-ad-placement="resultTop"] { margin:0 auto 30px; }
+main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% - 40px)); }
 
 .partners-disclosure {
   flex-basis:100%;

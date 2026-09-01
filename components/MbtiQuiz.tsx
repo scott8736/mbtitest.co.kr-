@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import AdUnit from "./AdUnit";
 import { questions, type Answer, type Axis } from "../lib/mbti-data";
 
 export default function MbtiQuiz() {
@@ -24,6 +25,7 @@ export default function MbtiQuiz() {
 
   return (
     <section className="test-shell">
+      <AdUnit position="testTop" label="MBTI 검사 진행 화면 상단 광고" />
       <div className="test-top"><a href="/">← 나가기</a><span>{index + 1} / {questions.length}</span></div>
       <div className="progress"><i style={{ width: `${progress}%` }} /></div>
       <div className="question-card">
