@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 const links = [
-  ["/test", "MBTI 검사"],
+  ["/tests/mbti", "MBTI 검사"],
   ["/tests", "심리테스트"],
   ["/types", "16가지 유형"],
   ["/compatibility", "MBTI 궁합"],
@@ -41,7 +41,7 @@ export default function SiteHeader({ active }: { active: string }) {
           ))}
         </nav>
 
-        <a className="header-cta" href="/test" aria-label="무료 MBTI 검사 시작">
+        <a className="header-cta" href="/tests/mbti" aria-label="무료 MBTI 검사 시작">
           무료 검사 시작
         </a>
 
@@ -85,7 +85,7 @@ export default function SiteHeader({ active }: { active: string }) {
             <i aria-hidden="true">→</i>
           </a>
         ))}
-        <a className="mobile-nav-cta" href="/test" tabIndex={open ? 0 : -1}>
+        <a className="mobile-nav-cta" href="/tests/mbti" tabIndex={open ? 0 : -1}>
           무료 MBTI 검사 시작
         </a>
       </nav>

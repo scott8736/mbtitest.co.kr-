@@ -97,7 +97,7 @@ function BrainMark() {
 
 export default function Home() {
   const pathname = usePathname();
-  const screen: "home" | "test" | "result" = pathname === "/test"
+  const screen: "home" | "test" | "result" = pathname === "/test" || pathname === "/tests/mbti"
     ? "test"
     : pathname === "/mbti-result"
       ? "result"
@@ -113,7 +113,7 @@ export default function Home() {
     try {
       const saved = sessionStorage.getItem("mbti-test-result");
       if (!saved) {
-        location.replace("/test");
+        location.replace("/tests/mbti");
         return;
       }
       const parsed = JSON.parse(saved) as { result: string; scores: Record<Axis, number> };
@@ -125,7 +125,7 @@ export default function Home() {
       }, 0);
     } catch {
       sessionStorage.removeItem("mbti-test-result");
-      location.replace("/test");
+      location.replace("/tests/mbti");
     }
     return () => { if (timer) clearTimeout(timer); };
   }, [screen]);
@@ -143,7 +143,7 @@ export default function Home() {
 
   const start = () => {
     sessionStorage.removeItem("mbti-test-result");
-    location.assign("/test");
+    location.assign("/tests/mbti");
   };
 
   const answer = (value: Answer) => {
@@ -215,7 +215,7 @@ export default function Home() {
               <span className="eyebrow">FREE PERSONALITY TEST</span>
               <h1>나를 이해하는<br /><em>가장 선명한 질문</em></h1>
               <p>40개의 일상적인 질문으로 알아보는 무료 MBTI 검사.<br />지금의 나와 더 가까운 문장을 골라보세요.</p>
-              <a className="primary-button" href="/test">무료 MBTI 검사 시작 <span>→</span></a>
+              <a className="primary-button" href="/tests/mbti">무료 MBTI 검사 시작 <span>→</span></a>
               <div className="trust-chips"><span>✓ 가입 없음</span><span>⚡ 결과 즉시 확인</span></div>
             </div>
             <div className="hero-floating-card" aria-label="검사 특징">
