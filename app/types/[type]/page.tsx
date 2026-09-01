@@ -41,7 +41,7 @@ export default async function TypePage({params}:{params:Promise<{type:string}>})
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(jsonLd)}}/>
     <header className={styles.hero}><div className={styles.crumbs}><a href="/">MBTI 검사</a> / <a href="/types">16가지 유형</a> / {p.code}</div>
       <span className={styles.eyebrow}>{p.group}</span><h1>{p.code} 특징<br/>{p.name}</h1><p>{p.tagline}</p>
-      <div className={styles.actions}><a href="/">무료 MBTI 검사하기</a><a href={`/compatibility/${code}`}>{p.code} 궁합 보기</a></div>
+      <div className={styles.actions}><a href="/tests/mbti/">무료 MBTI 검사하기</a><a href={`/compatibility/${code}`}>{p.code} 궁합 보기</a></div>
     </header>
     <article className={styles.body}>
       <section className={styles.answer}><strong>{p.code}는 어떤 성격인가요?</strong><p>{p.summary}</p></section>
@@ -57,6 +57,6 @@ export default async function TypePage({params}:{params:Promise<{type:string}>})
       <section id="compatibility" className={styles.section}><h2>{p.code}와 잘 맞는 MBTI 궁합</h2><p>{p.code}와 비교적 자연스럽게 강점을 보완하기 쉬운 유형은 {p.matches.map(x=>profiles[x].code).join(", ")}입니다. 차이를 더 의식적으로 조율해야 하는 유형으로는 {p.challenges.map(x=>profiles[x].code).join(", ")}가 자주 언급됩니다. 그러나 어떤 조합도 성공이나 실패를 결정하지 않습니다.</p><div className={styles.actions}><a href={`/compatibility/${code}`}>{p.code} × 15개 유형 궁합 보기</a></div></section>
       <section id="faq" className={styles.section}><h2>{p.code} 자주 묻는 질문</h2>{faq.map(([q,a])=><div key={q}><h3>{q}</h3><p>{a}</p></div>)}</section>
       <aside className={styles.notice}>이 콘텐츠는 자기이해와 관계 대화를 돕는 비공식 정보입니다. 공식 MBTI® 평가나 의료·심리 진단을 대신하지 않으며, 같은 유형이라도 개인의 경험과 환경에 따라 모습은 달라질 수 있습니다.</aside>
-      <section className={styles.cta}><h2>내 실제 MBTI 유형은 무엇일까요?</h2><p>40개 질문에 답하고 네 가지 성향 지표와 유형별 설명을 확인해 보세요.</p><a href="/">무료 MBTI 검사 시작하기 →</a></section>
+      <section className={styles.cta}><h2>내 실제 MBTI 유형은 무엇일까요?</h2><p>40개 질문에 답하고 네 가지 성향 지표와 유형별 설명을 확인해 보세요.</p><a href="/tests/mbti/">무료 MBTI 검사 시작하기 →</a></section>
     </article><SiteFooter/></main>;
 }

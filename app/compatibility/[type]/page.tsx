@@ -24,6 +24,6 @@ export default async function CompatibilityTypePage({params}:{params:Promise<{ty
       <AdUnit placement="inArticle" label={`${p.code} 궁합 본문 광고`} />
       {others.map(other=>{const q=profiles[other],x=pairInsight(code,other);return <section id={other} className={styles.section} key={other}><h2>{p.code}와 {q.code} 궁합</h2><p>{x.summary}</p><div className={styles.grid}><div className={styles.card}><h3>잘 맞는 부분</h3><p>{x.strength}</p></div><div className={styles.card}><h3>갈등하기 쉬운 부분</h3><p>{x.conflict}</p></div></div><h3>연애와 연락 방식</h3><p>{p.code}는 {p.love} 반면 {q.code}는 {q.love} 서로의 애정 표현이 다르다는 점을 먼저 인정하면 연락 빈도나 표현 방식 때문에 생기는 오해를 줄일 수 있습니다.</p><h3>관계를 편안하게 만드는 대화법</h3><p>{x.tip}</p></section>})}
       <aside className={styles.notice}>MBTI 궁합은 관계의 성공 여부를 예측하는 공식이 아닙니다. 유형 설명은 대화를 시작하는 참고 자료로만 활용하고 상대를 네 글자로 단정하지 마세요.</aside>
-      <section className={styles.cta}><h2>두 사람의 유형부터 확인해 보세요</h2><p>무료 검사 결과를 확인한 뒤 서로의 차이를 대화해 보세요.</p><a href="/">무료 MBTI 검사 시작하기 →</a></section>
+      <section className={styles.cta}><h2>두 사람의 유형부터 확인해 보세요</h2><p>무료 검사 결과를 확인한 뒤 서로의 차이를 대화해 보세요.</p><a href="/tests/mbti/">무료 MBTI 검사 시작하기 →</a></section>
     </article><SiteFooter/></main>;
 }
