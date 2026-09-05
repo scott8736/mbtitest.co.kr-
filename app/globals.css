@@ -901,3 +901,42 @@ main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% -
   .guide-section { margin-bottom:54px; }
   .guide-types article { padding:24px 20px; }
 }
+
+/* 홈에서 운세 영역으로 넘어가는 자리 */
+.home-fortune {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 64px 24px 8px;
+}
+.home-fortune > p {
+  max-width: 720px;
+  margin: 0 0 22px;
+  color: #596273;
+  font-size: 17px;
+  line-height: 1.9;
+  word-break: keep-all;
+}
+.home-fortune-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.home-fortune-links a {
+  padding: 13px 17px;
+  border: 1px solid #ece0cd;
+  border-radius: 999px;
+  background: #fffaf1;
+  color: #5a5140;
+  font-size: 15px;
+  font-weight: 750;
+  text-decoration: none;
+}
+@media (max-width: 580px) {
+  .home-fortune {
+    padding: 48px 20px 4px;
+  }
+  .home-fortune-links a {
+    font-size: 14px;
+    padding: 11px 14px;
+  }
+}

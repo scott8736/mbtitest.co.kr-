@@ -43,6 +43,28 @@ export default function MbtiHome() {
             </div>
             <TestDirectory compact />
           </section>
+          <section className="home-fortune" aria-labelledby="home-fortune-title">
+            <div className="section-heading">
+              <div>
+                <span className="eyebrow">무료 운세</span>
+                <h2 id="home-fortune-title">오늘의 운세와 사주도 함께</h2>
+              </div>
+              <a href="/fortune/">운세 전체 보기 <span>→</span></a>
+            </div>
+            <p>
+              성격 검사가 지금의 나를 묻는다면, 사주는 타고난 결을 읽습니다. 생년월일만 있으면 오늘의 운세와 사주 네
+              기둥을 바로 확인할 수 있습니다.
+            </p>
+            <div className="home-fortune-links">
+              <a href="/fortune/today/">☀️ 오늘의 운세</a>
+              <a href="/fortune/saju/">📜 무료 사주 풀이</a>
+              <a href="/fortune/saju-mbti/">🔮 사주 MBTI</a>
+              <a href="/fortune/zodiac/">🐲 띠별 운세</a>
+              <a href="/fortune/star-sign/">✨ 별자리 운세</a>
+              <a href="/fortune/dream/">🌙 꿈해몽</a>
+              <a href="/fortune/2027/">🐑 2027 신년운세</a>
+            </div>
+          </section>
           <section className="seo-content" aria-labelledby="mbti-guide-title">
             <div className="seo-intro">
               <span className="eyebrow">MBTI 성격유형 가이드</span>

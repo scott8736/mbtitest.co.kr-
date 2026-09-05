@@ -14,6 +14,11 @@ export default function SiteFooter() {
           <a href="/tests/">심리테스트</a>
           <a href="/types/">16가지 유형</a>
           <a href="/compatibility/">MBTI 궁합</a>
+          <a href="/fortune/">무료 운세</a>
+          <a href="/fortune/today/">오늘의 운세</a>
+          <a href="/fortune/saju/">무료 사주</a>
+          <a href="/fortune/zodiac/">띠별 운세</a>
+          <a href="/fortune/dream/">꿈해몽</a>
           <a href="/blog/">MBTI 콘텐츠</a>
           <a href="/about/">사이트 소개</a>
           <a href="/contact/">문의하기</a>

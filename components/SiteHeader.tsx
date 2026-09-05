@@ -7,6 +7,7 @@ const links = [
   ["/tests/", "심리테스트"],
   ["/types/", "16가지 유형"],
   ["/compatibility/", "MBTI 궁합"],
+  ["/fortune/", "무료 운세"],
   ["/blog/", "심리 콘텐츠"],
 ] as const;
 

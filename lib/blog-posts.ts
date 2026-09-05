@@ -1,5 +1,6 @@
 import { newSeoPosts } from "./new-seo-posts";
 import { celebrityPosts } from "./celebrity-posts";
+import { fortunePosts } from "./fortune-posts";
 
 export type BlogSection = {
   heading: string;
@@ -9,7 +10,7 @@ export type BlogSection = {
 
 export type BlogPost = {
   slug: string;
-  category: "MBTI 기초" | "연애·관계" | "마음건강" | "트렌드";
+  category: "MBTI 기초" | "연애·관계" | "마음건강" | "트렌드" | "운세";
   title: string;
   description: string;
   keywords: string[];
@@ -28,6 +29,7 @@ const commonDate = "2026-07-25";
 export const blogPosts: BlogPost[] = [
   ...celebrityPosts,
   ...newSeoPosts,
+  ...fortunePosts,
   {
     slug: "mbti-test-guide",
     category: "MBTI 기초",
@@ -309,7 +311,7 @@ export const blogPosts: BlogPost[] = [
   },
 ];
 
-export const blogCategories = ["전체", "MBTI 기초", "연애·관계", "마음건강", "트렌드"] as const;
+export const blogCategories = ["전체", "MBTI 기초", "연애·관계", "마음건강", "트렌드", "운세"] as const;
 
 export function getBlogPost(slug: string) {
   return blogPosts.find((post) => post.slug === slug);
