@@ -70,7 +70,7 @@ button:focus-visible { outline:3px solid #91a98b; outline-offset:4px; }
 .catalog-card.planned { background:#f8f9f5; }
 .catalog-icon { width:48px; height:48px; display:grid; place-items:center; border-radius:15px; color:white; font-size:21px; }
 .catalog-badges { display:flex; gap:7px; margin:18px 0 12px; }
-.catalog-badges span,.catalog-badges em { padding:5px 8px; border-radius:7px; background:#edf1e9; color:#647465; font-size:11px; font-style:normal; font-weight:750; }
+.catalog-badges span,.catalog-badges em { padding:5px 8px; border-radius:7px; background:#edf1e9; color:#647465; font-size:12px; font-style:normal; font-weight:750; }
 .catalog-badges em { background:#eee9df; color:#846f4e; }
 .catalog-card h3 { margin:0 0 10px; font-size:21px; letter-spacing:-.035em; }
 .catalog-card>p { margin:0; color:#707a71; font-size:14px; line-height:1.7; word-break:keep-all; }
@@ -804,7 +804,7 @@ main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% -
     transition:transform .24s ease,visibility .24s;
   }
   .mobile-nav.is-open { transform:translateX(0); visibility:visible; }
-  .mobile-nav-label { margin-bottom:15px; color:#aaa2bb; font-size:10px; font-weight:900; letter-spacing:.18em; }
+  .mobile-nav-label { margin-bottom:15px; color:#aaa2bb; font-size:12px; font-weight:900; letter-spacing:.18em; }
   .mobile-nav>a:not(.mobile-nav-cta) {
     min-height:58px;
     padding:0 6px;
@@ -1016,3 +1016,43 @@ main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% -
 .cross-promo-mixed > div { grid-template-columns:repeat(4,1fr); }
 @media (max-width:1100px) { .cross-promo-mixed > div { grid-template-columns:repeat(2,1fr); } }
 @media (max-width:640px) { .cross-promo-mixed > div { grid-template-columns:1fr; } }
+
+/* 손으로 누르는 화면의 탭 영역. 구글 모바일 사용성 기준이 최소 48px 이라
+   글자 크기는 그대로 두고 눌리는 범위만 넓힙니다. */
+@media (hover:none) and (pointer:coarse) {
+  .logo { min-height:48px; }
+  .breadcrumbs { gap:4px; }
+  .breadcrumbs a { display:inline-flex; align-items:center; min-height:44px; padding:0 6px; }
+  .site-footer nav { gap:6px 18px; }
+  .site-footer nav a { display:inline-flex; align-items:center; min-height:44px; }
+
+  /* 본문 흐름 밖에 있는 링크들의 탭 영역. 문단 안 링크는 손대지 않습니다. */
+  .section-heading a,
+  .article-inline-cta a,
+  .article-final-cta a,
+  .article-sidebar a,
+  .related-articles a { display:inline-flex; align-items:center; min-height:44px; }
+
+  /* 12px 미만 라벨. 모두 장식용 소제목이라 크기만 올려도 배치가 흔들리지 않습니다. */
+  .ad-slot span,
+  .axis-row span,
+  .hero-floating-card>span,
+  .hero-floating-card i,
+  .gender-choice>span,
+  .rich-result-grid article>span,
+  .growth-plan>span,
+  .related-results a>span,
+  .mbti-deep-result article>span,
+  .blog-featured-card>span,
+  .blog-hub-intro>span,
+  .blog-category-heading>span,
+  .related-articles>span,
+  .related-articles a>span,
+  .article-inline-cta>span,
+  .article-final-cta>span,
+  .article-sidebar>div>span,
+  .article-sidebar a,
+  .article-share>span,
+  .share-bar>span,
+  .site-nav a { font-size:12px; }
+}
