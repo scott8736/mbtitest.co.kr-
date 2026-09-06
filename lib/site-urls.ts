@@ -127,6 +127,7 @@ ${entries}
 export function robotsTxt(): string {
   return `User-agent: *
 Allow: /
+Disallow: /admin
 
 Sitemap: ${SITE_ORIGIN}/sitemap.xml
 `;
