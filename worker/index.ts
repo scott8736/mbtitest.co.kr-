@@ -3,6 +3,7 @@ import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } fr
 import handler from "vinext/server/app-router-entry";
 import { robotsTxt, sitemapXml } from "../lib/site-urls";
 import { handleAdmin } from "./admin";
+import { ensureSchema } from "./schema";
 import {
   classifyDevice,
   classifySource,
@@ -108,6 +109,8 @@ async function recordPageView(request: Request, url: URL, env: Env): Promise<voi
 
     const userAgent = request.headers.get("user-agent") ?? "";
     if (isBot(userAgent)) return;
+
+    await ensureSchema(env.DB);
 
     const referrer = request.headers.get("referer") ?? "";
     const ip = request.headers.get("cf-connecting-ip") ?? "";
