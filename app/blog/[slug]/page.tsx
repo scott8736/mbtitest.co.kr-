@@ -74,7 +74,8 @@ export default async function BlogArticlePage({
       ...(section.bullets || []),
     ]),
   ].join("").length;
-  const showLowerArticleAd = articleLength >= 2400;
+  // 본문 광고를 한 자리 더 두기 위해 기준을 낮췄습니다. 아주 짧은 글에는 여전히 나오지 않습니다.
+  const showLowerArticleAd = articleLength >= 1200;
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "Article",

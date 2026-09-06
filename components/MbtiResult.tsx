@@ -104,12 +104,21 @@ export default function MbtiResult() {
       <div className="growth-plan mbti-growth"><span>GROWTH POINT</span><h2>나를 더 편안하게 만드는 실천</h2>{typeDetails[result].growth.map((x, i) => <p key={x}><b>{String(i + 1).padStart(2, "0")}</b>{x}</p>)}</div>
       <div className="result-actions"><button className="primary-button" onClick={share}>결과 공유하기 <span>↗</span></button><button className="secondary-button" onClick={downloadResult}>결과 이미지 저장</button><button className="secondary-button" onClick={start}>다시 검사하기</button></div>
       <p className="disclaimer">본 테스트는 자기이해를 위한 간이 성격 테스트이며, 전문적인 심리 진단을 대신하지 않습니다.</p>
-      <div className="result-deep-link mbti-related">
+      <div className="related-results result-deep-link">
         <span className="eyebrow">MORE ABOUT {result}</span>
         <h2>{result} 유형을 더 자세히 알아보기</h2>
         <div>
           <a href={`/types/${result.toLowerCase()}/`}><span>유형</span><strong>{result} 특징 총정리</strong><small>성격 · 연애 · 직업 · 스트레스</small><i>{result} 자세히 보기 →</i></a>
           <a href={`/compatibility/${result.toLowerCase()}/`}><span>궁합</span><strong>{result} MBTI 궁합</strong><small>잘 맞는 유형과 소통 방법</small><i>{result} 궁합 보기 →</i></a>
+        </div>
+      </div>
+      <div className="related-results result-fortune-cta">
+        <span className="eyebrow">TODAY&apos;S FORTUNE</span>
+        <h2>성격을 봤다면, 오늘의 흐름도</h2>
+        <div>
+          <a href="/fortune/today/"><span>운세</span><strong>오늘의 운세</strong><small>생년월일로 보는 오늘의 흐름</small><i>오늘의 운세 보기 →</i></a>
+          <a href="/fortune/saju/"><span>사주</span><strong>무료 사주 보기</strong><small>타고난 기운과 성향 풀이</small><i>무료 사주 보기 →</i></a>
+          <a href="/fortune/saju-mbti/"><span>사주 × MBTI</span><strong>{result} 사주 궁합</strong><small>사주와 성격유형을 함께</small><i>{result} 사주 보기 →</i></a>
         </div>
       </div>
       <AdUnit key={`result-bottom-${result}`} position="resultBottom" label="MBTI 결과 하단 광고" />
