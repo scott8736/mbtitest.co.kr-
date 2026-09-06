@@ -1,12 +1,22 @@
 import CoupangPartners from "./CoupangPartners";
 import ShareButtons from "./ShareButtons";
 
-export default function SiteFooter() {
+export default function SiteFooter({
+  /** 404 처럼 읽을 내용이 없는 화면은 광고를 빼야 합니다. 애드센스 정책입니다. */
+  ads = true,
+  /** 공유할 대상을 지정합니다. 넘기지 않으면 현재 페이지를 공유합니다. */
+  shareTitle,
+  shareUrl,
+}: {
+  ads?: boolean;
+  shareTitle?: string;
+  shareUrl?: string;
+} = {}) {
   return (
     <>
       {/* 광고보다 위에 두고 여백을 크게 잡습니다. 광고와 붙으면 오클릭이 납니다. */}
-      <ShareButtons variant="footer" />
-      <CoupangPartners />
+      <ShareButtons variant="footer" title={shareTitle} url={shareUrl} />
+      {ads ? <CoupangPartners /> : null}
       <footer className="site-footer">
         <div>
           <strong>MBTI 검사</strong>
