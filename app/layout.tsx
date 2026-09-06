@@ -34,7 +34,7 @@ export const metadata: Metadata = {
       "40개 질문으로 알아보는 무료 MBTI 검사. 나의 16가지 성격유형과 성향 지표를 바로 확인하세요.",
     images: [
       {
-        url: "/images/og/mbti-test-share.png",
+        url: "/images/og/mbti-test-share.jpg",
         width: 1200,
         height: 630,
         alt: "무료 MBTI 검사 - 40개 문항으로 알아보는 나의 성격유형",
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "MBTI 검사 무료 | 40문항 성격테스트",
     description: "가입 없이 바로 시작하는 무료 엠비티아이 검사",
-    images: ["/images/og/mbti-test-share.png"],
+    images: ["/images/og/mbti-test-share.jpg"],
   },
   robots: {
     index: true,

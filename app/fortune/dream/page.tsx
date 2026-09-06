@@ -13,7 +13,9 @@ export const metadata: Metadata = {
     "많이 찾는 꿈 29가지를 전통 해몽과 심리학 해석으로 함께 풀이했습니다. 돼지꿈, 뱀꿈, 이빨 빠지는 꿈, 죽는 꿈까지 상황별로 확인하세요.",
   keywords: ["꿈해몽", "꿈 해몽 사전", "돼지꿈 해몽", "뱀꿈 해몽", "이빨 빠지는 꿈"],
   alternates: { canonical: "/fortune/dream/" },
-  openGraph: { title: "꿈해몽 사전 | 전통 해몽과 심리 해석", url: "/fortune/dream/", type: "website" },
+  openGraph: { title: "꿈해몽 사전 | 전통 해몽과 심리 해석", url: "/fortune/dream/", type: "website", 
+    images: [{ url: "/images/og/mbti-test-share.jpg", width: 1200, height: 630 }],
+  },
 };
 
 const faq: Array<[string, string]> = [

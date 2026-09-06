@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     url: "https://mbtitest.co.kr/tests/self-esteem/",
     title: "자존감 테스트 | MBTI 검사",
     description: "20개 질문으로 지금 나의 자존감 수준과 자기수용·자기표현 성향을 확인하는 무료 자존감 테스트입니다.",
-    images: [{ url: "/images/og/mbti-test-share.png", width: 1200, height: 630, alt: "자존감 테스트" }],
+    images: [{ url: "/images/og/mbti-test-share.jpg", width: 1200, height: 630, alt: "자존감 테스트" }],
   },
 };
 

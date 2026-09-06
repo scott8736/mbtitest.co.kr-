@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     url: "https://mbtitest.co.kr/tests/work-style/",
     title: "직장 성향 테스트 | MBTI 검사",
     description: "협업, 의사결정, 몰입 방식으로 나의 일하는 스타일과 잘 맞는 업무 환경을 확인하는 무료 직장 성향 테스트입니다.",
-    images: [{ url: "/images/og/mbti-test-share.png", width: 1200, height: 630, alt: "직장 성향 테스트" }],
+    images: [{ url: "/images/og/mbti-test-share.jpg", width: 1200, height: 630, alt: "직장 성향 테스트" }],
   },
 };
 

@@ -28,6 +28,8 @@ export const metadata: Metadata = {
     description: "생년월일로 보는 오늘의 운세와 사주 풀이, 띠별·별자리 운세, 꿈해몽을 한 곳에서.",
     url: "/fortune/",
     type: "website",
+  
+    images: [{ url: "/images/og/mbti-test-share.jpg", width: 1200, height: 630 }],
   },
 };
 

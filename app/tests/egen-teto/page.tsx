@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     description: "에겐녀·에겐남·테토녀·테토남 중 나는 어떤 유형일까요? 20문항 무료 성향 테스트",
     images: [
       {
-        url: "/images/og/mbti-test-share.png",
+        url: "/images/og/mbti-test-share.jpg",
         width: 1200,
         height: 630,
         alt: "무료 에겐테토 성향 테스트",

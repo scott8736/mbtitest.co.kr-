@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     url: "https://mbtitest.co.kr/tests/love-language/",
     title: "사랑의 언어 테스트 | MBTI 검사",
     description: "인정하는 말·함께하는 시간·선물·봉사·스킨십 중 나의 사랑의 언어를 확인하는 무료 연애 심리테스트입니다.",
-    images: [{ url: "/images/og/mbti-test-share.png", width: 1200, height: 630, alt: "사랑의 언어 테스트" }],
+    images: [{ url: "/images/og/mbti-test-share.jpg", width: 1200, height: 630, alt: "사랑의 언어 테스트" }],
   },
 };
 

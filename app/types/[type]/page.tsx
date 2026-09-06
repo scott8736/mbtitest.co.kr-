@@ -16,7 +16,9 @@ export async function generateMetadata({params}:{params:Promise<{type:string}>})
     title:`${p.code} 특징 총정리: 연애·직업·궁합`,
     description:`${p.code} ${p.name}의 성격 특징, 강점과 단점, 연애 신호, 직업·업무 스타일, 스트레스 반응과 잘 맞는 MBTI 궁합을 자세히 확인하세요.`,
     alternates:{canonical:`/types/${type.toLowerCase()}/`},
-    openGraph:{title:`${p.code} 특징과 연애·궁합 | MBTI 유형`,description:p.summary,url:`/types/${type.toLowerCase()}/`,type:"article"},
+    openGraph:{title:`${p.code} 특징과 연애·궁합 | MBTI 유형`,description:p.summary,url:`/types/${type.toLowerCase()}/`,type:"article",
+      images: [{ url: "/images/og/mbti-test-share.jpg", width: 1200, height: 630 }],
+    },
   };
 }
 

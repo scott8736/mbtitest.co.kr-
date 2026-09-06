@@ -13,7 +13,9 @@ export const metadata: Metadata = {
     "양자리부터 물고기자리까지 12별자리의 성격과 연애·일·돈의 방식, 잘 맞는 별자리를 정리했습니다. 생일로 내 별자리를 찾아보세요.",
   keywords: ["별자리 운세", "별자리 성격", "별자리 궁합", "별자리 날짜", "12별자리"],
   alternates: { canonical: "/fortune/star-sign/" },
-  openGraph: { title: "별자리 운세 | 12별자리 성격과 궁합", url: "/fortune/star-sign/", type: "website" },
+  openGraph: { title: "별자리 운세 | 12별자리 성격과 궁합", url: "/fortune/star-sign/", type: "website", 
+    images: [{ url: "/images/og/mbti-test-share.jpg", width: 1200, height: 630 }],
+  },
 };
 
 const faq: Array<[string, string]> = [

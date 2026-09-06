@@ -13,7 +13,9 @@ export const metadata: Metadata = {
     "쥐띠부터 돼지띠까지 12띠의 성격과 2027 정미년 운세, 띠별 궁합을 정리했습니다. 태어난 해로 내 띠를 찾아 바로 확인하세요.",
   keywords: ["띠별 운세", "12띠 운세", "2027 띠별운세", "띠 궁합", "내 띠 찾기"],
   alternates: { canonical: "/fortune/zodiac/" },
-  openGraph: { title: "띠별 운세 | 12띠 성격과 2027 정미년 흐름", url: "/fortune/zodiac/", type: "website" },
+  openGraph: { title: "띠별 운세 | 12띠 성격과 2027 정미년 흐름", url: "/fortune/zodiac/", type: "website", 
+    images: [{ url: "/images/og/mbti-test-share.jpg", width: 1200, height: 630 }],
+  },
 };
 
 const faq: Array<[string, string]> = [
