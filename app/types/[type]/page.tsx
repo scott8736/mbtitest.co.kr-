@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import AdUnit from "../../../components/AdUnit";
 import ContentHeader from "../../../components/ContentHeader";
+import CrossPromo from "../../../components/CrossPromo";
 import SiteFooter from "../../../components/SiteFooter";
 import { mbtiCodes, getProfile, profiles, type MbtiCode } from "../../../lib/mbti-content";
 import styles from "../../../lib/mbti.module.css";
@@ -52,9 +53,11 @@ export default async function TypePage({params}:{params:Promise<{type:string}>})
       <section id="love" className={styles.section}><h2>{p.code} 연애 특징</h2><p>{p.love}</p><h3>{p.code}가 호감 있을 때 보내는 신호</h3><p>{p.signal}</p></section>
       <AdUnit position="articleBody" label={`${p.code} 유형 본문 광고`} />
       <section id="work" className={styles.section}><h2>{p.code} 직업·업무·공부 스타일</h2><p>{p.work}</p><p>유형은 직업 적성을 결정하는 검사가 아닙니다. 실제 선택에서는 능력, 경험, 흥미, 생활 조건을 함께 고려해야 합니다.</p></section>
+      <CrossPromo variant="tests" title="다른 심리테스트도 해보세요" />
       <section id="stress" className={styles.section}><h2>{p.code}가 스트레스받을 때</h2><p>{p.stress}</p></section>
       <section id="communication" className={styles.section}><h2>{p.code}와 편안하게 소통하는 방법</h2><p>{p.communication}</p></section>
       <section id="compatibility" className={styles.section}><h2>{p.code}와 잘 맞는 MBTI 궁합</h2><p>{p.code}와 비교적 자연스럽게 강점을 보완하기 쉬운 유형은 {p.matches.map(x=>profiles[x].code).join(", ")}입니다. 차이를 더 의식적으로 조율해야 하는 유형으로는 {p.challenges.map(x=>profiles[x].code).join(", ")}가 자주 언급됩니다. 그러나 어떤 조합도 성공이나 실패를 결정하지 않습니다.</p><div className={styles.actions}><a href={`/compatibility/${code}/`}>{p.code} × 15개 유형 궁합 보기</a></div></section>
+      <CrossPromo variant="fortune" title="오늘의 운세와 사주도 함께" />
       <section id="faq" className={styles.section}><h2>{p.code} 자주 묻는 질문</h2>{faq.map(([q,a])=><div key={q}><h3>{q}</h3><p>{a}</p></div>)}</section>
       <aside className={styles.notice}>이 콘텐츠는 자기이해와 관계 대화를 돕는 비공식 정보입니다. 공식 MBTI® 평가나 의료·심리 진단을 대신하지 않으며, 같은 유형이라도 개인의 경험과 환경에 따라 모습은 달라질 수 있습니다.</aside>
       <section className={styles.cta}><h2>내 실제 MBTI 유형은 무엇일까요?</h2><p>40개 질문에 답하고 네 가지 성향 지표와 유형별 설명을 확인해 보세요.</p><a href="/tests/mbti/">무료 MBTI 검사 시작하기 →</a></section>

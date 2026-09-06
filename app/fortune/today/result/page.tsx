@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import CrossPromo from "../../../../components/CrossPromo";
 import AdUnit from "../../../../components/AdUnit";
 import ContentHeader from "../../../../components/ContentHeader";
 import FortuneTool from "../../../../components/FortuneTool";
@@ -27,6 +28,7 @@ export default function FortuneResultPage() {
       </header>
       <AdUnit position="articleTop" label="오늘의 운세 결과 상단 광고" />
       <FortuneTool mode="today" resultOnly />
+      <CrossPromo variant="tests" title="오늘의 운세를 봤다면" />
       <SiteFooter />
     </main>
   );

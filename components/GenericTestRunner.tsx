@@ -6,6 +6,7 @@ import { testCatalog } from "../lib/test-catalog";
 import AdUnit from "./AdUnit";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
+import CrossPromo from "./CrossPromo";
 import TestGuide from "./TestGuide";
 
 const PROGRESS_KEY = (slug: string) => `test-progress:${slug}`;
@@ -239,6 +240,7 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
           <p className="disclaimer">{test.disclaimer}</p>
           <AdUnit key={`result-bottom-${resultKey}`} position="resultBottom" label={`${test.title} 결과 하단 광고`} />
           <div className="related-results"><span className="eyebrow">NEXT TEST</span><h2>나를 더 알아보는 다음 테스트</h2><div>{related.map((item) => item && <a href={item.href} key={item.slug}><span>{item.category}</span><strong>{item.title}</strong><small>{item.duration} · {item.questionCount}문항</small><i>시작하기 →</i></a>)}</div></div>
+          <CrossPromo variant="fortune" />
         </section>
       )}
       <SiteFooter />

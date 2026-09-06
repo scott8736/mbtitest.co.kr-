@@ -961,3 +961,10 @@ main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% -
   .related-results > div { grid-template-columns:1fr; }
   .related-results a { min-height:0; }
 }
+
+/* 페이지를 잇는 CTA 블록 (components/CrossPromo.tsx) */
+.cross-promo { margin:80px auto 96px; }
+.cross-promo-fortune a > span, .cross-promo-fortune a > i { color:#e0704f; }
+.cross-promo-mixed > div { grid-template-columns:repeat(4,1fr); }
+@media (max-width:1100px) { .cross-promo-mixed > div { grid-template-columns:repeat(2,1fr); } }
+@media (max-width:640px) { .cross-promo-mixed > div { grid-template-columns:1fr; } }
