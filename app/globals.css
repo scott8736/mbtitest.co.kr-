@@ -452,6 +452,18 @@ main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% -
 .info-grid b { color:var(--violet); font-size:12px; }
 .info-grid h3 { margin:25px 0 10px; }
 .info-grid p,.policy-copy>p { color:var(--muted); line-height:1.8; }
+
+/* 404 화면의 이동 카드. .info-grid 를 그대로 쓰되 카드 전체를 링크로 만듭니다.
+   위의 .info-grid 규칙을 덮어써야 하므로 반드시 그 뒤에 옵니다. */
+.not-found-grid section { padding:0; overflow:hidden; }
+.not-found-grid a {
+  display:block; height:100%; padding:22px 24px;
+  color:inherit; text-decoration:none; transition:.18s ease;
+}
+.not-found-grid a:hover { background:#f4f1fb; }
+.not-found-grid h3 { margin:0; font-size:16px; }
+.not-found-grid p { margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.6; }
+.info-article>.primary-button { margin:6px 0 12px; text-decoration:none; }
 .notice-box { margin-top:50px; padding:28px; border-radius:18px; background:#eee9ff; }
 .notice-box p { margin:8px 0 0; color:#656077; line-height:1.75; }
 .updated { font-size:13px!important; }
