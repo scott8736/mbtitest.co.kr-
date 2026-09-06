@@ -2,3 +2,5 @@
 @media(max-width:850px){.toc,.typeGrid{grid-template-columns:repeat(2,1fr)}.pairTable{grid-template-columns:1fr 1fr}}
 @media(max-width:580px){.hero{padding:64px 20px 56px}.hero h1{font-size:43px}.hero p{font-size:16px}.body{padding:58px 20px 90px}.answer{padding:24px}.answer p{font-size:17px}.toc,.grid,.typeGrid,.pairTable{grid-template-columns:1fr}.section{padding:44px 0}.cta{padding:34px 22px}}
 
+/* 손으로 누르는 화면에서는 이동 경로 링크의 탭 영역을 넓힙니다. */
+@media (hover:none) and (pointer:coarse){.crumbs a{display:inline-flex;align-items:center;min-height:44px}}
