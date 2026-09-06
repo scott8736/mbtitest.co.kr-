@@ -388,6 +388,37 @@ main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% -
   line-height:1.6;
   text-align:center;
 }
+/* 공유 버튼. 모든 페이지 하단(.share-bar)과 글 본문 끝(.article-share)에 들어갑니다.
+   아래쪽 여백을 크게 두는 이유는 바로 밑에 광고가 오기 때문입니다. */
+.share-bar, .article-share {
+  display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;
+  max-width:760px; margin:0 auto; padding:22px 24px;
+  border:1px solid var(--line); border-radius:18px; background:#fff;
+}
+.share-bar { margin:56px auto 64px; }
+.article-share { margin:44px auto 8px; }
+.share-bar>span, .article-share>span { color:var(--muted); font-size:14px; font-weight:600; }
+.share-actions { display:flex; gap:8px; }
+.share-bar button, .article-share button {
+  padding:11px 20px; border:1px solid var(--line); border-radius:99px;
+  background:#faf8f3; color:var(--ink); font-size:14px; font-weight:700;
+  cursor:pointer; transition:.18s ease;
+}
+.share-bar button:first-child, .article-share button:first-child {
+  border-color:var(--sage); background:var(--sage); color:#fff;
+}
+.share-bar button:hover, .article-share button:hover { transform:translateY(-2px); }
+.share-bar p, .article-share p {
+  flex-basis:100%; margin:0; min-height:18px; text-align:center;
+  color:#3f7d5c; font-size:13px; font-weight:600;
+}
+@media (max-width:620px) {
+  .share-bar, .article-share { margin-left:20px; margin-right:20px; padding:20px 18px; }
+  .share-bar { margin-top:44px; margin-bottom:48px; }
+  .share-actions { width:100%; }
+  .share-bar button, .article-share button { flex:1; }
+}
+
 .site-footer {
   padding:42px clamp(24px,6vw,88px);
   display:flex;
