@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     url: "https://mbtitest.co.kr/tests/mbti/",
     title: "무료 MBTI 검사 40문항 | MBTI 검사",
     description: "가입 없이 바로 시작하는 40문항 무료 MBTI 성격유형 검사",
-    images: [{ url: "/images/og/mbti-test-share.png", width: 1200, height: 630, alt: "무료 MBTI 검사 40문항" }],
+    images: [{ url: "/images/og/mbti-test-share.jpg", width: 1200, height: 630, alt: "무료 MBTI 검사 40문항" }],
   },
 };
 

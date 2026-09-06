@@ -13,6 +13,8 @@ export const metadata: Metadata = {
     title: "무료 심리테스트 모음 | MBTI 검사",
     description: "회원가입 없이 간편하게 즐기는 무료 성격·연애·마음건강 테스트",
     url: "/tests/",
+  
+    images: [{ url: "/images/og/mbti-test-share.jpg", width: 1200, height: 630 }],
   },
 };
 

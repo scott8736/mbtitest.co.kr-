@@ -18,6 +18,8 @@ export const metadata: Metadata = {
     description: "총운과 연애·재물·직장·건강 지수를 바로 확인하세요.",
     url: "/fortune/today/",
     type: "website",
+  
+    images: [{ url: "/images/og/mbti-test-share.jpg", width: 1200, height: 630 }],
   },
 };
 

@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/images/og/mbti-test-share.png",
+        url: "/images/og/mbti-test-share.jpg",
         width: 1200,
         height: 630,
         alt: "무료 MBTI 검사와 심리테스트 가이드",

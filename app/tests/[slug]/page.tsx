@@ -32,7 +32,7 @@ export async function generateMetadata({
       description: item.description,
       images: [
         {
-          url: "/images/og/mbti-test-share.png",
+          url: "/images/og/mbti-test-share.jpg",
           width: 1200,
           height: 630,
           alt: item.title,

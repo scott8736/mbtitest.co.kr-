@@ -41,6 +41,8 @@ export async function generateMetadata({
       description: zodiac.tagline,
       url: `/fortune/zodiac/${zodiac.slug}/`,
       type: "article",
+    
+      images: [{ url: "/images/og/mbti-test-share.jpg", width: 1200, height: 630 }],
     },
   };
 }

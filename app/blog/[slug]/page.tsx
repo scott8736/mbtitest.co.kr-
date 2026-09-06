@@ -37,7 +37,7 @@ export async function generateMetadata({
       siteName: "MBTI 검사",
       images: [
         {
-          url: "/images/og/mbti-test-share.png",
+          url: "/images/og/mbti-test-share.jpg",
           width: 1200,
           height: 630,
           alt: post.title,
@@ -48,7 +48,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: post.title,
       description: post.description,
-      images: ["/images/og/mbti-test-share.png"],
+      images: ["/images/og/mbti-test-share.jpg"],
     },
   };
 }

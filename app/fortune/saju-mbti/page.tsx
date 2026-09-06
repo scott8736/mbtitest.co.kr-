@@ -17,6 +17,8 @@ export const metadata: Metadata = {
     description: "오행 분포를 MBTI 네 축으로 옮겨 비교합니다.",
     url: "/fortune/saju-mbti/",
     type: "website",
+  
+    images: [{ url: "/images/og/mbti-test-share.jpg", width: 1200, height: 630 }],
   },
 };
 
