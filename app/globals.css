@@ -940,3 +940,24 @@ main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% -
     padding: 11px 14px;
   }
 }
+
+/* 4단계로 나눈 MBTI 검사의 단계 표시 */
+.step-badge {
+  max-width:900px;
+  margin:14px auto 0;
+  text-align:center;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:.04em;
+  color:var(--muted);
+}
+
+/* 결과 화면의 유형 딥링크 · 운세 CTA — .related-results 를 재사용하되 간격만 조정 */
+.result-deep-link { margin-top:64px; }
+.result-fortune-cta { margin-top:56px; }
+.result-fortune-cta a > span { color:var(--coral,#ff806f); }
+.result-fortune-cta a > i { color:var(--coral,#ff806f); }
+@media (max-width:900px) {
+  .related-results > div { grid-template-columns:1fr; }
+  .related-results a { min-height:0; }
+}

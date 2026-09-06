@@ -83,18 +83,22 @@ function sajuAxes(counts: number[]) {
   }));
 }
 
-export default function FortuneTool({ mode }: { mode: FortuneMode }) {
+export default function FortuneTool({ mode, resultOnly = false }: { mode: FortuneMode; resultOnly?: boolean }) {
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [submitted, setSubmitted] = useState<Draft | null>(null);
   const [restored, setRestored] = useState(false);
 
+  // 결과는 별도 주소에서 보여줍니다. 입력값은 브라우저에 저장해 둔 것을 다시 읽습니다.
   useEffect(() => {
     const stored = readStoredDraft();
-    if (stored) {
-      setDraft(stored);
-      setRestored(true);
+    if (!stored) {
+      if (resultOnly) location.replace(`/fortune/${mode === "today" ? "today" : mode === "saju" ? "saju" : "saju-mbti"}/`);
+      return;
     }
-  }, []);
+    setDraft(stored);
+    setRestored(true);
+    if (resultOnly) setSubmitted(stored);
+  }, [resultOnly, mode]);
 
   const today = seoulDateKey();
 
@@ -132,7 +136,7 @@ export default function FortuneTool({ mode }: { mode: FortuneMode }) {
     event.preventDefault();
     if (!valid) return;
     storeDraft(draft);
-    setSubmitted({ ...draft });
+    location.assign(`/fortune/${mode}/result/`);
   };
 
   const update = (key: keyof Draft) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -141,6 +145,7 @@ export default function FortuneTool({ mode }: { mode: FortuneMode }) {
 
   return (
     <>
+      {!resultOnly && (
       <form className={styles.form} onSubmit={submit}>
         <div className={styles.formRow}>
           <div className={styles.field}>
@@ -223,6 +228,7 @@ export default function FortuneTool({ mode }: { mode: FortuneMode }) {
           {mode !== "today" && " 태어난 시간을 모르면 '모름'을 선택해도 됩니다."}
         </p>
       </form>
+      )}
 
       {result && (
         <div>

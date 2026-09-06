@@ -8,9 +8,17 @@ import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
 import TestGuide from "./TestGuide";
 
-export default function GenericTestRunner({ test, resultOnly = false }: { test: GenericTest; resultOnly?: boolean }) {
-  const [screen, setScreen] = useState<"intro" | "test" | "result">(resultOnly ? "result" : "intro");
+const PROGRESS_KEY = (slug: string) => `test-progress:${slug}`;
+
+/** 문항을 반으로 나눠 2단계는 별도 주소에서 보여줍니다. */
+export function firstHalfCount(total: number) {
+  return Math.ceil(total / 2);
+}
+
+export default function GenericTestRunner({ test, resultOnly = false, part = 1 }: { test: GenericTest; resultOnly?: boolean; part?: 1 | 2 }) {
+  const [screen, setScreen] = useState<"intro" | "test" | "result">(resultOnly ? "result" : part === 2 ? "test" : "intro");
   const [index, setIndex] = useState(0);
+  const [ready, setReady] = useState(part === 1);
   const [scores, setScores] = useState<ScoreMap>({});
   const [resultKey, setResultKey] = useState(Object.keys(test.results)[0]);
   const [gender, setGender] = useState<"" | "여성" | "남성">("");
@@ -25,6 +33,22 @@ export default function GenericTestRunner({ test, resultOnly = false }: { test: 
     () => test.related.map((slug) => testCatalog.find((item) => item.slug === slug && item.status === "published")).filter(Boolean),
     [test.related],
   );
+
+  // 2단계로 들어오면 1단계에서 쌓은 점수를 이어받습니다. 없으면 처음으로 돌려보냅니다.
+  useEffect(() => {
+    if (part !== 2) return;
+    try {
+      const saved = sessionStorage.getItem(PROGRESS_KEY(test.slug));
+      if (!saved) throw new Error("no progress");
+      const parsed = JSON.parse(saved) as { scores: ScoreMap; gender: "" | "여성" | "남성" };
+      setScores(parsed.scores || {});
+      setGender(parsed.gender || "");
+      setReady(true);
+    } catch {
+      sessionStorage.removeItem(PROGRESS_KEY(test.slug));
+      location.replace(`/tests/${test.slug}/`);
+    }
+  }, [part, test.slug]);
 
   useEffect(() => {
     if (!resultOnly) return;
@@ -45,6 +69,10 @@ export default function GenericTestRunner({ test, resultOnly = false }: { test: 
     }
   }, [resultOnly, test]);
 
+  const half = firstHalfCount(test.questions.length);
+  const stepQuestions = part === 1 ? test.questions.slice(0, half) : test.questions.slice(half);
+  const answeredBefore = part === 1 ? 0 : half;
+
   const start = () => {
     if (resultOnly) {
       location.assign(`/tests/${test.slug}/`);
@@ -59,16 +87,22 @@ export default function GenericTestRunner({ test, resultOnly = false }: { test: 
   const answer = (add: ScoreMap) => {
     const next = { ...scores };
     Object.entries(add).forEach(([key, value]) => { next[key] = (next[key] || 0) + value; });
-    if (index < test.questions.length - 1) {
+    if (index < stepQuestions.length - 1) {
       setScores(next);
       setIndex(index + 1);
-    } else {
-      const nextResultKey = evaluateTest(test, next);
-      setScores(next);
-      setResultKey(nextResultKey);
-      sessionStorage.setItem(`test-result:${test.slug}`, JSON.stringify({ resultKey: nextResultKey, scores: next, gender }));
-      location.assign(`/tests/${test.slug}/result/`);
+      return;
     }
+    if (part === 1) {
+      sessionStorage.setItem(PROGRESS_KEY(test.slug), JSON.stringify({ scores: next, gender }));
+      location.assign(`/tests/${test.slug}/step2/`);
+      return;
+    }
+    const nextResultKey = evaluateTest(test, next);
+    setScores(next);
+    setResultKey(nextResultKey);
+    sessionStorage.removeItem(PROGRESS_KEY(test.slug));
+    sessionStorage.setItem(`test-result:${test.slug}`, JSON.stringify({ resultKey: nextResultKey, scores: next, gender }));
+    location.assign(`/tests/${test.slug}/result/`);
   };
 
   const share = async () => {
@@ -157,18 +191,28 @@ export default function GenericTestRunner({ test, resultOnly = false }: { test: 
         </>
       )}
 
-      {screen === "test" && (
+      {screen === "test" && !ready && (
+        <section className="test-shell" aria-busy="true">
+          <p className="test-tip">앞 단계 답변을 불러오는 중입니다…</p>
+        </section>
+      )}
+
+      {screen === "test" && ready && (
         <section className="test-shell">
-          <AdUnit key={`test-top-${test.slug}`} position="testTop" label={`${test.title} 진행 화면 상단 광고`} />
-          <div className="test-top"><button onClick={() => setScreen("intro")}>← 나가기</button><span>{index + 1} / {test.questions.length}</span></div>
-          <div className="progress"><i style={{ width: `${((index + 1) / test.questions.length) * 100}%` }} /></div>
+          <AdUnit key={`test-top-${test.slug}-${part}`} position="testTop" label={`${test.title} ${part}단계 상단 광고`} />
+          <div className="test-top">
+            <button onClick={() => (part === 1 ? setScreen("intro") : location.assign(`/tests/${test.slug}/`))}>← 나가기</button>
+            <span>{answeredBefore + index + 1} / {test.questions.length}</span>
+          </div>
+          <div className="progress"><i style={{ width: `${((answeredBefore + index + 1) / test.questions.length) * 100}%` }} /></div>
+          <p className="step-badge">{part}단계 / 총 2단계</p>
           <div className="question-card">
             <span className="question-kicker">나와 더 가까운 문장은?</span>
-            <h2>{index + 1}. 평소의 나를 떠올려<br />한 가지를 선택해 주세요.</h2>
+            <h2>{answeredBefore + index + 1}. 평소의 나를 떠올려<br />한 가지를 선택해 주세요.</h2>
             <div className="answers">
-              <button onClick={() => answer(test.questions[index].aScores)}><span>A</span><strong>{test.questions[index].a}</strong><small>이 문장에 더 가까워요</small></button>
+              <button onClick={() => answer(stepQuestions[index].aScores)}><span>A</span><strong>{stepQuestions[index].a}</strong><small>이 문장에 더 가까워요</small></button>
               <em>또는</em>
-              <button onClick={() => answer(test.questions[index].bScores)}><span>B</span><strong>{test.questions[index].b}</strong><small>이 문장에 더 가까워요</small></button>
+              <button onClick={() => answer(stepQuestions[index].bScores)}><span>B</span><strong>{stepQuestions[index].b}</strong><small>이 문장에 더 가까워요</small></button>
             </div>
           </div>
         </section>
