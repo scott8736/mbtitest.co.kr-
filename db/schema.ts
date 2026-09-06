@@ -48,3 +48,13 @@ export const adminSession = sqliteTable(
   },
   (t) => [index("admin_session_expires_idx").on(t.expiresAt)],
 );
+
+/**
+ * 외부 API 키 같은 설정값. 저장소에 남기지 않으려고 D1 에 둡니다.
+ * 값은 암호화하지 않으므로, 데이터베이스에 접근할 수 있는 사람은 볼 수 있습니다.
+ */
+export const appSettings = sqliteTable("app_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});

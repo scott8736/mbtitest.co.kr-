@@ -10,6 +10,7 @@
  * 저장하지 않는 것: IP 원본, 쿠키, 쿼리스트링.
  */
 import { SOURCE_LABELS } from "../lib/analytics";
+import { fetchDocumentCount, fetchKeywordStats, loadCreds, writeSetting, type KeywordRow } from "./naver";
 
 const COOKIE = "mbtitest_admin";
 const ITERATIONS = 150_000;
@@ -206,7 +207,7 @@ async function dashboard(db: D1Database, days: number, notice: string): Promise<
   return shell(
     "접속 현황",
     `<div class="wrap">
-<div class="head"><div><h1>접속 현황</h1><p>${from} ~ ${to} (KST)</p></div><nav class="ranges">${ranges}</nav></div>
+<div class="head"><div><h1>접속 현황</h1><p>${from} ~ ${to} (KST)</p></div><nav class="ranges">${ranges}<a href="/admin/keywords/">키워드 조회</a></nav></div>
 
 <div class="cards">
 <div><b>${total.views.toLocaleString()}</b><span>페이지뷰</span></div>
@@ -266,6 +267,75 @@ ${notice === "fail" ? `<p class="err">현재 비밀번호가 맞지 않거나 �
   );
 }
 
+
+const MASK = (v: string) => (v ? `${v.slice(0, 4)}${"•".repeat(Math.max(0, v.length - 8))}${v.slice(-4)}` : "");
+
+const num = (v: number) => (v < 0 ? "10 미만" : v.toLocaleString());
+
+function keywordsPage(
+  creds: { ad: { apiKey: string; secretKey: string; customerId: string }; open: { clientId: string; clientSecret: string } },
+  query: string,
+  rows: KeywordRow[],
+  error: string,
+  saved: boolean,
+): string {
+  const hasAd = Boolean(creds.ad.apiKey && creds.ad.secretKey && creds.ad.customerId);
+
+  const table = rows.length
+    ? `<div class="scroll"><table><thead><tr>
+<th>키워드</th><th>PC</th><th>모바일</th><th>월 검색수</th><th>경쟁</th><th>블로그 문서</th><th>문서/검색</th>
+</tr></thead><tbody>${rows
+        .map((r) => {
+          const ratio = r.documents !== null && r.total > 0 ? (r.documents / r.total).toFixed(1) : "-";
+          return `<tr><td>${esc(r.keyword)}</td><td>${num(r.pc)}</td><td>${num(r.mobile)}</td>
+<td><b>${num(r.total)}</b></td><td>${esc(r.competition)}</td>
+<td>${r.documents === null ? "-" : r.documents.toLocaleString()}</td><td>${ratio}</td></tr>`;
+        })
+        .join("")}</tbody></table></div>
+<p class="note">검색수가 크고 <b>문서/검색 비율이 낮을수록</b> 비집고 들어갈 틈이 큽니다. 경쟁이 &lsquo;낮음&rsquo;이면서 검색수가 있는 키워드가 가장 좋습니다.</p>`
+    : "";
+
+  return shell(
+    "키워드 조회",
+    `<div class="wrap">
+<div class="head"><div><h1>키워드 조회</h1><p>네이버 검색광고 키워드도구</p></div>
+<nav class="ranges"><a href="/admin/">접속 현황</a></nav></div>
+
+${saved ? `<p class="ok">저장했습니다.</p>` : ""}
+${error ? `<div class="box"><p class="err">${esc(error)}</p></div>` : ""}
+
+${
+      hasAd
+        ? `<div class="box"><h2>검색량 조회</h2>
+<p class="note">한 번에 5개까지 조회되며, 네이버가 연관 키워드도 함께 돌려줍니다.</p>
+<form method="get" class="row">
+<input name="q" value="${esc(query)}" placeholder="에겐테토 테스트, 자존감 테스트, 번아웃" required>
+<button type="submit">조회</button></form></div>
+${table}`
+        : `<div class="box"><p class="note">검색광고 API 키를 먼저 등록해 주세요.</p></div>`
+    }
+
+<div class="box"><h2>API 키</h2>
+<p class="note">
+저장소에는 남지 않고 데이터베이스에만 보관됩니다. 다만 암호화하지 않으므로 데이터베이스를 볼 수 있는 사람은 값을 확인할 수 있습니다.
+<br>검색광고 키는 <b>광고관리시스템 → 도구 → API 사용 관리</b>에서, 아래 개발자센터 키는 선택 사항입니다(블로그 문서 수 조회용).
+</p>
+<form method="post" action="/admin/keywords/save">
+<div class="row" style="margin-bottom:8px">
+<input name="ad_api_key" placeholder="검색광고 액세스라이선스${creds.ad.apiKey ? ` (현재 ${MASK(creds.ad.apiKey)})` : ""}">
+<input name="ad_secret_key" type="password" placeholder="검색광고 비밀키${creds.ad.secretKey ? " (등록됨)" : ""}">
+<input name="ad_customer_id" placeholder="CUSTOMER_ID${creds.ad.customerId ? ` (현재 ${esc(creds.ad.customerId)})` : ""}">
+</div>
+<div class="row">
+<input name="client_id" placeholder="개발자센터 Client ID (선택)${creds.open.clientId ? ` (현재 ${MASK(creds.open.clientId)})` : ""}">
+<input name="client_secret" type="password" placeholder="개발자센터 Client Secret (선택)${creds.open.clientSecret ? " (등록됨)" : ""}">
+<button type="submit">저장</button></div>
+<p class="note" style="margin-top:10px">빈 칸은 기존 값을 그대로 둡니다.</p>
+</form></div>
+</div>`,
+  );
+}
+
 /** /admin 요청이면 응답을 돌려주고, 아니면 null 을 돌려줘 Next 라우터로 넘깁니다. */
 export async function handleAdmin(request: Request, url: URL, db: D1Database | undefined): Promise<Response | null> {
   const path = url.pathname.replace(/\/+$/, "") || "/";
@@ -295,6 +365,20 @@ export async function handleAdmin(request: Request, url: URL, db: D1Database | u
       return redirect("/admin/", { "set-cookie": `${COOKIE}=; HttpOnly; Secure; SameSite=Lax; Path=/admin; Max-Age=0` });
     }
 
+    if (path === "/admin/keywords/save") {
+      if (!(await isSignedIn(request, db))) return redirect("/admin/");
+      const pairs: Array<[string, string]> = [
+        ["naver_ad_api_key", String(form.get("ad_api_key") ?? "")],
+        ["naver_ad_secret_key", String(form.get("ad_secret_key") ?? "")],
+        ["naver_ad_customer_id", String(form.get("ad_customer_id") ?? "")],
+        ["naver_client_id", String(form.get("client_id") ?? "")],
+        ["naver_client_secret", String(form.get("client_secret") ?? "")],
+      ];
+      // 빈 칸은 기존 값을 지우지 않습니다.
+      for (const [key, value] of pairs) if (value.trim()) await writeSetting(db, key, value.trim());
+      return redirect("/admin/keywords/?saved=1");
+    }
+
     if (path === "/admin/password") {
       if (!(await isSignedIn(request, db))) return redirect("/admin/");
       const current = String(form.get("current") ?? "");
@@ -312,6 +396,29 @@ export async function handleAdmin(request: Request, url: URL, db: D1Database | u
   }
 
   if (!(await isSignedIn(request, db))) return html(loginPage(url.searchParams.get("error") === "1"));
+
+  if (path === "/admin/keywords") {
+    const creds = await loadCreds(db);
+    const query = url.searchParams.get("q") ?? "";
+    let rows: KeywordRow[] = [];
+    let error = "";
+    if (query.trim() && creds.ad.apiKey) {
+      try {
+        const words = query.split(/[,\n]/).map((w) => w.trim()).filter(Boolean);
+        rows = await fetchKeywordStats(creds.ad, words);
+        if (creds.open.clientId) {
+          // 상위 20개만 문서 수를 덧붙입니다. 호출이 많아지면 느려집니다.
+          rows = await Promise.all(
+            rows.slice(0, 20).map(async (row) => ({ ...row, documents: await fetchDocumentCount(creds.open, row.keyword) })),
+          );
+        }
+        rows.sort((a, b) => b.total - a.total);
+      } catch (e) {
+        error = e instanceof Error ? e.message : "조회에 실패했습니다.";
+      }
+    }
+    return html(keywordsPage(creds, query, rows, error, url.searchParams.get("saved") === "1"));
+  }
 
   const days = [1, 7, 30, 90].includes(Number(url.searchParams.get("days"))) ? Number(url.searchParams.get("days")) : 7;
   const changed = url.searchParams.get("changed");
