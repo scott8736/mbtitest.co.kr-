@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import AdUnit from "./AdUnit";
 import { questions, type Answer, type Axis } from "../lib/mbti-data";
 
-export const QUESTIONS_PER_STEP = 10;
+export const QUESTIONS_PER_STEP = 20;
 export const TOTAL_STEPS = Math.ceil(questions.length / QUESTIONS_PER_STEP);
 
 const PROGRESS_KEY = "mbti-progress";
