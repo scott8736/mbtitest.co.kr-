@@ -7,17 +7,16 @@ export const ADSENSE_CLIENT = "ca-pub-8646375689901020";
  * 자리마다 슬롯을 나눠야 애드센스 보고서에서 "어느 자리가 얼마를 벌었는지"
  * 광고 단위별로 비교할 수 있습니다.
  *
- * NEW_UNIT 으로 표시된 자리는 아직 전용 광고 단위를 만들지 않은 곳입니다.
- * 그동안은 기존 디스플레이 단위로 대신 노출되므로 수익 공백은 없고,
- * 실제 슬롯 ID를 넣는 순간 해당 형식(멀티플렉스·인피드)으로 바뀝니다.
+ * slot 을 비워두면 기존 디스플레이 단위로 대신 노출됩니다. 자리를 새로 만들고
+ * 애드센스 단위를 아직 안 만들었을 때 수익 공백 없이 넘어가기 위한 장치입니다.
  */
 
-/** 아직 애드센스에서 단위를 만들지 않은 자리 표시 */
-const NEW_UNIT = "" as const;
-
-/** 기존에 쓰던, 실제로 노출되고 있는 단위 두 개 */
 const DISPLAY_UNIT = "4581470308";
 const IN_ARTICLE_UNIT = "5081143693";
+const IN_FEED_UNIT = "8883453027";
+/** 인피드 단위의 레이아웃 값. 애드센스가 단위마다 따로 발급합니다. */
+const IN_FEED_LAYOUT = "-fb+5w+4e-db+86";
+const MULTIPLEX_UNIT = "9396634510";
 
 export type AdFormat = "display" | "inArticle" | "inFeed" | "multiplex";
 
@@ -47,15 +46,18 @@ export const adSlots: Record<AdPosition, AdSlotConfig> = {
   // 결과 화면 — 페이지당 노출이 가장 많은 자리입니다.
   resultTop: { slot: DISPLAY_UNIT, format: "display", name: "결과 상단" },
   resultMiddle: { slot: IN_ARTICLE_UNIT, format: "inArticle", name: "결과 본문 중간" },
-  resultBottom: { slot: NEW_UNIT, format: "multiplex", name: "결과 하단(멀티플렉스)" },
+  resultBottom: { slot: MULTIPLEX_UNIT, format: "multiplex", name: "결과 하단(멀티플렉스)" },
 
   // 검사 화면 — 최상단에만 두고, 질문 카드·답변 버튼 주변에는 넣지 않습니다.
   testIntro: { slot: DISPLAY_UNIT, format: "display", name: "검사 시작 전" },
   testTop: { slot: DISPLAY_UNIT, format: "display", name: "검사 화면 상단" },
 
   // 목록 화면 — 카드 사이에 섞이는 인피드 형식이 자연스럽습니다.
-  testListFeed: { slot: NEW_UNIT, format: "inFeed", name: "테스트 목록 인피드" },
-  blogListFeed: { slot: NEW_UNIT, format: "inFeed", name: "블로그 목록 인피드" },
+  // 인피드 단위가 하나뿐이라 두 자리가 같은 단위를 씁니다. 노출은 정상이지만
+  // 애드센스 보고서에서 둘의 성과가 합쳐져 나옵니다. 목록별로 나눠 보려면
+  // 인피드 단위를 하나 더 만들어 blogListFeed 의 slot 만 바꾸면 됩니다.
+  testListFeed: { slot: IN_FEED_UNIT, format: "inFeed", layoutKey: IN_FEED_LAYOUT, name: "테스트 목록 인피드" },
+  blogListFeed: { slot: IN_FEED_UNIT, format: "inFeed", layoutKey: IN_FEED_LAYOUT, name: "블로그 목록 인피드" },
 
   // 읽는 화면 — 유형·궁합·콘텐츠 글.
   articleTop: { slot: DISPLAY_UNIT, format: "display", name: "콘텐츠 상단" },
