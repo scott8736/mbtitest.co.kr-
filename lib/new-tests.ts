@@ -1,5 +1,6 @@
 import type { GenericResult, GenericTest } from "./generic-tests";
 import type { TestCatalogItem, TestCategory } from "./test-catalog";
+import { hspTest, hspCatalogItem } from "./hsp-test";
 
 type ResultSeed = {
   key: string;
@@ -263,9 +264,12 @@ const seeds: TestSeed[] = [
   },
 ];
 
-export const newGenericTests: Record<string, GenericTest> = Object.fromEntries(
-  seeds.map((seed) => [seed.slug, makeTest(seed)]),
-);
+// 이 목록에 들어간 테스트는 /tests/[slug] 동적 라우트로 만들어집니다.
+// hsp 는 문항과 결과를 손으로 쓴 테스트라 seed 생성기를 거치지 않습니다.
+export const newGenericTests: Record<string, GenericTest> = {
+  ...Object.fromEntries(seeds.map((seed) => [seed.slug, makeTest(seed)])),
+  [hspTest.slug]: hspTest,
+};
 
 export const newTestCatalog: TestCatalogItem[] = seeds.map((seed) => ({
   slug: seed.slug,
@@ -281,5 +285,6 @@ export const newTestCatalog: TestCatalogItem[] = seeds.map((seed) => ({
   status: "published",
   keywords: seed.keywords,
 }));
+newTestCatalog.push(hspCatalogItem);
 
-export const newTestSlugs = seeds.map((seed) => seed.slug);
+export const newTestSlugs = Object.keys(newGenericTests);

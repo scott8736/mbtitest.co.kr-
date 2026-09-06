@@ -1,8 +1,11 @@
 import CoupangPartners from "./CoupangPartners";
+import ShareButtons from "./ShareButtons";
 
 export default function SiteFooter() {
   return (
     <>
+      {/* 광고보다 위에 두고 여백을 크게 잡습니다. 광고와 붙으면 오클릭이 납니다. */}
+      <ShareButtons variant="footer" />
       <CoupangPartners />
       <footer className="site-footer">
         <div>
