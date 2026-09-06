@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import GenericTestRunner from "../../../components/GenericTestRunner";
 import { genericTests } from "../../../lib/generic-tests";
-import { newTestSlugs } from "../../../lib/new-tests";
+import { newTestSlugs } from "../../../lib/test-meta";
 import { testCatalog } from "../../../lib/test-catalog";
 
 export const dynamicParams = false;

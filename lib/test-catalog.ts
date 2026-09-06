@@ -20,7 +20,9 @@ export type TestCatalogItem = {
  * 새 테스트를 추가할 때 이 목록에 항목을 등록합니다.
  * 실제 질문·점수·결과 화면이 완성된 뒤 status를 published로 변경합니다.
  */
-import { newTestCatalog } from "./new-tests";
+// 문항·결과가 아니라 이름표만 가져옵니다. lib/new-tests.ts 를 참조하면
+// 이 파일을 읽는 클라이언트 컴포넌트가 20개 테스트 문항까지 함께 받습니다.
+import { newTestCatalog } from "./test-meta";
 
 export const testCatalog: TestCatalogItem[] = [
   {
@@ -85,7 +87,7 @@ export const testCatalog: TestCatalogItem[] = [
     shortTitle: "사랑의 언어",
     description: "내가 사랑을 표현하고 받아들이는 방식을 다섯 가지 언어로 살펴봅니다.",
     category: "연애",
-    questionCount: 20,
+    questionCount: 15,
     duration: "약 3분",
     icon: "◇",
     color: "#a57b58",
@@ -99,7 +101,7 @@ export const testCatalog: TestCatalogItem[] = [
     shortTitle: "자존감",
     description: "일상에서 나를 바라보는 태도와 자기 존중의 현재 상태를 점검합니다.",
     category: "마음건강",
-    questionCount: 20,
+    questionCount: 15,
     duration: "약 3분",
     icon: "○",
     color: "#6d7f9b",
@@ -113,7 +115,7 @@ export const testCatalog: TestCatalogItem[] = [
     shortTitle: "번아웃",
     description: "업무 피로와 정서적 소진 신호를 가볍게 점검하는 직장인 테스트입니다.",
     category: "직장",
-    questionCount: 18,
+    questionCount: 15,
     duration: "약 2분",
     icon: "△",
     color: "#85745f",
@@ -127,7 +129,7 @@ export const testCatalog: TestCatalogItem[] = [
     shortTitle: "업무성향",
     description: "협업, 의사결정, 실행 방식에서 나타나는 나의 업무 스타일을 알아봅니다.",
     category: "직장",
-    questionCount: 24,
+    questionCount: 16,
     duration: "약 3분",
     icon: "□",
     color: "#587985",
