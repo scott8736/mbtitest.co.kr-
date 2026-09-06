@@ -147,7 +147,7 @@ function noDatabasePage(): string {
 <li>Cloudflare 대시보드 → <b>Storage &amp; Databases → D1</b> 에서 데이터베이스를 만듭니다 (없을 때만).</li>
 <li><b>Workers &amp; Pages</b> 에서 이 프로젝트를 열고 <b>Settings → Bindings</b> 로 갑니다.</li>
 <li>D1 데이터베이스 바인딩을 추가합니다. 변수 이름은 반드시 <b>DB</b>, 값은 1번에서 만든 데이터베이스입니다.</li>
-<li>Production 과 Preview 양쪽에 추가합니다.</li>
+<li>Production 에 추가하면 끝입니다. Preview 는 브랜치 미리보기용이라 선택 사항입니다.</li>
 <li><b>Deployments → 최신 배포 → Retry deployment</b> 로 다시 배포합니다. 바인딩은 새 배포부터 적용됩니다.</li>
 </ol>
 <p class="note" style="margin:16px 0 0">테이블은 따로 만들 필요가 없습니다. 바인딩이 붙으면 첫 요청 때 자동으로 생성되고, 이어서 비밀번호 설정 화면이 나옵니다.</p>
