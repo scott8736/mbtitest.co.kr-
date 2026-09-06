@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import CrossPromo from "../../../../components/CrossPromo";
 import { notFound } from "next/navigation";
 import AdUnit from "../../../../components/AdUnit";
 import ContentHeader from "../../../../components/ContentHeader";
@@ -286,6 +287,7 @@ export default async function ZodiacDetailPage({ params }: { params: Promise<{ a
         </section>
       </article>
 
+      <CrossPromo variant="mixed" title="띠 운세를 봤다면 심리테스트도" />
       <SiteFooter />
     </main>
   );

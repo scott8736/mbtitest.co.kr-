@@ -1,4 +1,5 @@
 import { Fragment } from "react";
+import CrossPromo from "../../../components/CrossPromo";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import AdUnit from "../../../components/AdUnit";
@@ -23,7 +24,7 @@ export default async function CompatibilityTypePage({params}:{params:Promise<{ty
       <AdUnit position="articleTop" label={`${p.code} 궁합 상단 광고`} />
       <section className={styles.section}><h2>{p.code} 궁합 한눈에 보기</h2><div className={styles.pairTable}>{others.map(other=>{const x=pairInsight(code,other);return <article className={styles.pairCard} key={other}><b>{p.code} × {profiles[other].code}</b><p>{x.summary}</p><a href={`#${other}`}>관계 해석 보기 ↓</a></article>})}</div></section>
       <AdUnit position="articleBody" label={`${p.code} 궁합 본문 광고`} />
-      {others.map((other,i)=>{const q=profiles[other],x=pairInsight(code,other);return <Fragment key={other}>{i>0 && i%4===0 && <AdUnit position="articleBody" label={`${p.code} 궁합 본문 광고 ${i/4}`} />}<section id={other} className={styles.section}><h2>{p.code}와 {q.code} 궁합</h2><p>{x.summary}</p><div className={styles.grid}><div className={styles.card}><h3>잘 맞는 부분</h3><p>{x.strength}</p></div><div className={styles.card}><h3>갈등하기 쉬운 부분</h3><p>{x.conflict}</p></div></div><h3>연애와 연락 방식</h3><p>{p.code}는 {p.love} 반면 {q.code}는 {q.love} 서로의 애정 표현이 다르다는 점을 먼저 인정하면 연락 빈도나 표현 방식 때문에 생기는 오해를 줄일 수 있습니다.</p><h3>관계를 편안하게 만드는 대화법</h3><p>{x.tip}</p></section></Fragment>})}
+      {others.map((other,i)=>{const q=profiles[other],x=pairInsight(code,other);return <Fragment key={other}>{i>0 && i%4===0 && <AdUnit position="articleBody" label={`${p.code} 궁합 본문 광고 ${i/4}`} />}{i===6 && <CrossPromo variant="fortune" title="궁합을 봤다면 오늘의 운세도" />}{i===10 && <CrossPromo variant="tests" title="관계를 더 알아보는 심리테스트" testSlugs={["adult-attachment","love-language","mbti-love-compatibility"]} />}<section id={other} className={styles.section}><h2>{p.code}와 {q.code} 궁합</h2><p>{x.summary}</p><div className={styles.grid}><div className={styles.card}><h3>잘 맞는 부분</h3><p>{x.strength}</p></div><div className={styles.card}><h3>갈등하기 쉬운 부분</h3><p>{x.conflict}</p></div></div><h3>연애와 연락 방식</h3><p>{p.code}는 {p.love} 반면 {q.code}는 {q.love} 서로의 애정 표현이 다르다는 점을 먼저 인정하면 연락 빈도나 표현 방식 때문에 생기는 오해를 줄일 수 있습니다.</p><h3>관계를 편안하게 만드는 대화법</h3><p>{x.tip}</p></section></Fragment>})}
       <aside className={styles.notice}>MBTI 궁합은 관계의 성공 여부를 예측하는 공식이 아닙니다. 유형 설명은 대화를 시작하는 참고 자료로만 활용하고 상대를 네 글자로 단정하지 마세요.</aside>
       <section className={styles.cta}><h2>두 사람의 유형부터 확인해 보세요</h2><p>무료 검사 결과를 확인한 뒤 서로의 차이를 대화해 보세요.</p><a href="/tests/mbti/">무료 MBTI 검사 시작하기 →</a></section>
     </article><SiteFooter/></main>;

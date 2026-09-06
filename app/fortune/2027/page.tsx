@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import CrossPromo from "../../../components/CrossPromo";
 import AdUnit from "../../../components/AdUnit";
 import ContentHeader from "../../../components/ContentHeader";
 import SiteFooter from "../../../components/SiteFooter";
@@ -210,6 +211,7 @@ export default function Year2027Page() {
         </section>
       </article>
 
+      <CrossPromo variant="mixed" title="운세를 봤다면 심리테스트도" />
       <SiteFooter />
     </main>
   );
