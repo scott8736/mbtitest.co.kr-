@@ -424,11 +424,16 @@ main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% -
   display:flex;
   justify-content:space-between;
   align-items:center;
+  /* 셋이 한 줄에 안 들어가면 줄여서 밀어넣지 말고 다음 줄로 넘깁니다. */
+  flex-wrap:wrap;
   gap:30px;
   background:#0b1933;
   color:#d5d9e4;
 }
-.site-footer strong { color:white; font-size:17px; }
+/* 브랜드 칸은 줄이지 않습니다. 줄어들면 "MBTI 검사"가 두 줄로 쪼개집니다. */
+.site-footer > div { flex:0 0 auto; }
+.site-footer nav { flex:1 1 340px; }
+.site-footer strong { color:white; font-size:17px; white-space:nowrap; }
 .site-footer p { margin:7px 0 0; color:#8f9aae; font-size:12px; }
 .site-footer nav { display:flex; gap:22px; flex-wrap:wrap; }
 .site-footer a { color:#b9c1d1; font-size:12px; text-decoration:none; }
