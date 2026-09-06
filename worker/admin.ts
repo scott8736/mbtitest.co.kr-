@@ -14,7 +14,10 @@ import { fetchDocumentCount, fetchKeywordStats, loadCreds, writeSetting, type Ke
 import { ensureSchema } from "./schema";
 
 const COOKIE = "mbtitest_admin";
-const ITERATIONS = 150_000;
+// 워커 런타임이 허용하는 최대치입니다. 이보다 크게 잡으면 crypto.subtle 이
+// "iteration counts above 100000 are not supported" 로 거부합니다.
+// (로컬 miniflare 는 더 큰 값도 통과시켜서 배포 후에야 드러납니다.)
+const ITERATIONS = 100_000;
 const SESSION_HOURS = 12;
 
 const hex = (buffer: ArrayBuffer) =>
