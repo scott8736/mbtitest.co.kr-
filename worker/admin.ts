@@ -11,6 +11,7 @@
  */
 import { SOURCE_LABELS } from "../lib/analytics";
 import { fetchDocumentCount, fetchKeywordStats, loadCreds, writeSetting, type KeywordRow } from "./naver";
+import { ensureSchema } from "./schema";
 
 const COOKIE = "mbtitest_admin";
 const ITERATIONS = 150_000;
@@ -129,6 +130,18 @@ function bars(rows: { key: string; views: number }[], total: number, labels?: Re
 <b>${r.views.toLocaleString()}</b></li>`,
     )
     .join("")}</ul>`;
+}
+
+function setupPage(error: boolean): string {
+  return shell(
+    "관리자 초기 설정",
+    `<div class="login"><form method="post" action="/admin/setup">
+<h1>관리자 비밀번호 설정</h1>
+<p class="note" style="margin:0">아직 계정이 없습니다. 여기서 정한 비밀번호는 해시로만 저장되며 저장소에는 남지 않습니다.</p>
+${error ? `<p class="err">10자 이상으로 정해 주세요.</p>` : ""}
+<input name="password" type="password" placeholder="새 비밀번호 (10자 이상)" autocomplete="new-password" minlength="10" required>
+<button type="submit">설정</button></form></div>`,
+  );
 }
 
 function loginPage(error: boolean): string {
@@ -252,7 +265,7 @@ async function dashboard(db: D1Database, days: number, notice: string): Promise<
 </div>
 
 <div class="box"><h2>비밀번호 변경</h2>
-<p class="note">지금 비밀번호는 저장소의 마이그레이션에 해시로 들어 있습니다. 한 번 바꾸면 새 해시는 데이터베이스에만 남습니다.</p>
+<p class="note">비밀번호는 PBKDF2 해시로 데이터베이스에만 저장됩니다. 저장소에는 남지 않습니다.</p>
 ${notice === "ok" ? `<p class="ok">변경했습니다.</p>` : ""}
 ${notice === "fail" ? `<p class="err">현재 비밀번호가 맞지 않거나 새 비밀번호가 10자 미만입니다.</p>` : ""}
 <form method="post" action="/admin/password" class="row">
@@ -342,6 +355,40 @@ export async function handleAdmin(request: Request, url: URL, db: D1Database | u
   if (path !== "/admin" && !path.startsWith("/admin/")) return null;
 
   if (!db) return html(shell("관리자", `<div class="wrap"><h1>데이터베이스 연결 없음</h1><p class="note">D1 바인딩 DB 가 아직 붙지 않았습니다.</p></div>`));
+
+  try {
+    await ensureSchema(db);
+  } catch (error) {
+    return html(
+      shell(
+        "관리자",
+        `<div class="wrap"><h1>데이터베이스를 준비하지 못했습니다</h1><p class="note">${esc(
+          error instanceof Error ? error.message : String(error),
+        )}</p></div>`,
+      ),
+    );
+  }
+
+  // 마이그레이션이 적용되지 않은 데이터베이스에는 관리자 행이 없습니다.
+  // 그때는 로그인 대신 최초 1회 비밀번호 설정 화면을 보여줍니다.
+  const account = await db.prepare("SELECT 1 AS ok FROM admin_user WHERE id = 1").first<{ ok: number }>();
+  if (!account) {
+    if (request.method === "POST" && path === "/admin/setup") {
+      const password = String((await request.formData()).get("password") ?? "");
+      if (password.length < 10) return redirect("/admin/?error=1");
+      const salt = hex(crypto.getRandomValues(new Uint8Array(16)).buffer);
+      // 경쟁 상태에서 두 번 만들어지지 않도록 없을 때만 넣습니다.
+      await db
+        .prepare(
+          `INSERT INTO admin_user (id, salt, password_hash)
+           SELECT 1, ?, ? WHERE NOT EXISTS (SELECT 1 FROM admin_user WHERE id = 1)`,
+        )
+        .bind(salt, await derive(password, salt))
+        .run();
+      return redirect("/admin/");
+    }
+    return html(setupPage(url.searchParams.get("error") === "1"));
+  }
 
   if (request.method === "POST") {
     const form = await request.formData();
