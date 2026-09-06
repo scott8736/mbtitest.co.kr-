@@ -120,3 +120,91 @@ export async function fetchDocumentCount(creds: OpenApiCreds, keyword: string): 
     return null;
   }
 }
+
+export type TrendPoint = { period: string; ratio: number };
+export type TrendRow = {
+  keyword: string;
+  /** 일자별 상대 검색량. 값은 이 조회 안에서의 최대치를 100 으로 둔 비율입니다 */
+  series: TrendPoint[];
+  /** 최근 7일 평균 */
+  recent: number;
+  /** 그 직전 7일 평균 */
+  previous: number;
+  /** 상승률(%). previous 가 0 이면 null */
+  change: number | null;
+};
+
+const yyyymmdd = (at: Date) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).format(at);
+
+const mean = (values: number[]) => (values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0);
+
+/**
+ * 데이터랩 검색어 트렌드.
+ *
+ * 한 번에 키워드 그룹 5개까지만 되므로 5개씩 나눠 부릅니다. ratio 는 호출
+ * 안에서의 상대값이라 다른 호출의 값과 크기를 비교하면 안 됩니다. 그래서
+ * 화면에서는 절대 크기 대신 자기 자신의 최근 7일과 직전 7일을 견주는
+ * 상승률만 씁니다. 이 값은 한 키워드 안에서 계산되므로 호출이 나뉘어도
+ * 그대로 비교할 수 있습니다.
+ */
+export async function fetchTrend(creds: OpenApiCreds, keywords: string[], days = 30): Promise<TrendRow[]> {
+  const endDate = yyyymmdd(new Date(Date.now() - 86400000));
+  const startDate = yyyymmdd(new Date(Date.now() - days * 86400000));
+
+  const batches: string[][] = [];
+  for (let i = 0; i < keywords.length; i += 5) batches.push(keywords.slice(i, i + 5));
+
+  const responses = await Promise.all(
+    batches.map(async (batch) => {
+      const response = await fetch("https://openapi.naver.com/v1/datalab/search", {
+        method: "POST",
+        headers: {
+          "X-Naver-Client-Id": creds.clientId,
+          "X-Naver-Client-Secret": creds.clientSecret,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          startDate,
+          endDate,
+          timeUnit: "date",
+          keywordGroups: batch.map((keyword) => ({ groupName: keyword, keywords: [keyword] })),
+        }),
+      });
+      if (!response.ok) throw new Error(`데이터랩 API ${response.status}: ${(await response.text()).slice(0, 200)}`);
+      return (await response.json()) as {
+        results?: Array<{ title: string; data?: Array<{ period: string; ratio: number }> }>;
+      };
+    }),
+  );
+
+  return responses.flatMap((data) =>
+    (data.results ?? []).map((result) => {
+      const series = (result.data ?? []).map((point) => ({ period: point.period, ratio: point.ratio }));
+      const ratios = series.map((point) => point.ratio);
+      const recent = mean(ratios.slice(-7));
+      const previous = mean(ratios.slice(-14, -7));
+      return {
+        keyword: result.title,
+        series,
+        recent,
+        previous,
+        change: previous > 0 ? ((recent - previous) / previous) * 100 : null,
+      };
+    }),
+  );
+}
+
+/** 트렌드 화면의 기본 관찰 목록. /admin 에서 바꿀 수 있습니다. */
+export const DEFAULT_TREND_KEYWORDS = [
+  "MBTI검사",
+  "HSP테스트",
+  "애니어그램테스트",
+  "에겐테토",
+  "나르시시스트테스트",
+  "심리테스트",
+  "성격유형검사",
+  "연애테스트",
+  "번아웃테스트",
+  "자존감테스트",
+];

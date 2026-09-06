@@ -10,7 +10,17 @@
  * 저장하지 않는 것: IP 원본, 쿠키, 쿼리스트링.
  */
 import { SOURCE_LABELS } from "../lib/analytics";
-import { fetchDocumentCount, fetchKeywordStats, loadCreds, writeSetting, type KeywordRow } from "./naver";
+import {
+  DEFAULT_TREND_KEYWORDS,
+  fetchDocumentCount,
+  fetchKeywordStats,
+  fetchTrend,
+  loadCreds,
+  readSetting,
+  writeSetting,
+  type KeywordRow,
+  type TrendRow,
+} from "./naver";
 import { ensureSchema } from "./schema";
 
 const COOKIE = "mbtitest_admin";
@@ -255,7 +265,7 @@ async function dashboard(db: D1Database, days: number, notice: string): Promise<
   return shell(
     "접속 현황",
     `<div class="wrap">
-<div class="head"><div><h1>접속 현황</h1><p>${from} ~ ${to} (KST)</p></div><nav class="ranges">${ranges}<a href="/admin/keywords/">키워드 조회</a></nav></div>
+<div class="head"><div><h1>접속 현황</h1><p>${from} ~ ${to} (KST)</p></div><nav class="ranges">${ranges}<a href="/admin/trends/">트렌드</a><a href="/admin/keywords/">키워드 조회</a></nav></div>
 
 <div class="cards">
 <div><b>${total.views.toLocaleString()}</b><span>페이지뷰</span></div>
@@ -341,6 +351,102 @@ function field(
 const MASK = (v: string) => (v ? `${v.slice(0, 4)}${"•".repeat(Math.max(0, v.length - 8))}${v.slice(-4)}` : "");
 
 const num = (v: number) => (v < 0 ? "10 미만" : v.toLocaleString());
+
+const TREND_CACHE_MS = 3600_000;
+
+/** 저장해 둔 트렌드 결과. 관찰 목록이 바뀌었거나 오래됐으면 버립니다. */
+function readCache(raw: string, keywords: string[], maxAge = TREND_CACHE_MS): { at: number; rows: TrendRow[] } | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as { at?: number; keywords?: string; rows?: TrendRow[] };
+    if (!parsed.at || !Array.isArray(parsed.rows)) return null;
+    if (parsed.keywords !== keywords.join("\n")) return null;
+    if (Date.now() - parsed.at > maxAge) return null;
+    return { at: parsed.at, rows: parsed.rows };
+  } catch {
+    return null;
+  }
+}
+
+/** 30일 흐름을 작은 선그래프로 그립니다. 라이브러리 없이 좌표만 계산합니다. */
+function sparkline(values: number[], color: string): string {
+  if (values.length < 2) return "";
+  const peak = Math.max(1, ...values);
+  const points = values
+    .map((value, index) => `${(index / (values.length - 1)) * 100},${28 - (value / peak) * 26}`)
+    .join(" ");
+  return `<svg viewBox="0 0 100 28" preserveAspectRatio="none" width="120" height="28" aria-hidden="true">
+<polyline points="${points}" fill="none" stroke="${color}" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>`;
+}
+
+/**
+ * 트렌드 화면.
+ *
+ * 네이버 실시간 급상승 검색어는 2021년에 폐지되어 순위를 그대로 받아올 방법이
+ * 없습니다. 대신 데이터랩으로 관찰 목록의 30일 흐름을 받아, 최근 7일과 직전
+ * 7일을 견준 상승률로 직접 순위를 만듭니다.
+ */
+function trendsPage(
+  rows: TrendRow[],
+  keywords: string[],
+  error: string,
+  hasOpen: boolean,
+  saved: boolean,
+  fetchedAt: number,
+): string {
+  const sorted = [...rows].sort((a, b) => (b.change ?? -999) - (a.change ?? -999));
+
+  const list = sorted.length
+    ? `<div class="scroll"><table><thead><tr>
+<th>키워드</th><th>30일 흐름</th><th>최근 7일</th><th>직전 7일</th><th>상승률</th>
+</tr></thead><tbody>${sorted
+        .map((row) => {
+          const up = (row.change ?? 0) > 0;
+          const color = row.change === null ? "#8a90a0" : up ? "#3f7d5c" : "#b6483c";
+          const label = row.change === null ? "-" : `${up ? "▲" : "▼"} ${Math.abs(row.change).toFixed(0)}%`;
+          return `<tr><td>${esc(row.keyword)}</td>
+<td>${sparkline(row.series.map((point) => point.ratio), color)}</td>
+<td>${row.recent.toFixed(1)}</td><td>${row.previous.toFixed(1)}</td>
+<td style="color:${color};font-weight:700">${label}</td></tr>`;
+        })
+        .join("")}</tbody></table></div>
+<p class="note" style="margin:14px 0 0">상승률은 각 키워드가 <b>자기 자신의 2주 전과 견줘</b> 얼마나 올랐는지입니다. 세로 눈금은 조회 묶음 안에서의 상대값이라 키워드끼리 크기를 비교하면 안 됩니다. 절대 검색량은 키워드 조회 화면에서 봅니다.</p>`
+    : "";
+
+  return shell(
+    "트렌드",
+    `<div class="wrap">
+<div class="head"><div><h1>트렌드</h1><p>네이버 데이터랩 · 최근 30일${fetchedAt ? ` · ${new Date(fetchedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })} 기준` : ""}</p></div>
+<nav class="ranges"><a href="/admin/trends/?refresh=1">새로고침</a><a href="/admin/">접속 현황</a><a href="/admin/keywords/">키워드 조회</a></nav></div>
+
+${saved ? `<p class="ok">저장했습니다.</p>` : ""}
+${error ? `<div class="box"><p class="err" style="margin:0">${esc(error)}</p></div>` : ""}
+
+${
+      hasOpen
+        ? `<div class="box"><h2>지금 오르고 있는 키워드</h2>
+<p class="note">관찰 목록을 상승률 순으로 세웁니다. 위에 있을수록 최근 2주 사이에 수요가 늘어난 주제입니다.</p>
+${list || `<p class="empty">아직 불러오지 못했습니다.</p>`}</div>`
+        : `<div class="box"><h2>개발자센터 키가 필요합니다</h2>
+<p class="note">트렌드는 네이버 데이터랩 API 를 씁니다. developers.naver.com 의 Client ID 와 Secret 을
+<a href="/admin/keywords/" style="color:#7657d6">키워드 조회 화면</a>에서 등록해 주세요.</p></div>`
+    }
+
+<div class="box"><h2>관찰 목록</h2>
+<p class="note">한 줄에 하나씩, 최대 20개. 띄어쓰기 없이 붙여 쓰는 편이 정확합니다.</p>
+<form method="post" action="/admin/trends/save">
+<textarea name="keywords" rows="8" style="width:100%;padding:12px 14px;border:1px solid #e5e0ef;border-radius:10px;font:14px/1.7 system-ui;resize:vertical">${esc(keywords.join("\n"))}</textarea>
+<p class="note" style="margin:12px 0">비우고 저장하면 기본 목록으로 돌아갑니다.</p>
+<button type="submit">저장하고 다시 조회</button></form></div>
+
+<div class="box"><h2>실시간 급상승 검색어는 왜 없나요</h2>
+<p class="note" style="margin:0">네이버가 2021년 2월에 서비스를 종료해서 순위를 받아올 공개 API 가 없습니다.
+바깥 사이트의 집계 화면을 긁어오는 방법은 그쪽이 화면을 바꾸면 바로 깨지고, 남의 서비스 자료라
+계속 쓰기도 어렵습니다. 그래서 순위를 가져오는 대신 관찰 목록의 흐름으로 직접 만듭니다.
+목록에 없는 주제는 잡히지 않으므로, 새 소재가 보이면 위에 추가해 두세요.</p></div>
+</div>`,
+  );
+}
 
 /**
  * 키워드 조회 화면.
@@ -429,7 +535,7 @@ ${openKeys}
     "키워드 조회",
     `<div class="wrap">
 <div class="head"><div><h1>키워드 조회</h1><p>네이버 검색광고 키워드도구</p></div>
-<nav class="ranges"><a href="/admin/">접속 현황</a></nav></div>
+<nav class="ranges"><a href="/admin/">접속 현황</a><a href="/admin/trends/">트렌드</a></nav></div>
 
 ${saved ? `<p class="ok">저장했습니다.</p>` : ""}
 ${error ? `<div class="box"><p class="err" style="margin:0">${esc(error)}</p></div>` : ""}
@@ -502,6 +608,17 @@ export async function handleAdmin(request: Request, url: URL, db: D1Database | u
       return redirect("/admin/", { "set-cookie": `${COOKIE}=; HttpOnly; Secure; SameSite=Lax; Path=/admin; Max-Age=0` });
     }
 
+    if (path === "/admin/trends/save") {
+      if (!(await isSignedIn(request, db))) return redirect("/admin/");
+      const list = String(form.get("keywords") ?? "")
+        .split(/[\n,]/)
+        .map((word) => word.trim())
+        .filter(Boolean)
+        .slice(0, 20);
+      await writeSetting(db, "trend_keywords", list.join("\n"));
+      return redirect("/admin/trends/?saved=1");
+    }
+
     if (path === "/admin/keywords/save") {
       if (!(await isSignedIn(request, db))) return redirect("/admin/");
       const pairs: Array<[string, string]> = [
@@ -538,6 +655,44 @@ export async function handleAdmin(request: Request, url: URL, db: D1Database | u
   }
 
   if (!(await isSignedIn(request, db))) return html(loginPage(url.searchParams.get("error") === "1"));
+
+  if (path === "/admin/trends") {
+    const creds = await loadCreds(db);
+    const stored = await readSetting(db, "trend_keywords");
+    const keywords = stored ? stored.split("\n").filter(Boolean) : DEFAULT_TREND_KEYWORDS;
+    const hasOpen = Boolean(creds.open.clientId && creds.open.clientSecret);
+
+    let rows: TrendRow[] = [];
+    let error = "";
+    let fetchedAt = 0;
+
+    if (hasOpen) {
+      // 데이터랩은 하루 단위로 갱신되므로 한 시간은 저장해 둔 값을 씁니다.
+      // 화면을 열 때마다 부르면 느린 데다 일일 한도를 그냥 깎아먹습니다.
+      const cached = readCache(await readSetting(db, "trend_cache"), keywords);
+      const forced = url.searchParams.get("refresh") === "1";
+
+      if (cached && !forced) {
+        rows = cached.rows;
+        fetchedAt = cached.at;
+      } else {
+        try {
+          rows = await fetchTrend(creds.open, keywords);
+          fetchedAt = Date.now();
+          await writeSetting(db, "trend_cache", JSON.stringify({ at: fetchedAt, keywords: keywords.join("\n"), rows }));
+        } catch (e) {
+          error = e instanceof Error ? e.message : "조회에 실패했습니다.";
+          // 새로 못 받았으면 오래된 값이라도 보여줍니다.
+          const stale = readCache(await readSetting(db, "trend_cache"), keywords, Infinity);
+          if (stale) {
+            rows = stale.rows;
+            fetchedAt = stale.at;
+          }
+        }
+      }
+    }
+    return html(trendsPage(rows, keywords, error, hasOpen, url.searchParams.get("saved") === "1", fetchedAt));
+  }
 
   if (path === "/admin/keywords") {
     const creds = await loadCreds(db);
