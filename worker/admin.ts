@@ -132,6 +132,29 @@ function bars(rows: { key: string; views: number }[], total: number, labels?: Re
     .join("")}</ul>`;
 }
 
+/**
+ * 워커는 떠 있지만 D1 바인딩이 없을 때. 여기서 막히면 무엇을 해야 하는지
+ * 알 길이 없으므로 필요한 절차를 화면에 적어 둡니다.
+ */
+function noDatabasePage(): string {
+  return shell(
+    "관리자",
+    `<div class="wrap">
+<h1>데이터베이스 연결 없음</h1>
+<p class="note">워커는 정상 동작 중입니다. D1 바인딩 <b>DB</b> 만 아직 붙지 않았습니다.</p>
+<div class="box"><h2>붙이는 순서</h2>
+<ol style="margin:0;padding-left:20px;line-height:2">
+<li>Cloudflare 대시보드 → <b>Storage &amp; Databases → D1</b> 에서 데이터베이스를 만듭니다 (없을 때만).</li>
+<li><b>Workers &amp; Pages</b> 에서 이 프로젝트를 열고 <b>Settings → Bindings</b> 로 갑니다.</li>
+<li>D1 데이터베이스 바인딩을 추가합니다. 변수 이름은 반드시 <b>DB</b>, 값은 1번에서 만든 데이터베이스입니다.</li>
+<li>Production 과 Preview 양쪽에 추가합니다.</li>
+<li><b>Deployments → 최신 배포 → Retry deployment</b> 로 다시 배포합니다. 바인딩은 새 배포부터 적용됩니다.</li>
+</ol>
+<p class="note" style="margin:16px 0 0">테이블은 따로 만들 필요가 없습니다. 바인딩이 붙으면 첫 요청 때 자동으로 생성되고, 이어서 비밀번호 설정 화면이 나옵니다.</p>
+</div></div>`,
+  );
+}
+
 function setupPage(error: boolean): string {
   return shell(
     "관리자 초기 설정",
@@ -354,7 +377,7 @@ export async function handleAdmin(request: Request, url: URL, db: D1Database | u
   const path = url.pathname.replace(/\/+$/, "") || "/";
   if (path !== "/admin" && !path.startsWith("/admin/")) return null;
 
-  if (!db) return html(shell("관리자", `<div class="wrap"><h1>데이터베이스 연결 없음</h1><p class="note">D1 바인딩 DB 가 아직 붙지 않았습니다.</p></div>`));
+  if (!db) return html(noDatabasePage());
 
   try {
     await ensureSchema(db);
