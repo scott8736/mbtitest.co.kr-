@@ -118,6 +118,15 @@ td:first-child{font-variant-numeric:normal}
 .err{margin:0 0 12px;color:#b6483c;font-size:14px;font-weight:700}
 .ok{margin:0 0 12px;color:#3f7d5c;font-size:14px;font-weight:700}
 .row{display:flex;gap:8px;flex-wrap:wrap}.row input{flex:1 1 220px}
+.fields{display:grid;gap:14px}
+.fields label{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:baseline}
+.fields label span{font-size:14px;font-weight:600}
+.fields label b{font-size:13px;font-weight:600}
+.fields label input{grid-column:1/-1}
+ol.steps{margin:0 0 22px;padding-left:20px;line-height:1.9;font-size:14px}
+ol.steps a{color:#7657d6}
+details summary{cursor:pointer;font-size:15px;font-weight:700;color:#4b4560}
+details.box{margin-top:26px}
 .ghost button{background:#e9e6f2;color:#4b4560}
 .foot{color:#8a90a0;font-size:13px;line-height:1.7}
 @media(max-width:820px){.cards{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}}
@@ -307,10 +316,39 @@ ${notice === "fail" ? `<p class="err">현재 비밀번호가 맞지 않거나 �
 }
 
 
+/**
+ * API 키 입력 한 칸.
+ *
+ * 저장 여부를 placeholder 가 아니라 라벨에 적습니다. 브라우저 자동완성이 값을
+ * 채워 넣으면 placeholder 가 가려져서, 저장된 값과 자동완성된 값을 구분할 수
+ * 없었습니다. autocomplete 를 꺼두는 것도 같은 이유입니다.
+ */
+function field(
+  name: string,
+  label: string,
+  saved: string,
+  opts: { secret?: boolean; hint?: string; pattern?: string } = {},
+): string {
+  return `<label>
+<span>${esc(label)}${opts.hint ? ` <i style="font-style:normal;color:#8a90a0">— ${esc(opts.hint)}</i>` : ""}</span>
+<b style="color:${saved ? "#3f7d5c" : "#b6483c"}">${saved || "미등록"}</b>
+<input name="${name}" ${opts.secret ? 'type="password" autocomplete="new-password"' : 'type="text" autocomplete="off"'}
+ ${opts.pattern ? `pattern="${opts.pattern}" inputmode="numeric"` : ""}
+ spellcheck="false" placeholder="${saved ? "바꿀 때만 입력" : "값을 붙여넣으세요"}">
+</label>`;
+}
+
 const MASK = (v: string) => (v ? `${v.slice(0, 4)}${"•".repeat(Math.max(0, v.length - 8))}${v.slice(-4)}` : "");
 
 const num = (v: number) => (v < 0 ? "10 미만" : v.toLocaleString());
 
+/**
+ * 키워드 조회 화면.
+ *
+ * 검색광고 키가 없으면 등록 안내만, 있으면 조회 칸만 보여줍니다. 두 가지를
+ * 한꺼번에 늘어놓으면 지금 무엇을 해야 하는지 알기 어렵습니다.
+ * 개발자센터 키는 없어도 조회가 되므로 접어 둡니다.
+ */
 function keywordsPage(
   creds: { ad: { apiKey: string; secretKey: string; customerId: string }; open: { clientId: string; clientSecret: string } },
   query: string,
@@ -321,7 +359,7 @@ function keywordsPage(
   const hasAd = Boolean(creds.ad.apiKey && creds.ad.secretKey && creds.ad.customerId);
 
   const table = rows.length
-    ? `<div class="scroll"><table><thead><tr>
+    ? `<div class="box"><div class="scroll"><table><thead><tr>
 <th>키워드</th><th>PC</th><th>모바일</th><th>월 검색수</th><th>경쟁</th><th>블로그 문서</th><th>문서/검색</th>
 </tr></thead><tbody>${rows
         .map((r) => {
@@ -331,8 +369,61 @@ function keywordsPage(
 <td>${r.documents === null ? "-" : r.documents.toLocaleString()}</td><td>${ratio}</td></tr>`;
         })
         .join("")}</tbody></table></div>
-<p class="note">검색수가 크고 <b>문서/검색 비율이 낮을수록</b> 비집고 들어갈 틈이 큽니다. 경쟁이 &lsquo;낮음&rsquo;이면서 검색수가 있는 키워드가 가장 좋습니다.</p>`
+<p class="note" style="margin:14px 0 0">검색수가 크고 <b>문서/검색 비율이 낮을수록</b> 비집고 들어갈 틈이 큽니다.</p></div>`
     : "";
+
+  const openKeys = `<div class="fields">
+${field("client_id", "Client ID", creds.open.clientId ? `등록됨 · ${MASK(creds.open.clientId)}` : "")}
+${field("client_secret", "Client Secret", creds.open.clientSecret ? "등록됨" : "", { secret: true })}
+</div>`;
+
+  // 검색광고 키 등록 화면. 어디서 무엇을 복사해 오는지까지 적어 둡니다.
+  const setup = `<div class="box">
+<h2>검색광고 API 키 등록</h2>
+<p class="note">이 세 가지를 넣으면 조회 칸이 나타납니다. 아래 순서대로 복사해 오세요.</p>
+<ol class="steps">
+<li><a href="https://searchad.naver.com" target="_blank" rel="noopener">searchad.naver.com</a> 에 로그인합니다. 네이버 아이디로 쓰는 <b>검색광고 계정</b>이며, 개발자센터와는 다른 사이트입니다.</li>
+<li>오른쪽 위 <b>도구 → API 사용 관리</b> 로 들어갑니다.</li>
+<li><b>네이버 검색광고 API</b> 에서 키를 발급하면 <b>액세스라이선스</b>와 <b>비밀키</b>가 나옵니다.</li>
+<li><b>CUSTOMER_ID</b> 는 같은 화면에 적힌 숫자입니다. 이메일이 아닙니다.</li>
+</ol>
+<form method="post" action="/admin/keywords/save" autocomplete="off">
+<div class="fields">
+${field("ad_api_key", "액세스라이선스", creds.ad.apiKey ? `등록됨 · ${MASK(creds.ad.apiKey)}` : "")}
+${field("ad_secret_key", "비밀키", creds.ad.secretKey ? "등록됨" : "", { secret: true })}
+${field("ad_customer_id", "CUSTOMER_ID", creds.ad.customerId ? `등록됨 · ${esc(creds.ad.customerId)}` : "", {
+    hint: "숫자만",
+    pattern: "[0-9]+",
+  })}
+</div>
+<p class="note" style="margin:16px 0 12px">브라우저가 자동으로 채워 넣은 값이 있으면 지우고 넣어 주세요.</p>
+<button type="submit">저장</button>
+<details style="margin-top:22px"><summary>개발자센터 키도 넣기 (선택)</summary>
+<p class="note" style="margin:12px 0">블로그 문서 수를 함께 보여주는 용도입니다. 없어도 검색량 조회는 됩니다.
+developers.naver.com 에서 발급합니다.</p>
+${openKeys}</details>
+</form></div>`;
+
+  // 조회 화면. 키가 다 있으면 여기가 화면의 전부입니다.
+  const search = `<div class="box">
+<h2>검색량 조회</h2>
+<p class="note">키워드를 쉼표로 구분해 한 번에 5개까지. 네이버가 연관 키워드도 함께 돌려줍니다.</p>
+<form method="get" class="row">
+<input name="q" value="${esc(query)}" placeholder="애니어그램 테스트, 도파민 중독 테스트, 성향 테스트" required autocomplete="off">
+<button type="submit">조회</button></form></div>
+${table}
+<details class="box"><summary>API 키 바꾸기</summary>
+<form method="post" action="/admin/keywords/save" autocomplete="off" style="margin-top:16px">
+<div class="fields">
+${field("ad_api_key", "액세스라이선스", `등록됨 · ${MASK(creds.ad.apiKey)}`)}
+${field("ad_secret_key", "비밀키", "등록됨", { secret: true })}
+${field("ad_customer_id", "CUSTOMER_ID", `등록됨 · ${esc(creds.ad.customerId)}`, { hint: "숫자만", pattern: "[0-9]+" })}
+</div>
+<h2 style="margin:24px 0 4px">개발자센터 키 (선택)</h2>
+<p class="note">블로그 문서 수 조회용입니다.</p>
+${openKeys}
+<p class="note" style="margin:16px 0 12px">빈 칸은 기존 값을 그대로 둡니다.</p>
+<button type="submit">저장</button></form></details>`;
 
   return shell(
     "키워드 조회",
@@ -341,36 +432,9 @@ function keywordsPage(
 <nav class="ranges"><a href="/admin/">접속 현황</a></nav></div>
 
 ${saved ? `<p class="ok">저장했습니다.</p>` : ""}
-${error ? `<div class="box"><p class="err">${esc(error)}</p></div>` : ""}
+${error ? `<div class="box"><p class="err" style="margin:0">${esc(error)}</p></div>` : ""}
 
-${
-      hasAd
-        ? `<div class="box"><h2>검색량 조회</h2>
-<p class="note">한 번에 5개까지 조회되며, 네이버가 연관 키워드도 함께 돌려줍니다.</p>
-<form method="get" class="row">
-<input name="q" value="${esc(query)}" placeholder="에겐테토 테스트, 자존감 테스트, 번아웃" required>
-<button type="submit">조회</button></form></div>
-${table}`
-        : `<div class="box"><p class="note">검색광고 API 키를 먼저 등록해 주세요.</p></div>`
-    }
-
-<div class="box"><h2>API 키</h2>
-<p class="note">
-저장소에는 남지 않고 데이터베이스에만 보관됩니다. 다만 암호화하지 않으므로 데이터베이스를 볼 수 있는 사람은 값을 확인할 수 있습니다.
-<br>검색광고 키는 <b>광고관리시스템 → 도구 → API 사용 관리</b>에서, 아래 개발자센터 키는 선택 사항입니다(블로그 문서 수 조회용).
-</p>
-<form method="post" action="/admin/keywords/save">
-<div class="row" style="margin-bottom:8px">
-<input name="ad_api_key" placeholder="검색광고 액세스라이선스${creds.ad.apiKey ? ` (현재 ${MASK(creds.ad.apiKey)})` : ""}">
-<input name="ad_secret_key" type="password" placeholder="검색광고 비밀키${creds.ad.secretKey ? " (등록됨)" : ""}">
-<input name="ad_customer_id" placeholder="CUSTOMER_ID${creds.ad.customerId ? ` (현재 ${esc(creds.ad.customerId)})` : ""}">
-</div>
-<div class="row">
-<input name="client_id" placeholder="개발자센터 Client ID (선택)${creds.open.clientId ? ` (현재 ${MASK(creds.open.clientId)})` : ""}">
-<input name="client_secret" type="password" placeholder="개발자센터 Client Secret (선택)${creds.open.clientSecret ? " (등록됨)" : ""}">
-<button type="submit">저장</button></div>
-<p class="note" style="margin-top:10px">빈 칸은 기존 값을 그대로 둡니다.</p>
-</form></div>
+${hasAd ? search : setup}
 </div>`,
   );
 }
@@ -447,6 +511,11 @@ export async function handleAdmin(request: Request, url: URL, db: D1Database | u
         ["naver_client_id", String(form.get("client_id") ?? "")],
         ["naver_client_secret", String(form.get("client_secret") ?? "")],
       ];
+      // CUSTOMER_ID 는 숫자입니다. 브라우저 자동완성이 이메일을 넣어두는 일이
+      // 잦아서, 형식이 다르면 저장하지 않고 이유를 알려줍니다.
+      const customerId = String(form.get("ad_customer_id") ?? "").trim();
+      if (customerId && !/^\d+$/.test(customerId)) return redirect("/admin/keywords/?err=customer");
+
       // 빈 칸은 기존 값을 지우지 않습니다.
       for (const [key, value] of pairs) if (value.trim()) await writeSetting(db, key, value.trim());
       return redirect("/admin/keywords/?saved=1");
@@ -474,7 +543,10 @@ export async function handleAdmin(request: Request, url: URL, db: D1Database | u
     const creds = await loadCreds(db);
     const query = url.searchParams.get("q") ?? "";
     let rows: KeywordRow[] = [];
-    let error = "";
+    let error =
+      url.searchParams.get("err") === "customer"
+        ? "CUSTOMER_ID 는 숫자만 넣을 수 있습니다. 브라우저가 채운 이메일 주소가 아닌지 확인해 주세요. 다른 값은 저장되지 않았습니다."
+        : "";
     if (query.trim() && creds.ad.apiKey) {
       try {
         const words = query.split(/[,\n]/).map((w) => w.trim()).filter(Boolean);
