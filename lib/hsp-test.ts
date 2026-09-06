@@ -1,5 +1,4 @@
 import type { GenericTest } from "./generic-tests";
-import type { TestCatalogItem } from "./test-catalog";
 
 /**
  * HSP(매우 예민한 사람) 성향 테스트.
@@ -212,19 +211,4 @@ export const hspTest: GenericTest = {
       a: "16문항이고 약 3분 걸립니다. 8문항씩 두 단계로 나뉘어 있으며 중간에 나가도 진행 상황이 남습니다.",
     },
   ],
-};
-
-export const hspCatalogItem: TestCatalogItem = {
-  slug: "hsp",
-  title: "HSP 테스트",
-  shortTitle: "HSP 테스트",
-  description: "16문항으로 감각 처리 민감성의 네 갈래 중 나에게 두드러지는 방향을 확인합니다.",
-  category: "마음건강",
-  questionCount: 16,
-  duration: "약 3분",
-  icon: "◈",
-  color: "#5f6fb0",
-  href: "/tests/hsp/",
-  status: "published",
-  keywords: ["HSP 테스트", "매우 예민한 사람", "예민함 테스트", "감각 처리 민감성"],
 };

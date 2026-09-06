@@ -1,6 +1,6 @@
 import { blogPosts } from "./blog-posts";
 import { mbtiCodes } from "./mbti-content";
-import { newTestSlugs } from "./new-tests";
+import { newTestSlugs } from "./test-meta";
 import { zodiacSlugs, starSignSlugs } from "./fortune-engine";
 import { dreamSlugs } from "./fortune-dreams";
 

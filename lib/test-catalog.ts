@@ -20,7 +20,9 @@ export type TestCatalogItem = {
  * 새 테스트를 추가할 때 이 목록에 항목을 등록합니다.
  * 실제 질문·점수·결과 화면이 완성된 뒤 status를 published로 변경합니다.
  */
-import { newTestCatalog } from "./new-tests";
+// 문항·결과가 아니라 이름표만 가져옵니다. lib/new-tests.ts 를 참조하면
+// 이 파일을 읽는 클라이언트 컴포넌트가 20개 테스트 문항까지 함께 받습니다.
+import { newTestCatalog } from "./test-meta";
 
 export const testCatalog: TestCatalogItem[] = [
   {
