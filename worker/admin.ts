@@ -274,6 +274,13 @@ async function dashboard(db: D1Database, days: number, notice: string): Promise<
        FROM stages WHERE slug IS NOT NULL AND slug <> ''
       GROUP BY slug HAVING intro > 0 ORDER BY intro DESC LIMIT 15`, from, to);
 
+  // 첫 문항에 답한 수. 방문만 하고 나간 사람과 풀다 그만둔 사람을 가릅니다.
+  const answered = await q<{ slug: string; count: number }>(
+    `SELECT slug, COUNT(*) AS count FROM test_events
+      WHERE day BETWEEN ? AND ? AND name = 'answered'
+      GROUP BY slug`, from, to);
+  const answeredBySlug = new Map(answered.map((row) => [row.slug, row.count]));
+
   const peak = Math.max(1, ...daily.map((d) => d.views));
   const ranges = [1, 7, 30, 90]
     .map((d) => `<a href="/admin/?days=${d}" class="${d === days ? "on" : ""}">${d === 1 ? "오늘" : `${d}일`}</a>`)
@@ -310,14 +317,20 @@ async function dashboard(db: D1Database, days: number, notice: string): Promise<
 <div class="box"><h2>많이 본 페이지</h2>${bars(paths, total.views)}</div>
 
 <div class="box"><h2>테스트 완주율</h2>
-<p class="note">검사가 단계별로 주소가 나뉘어 있어 어디서 그만두는지 보입니다.</p>${
+<p class="note">
+「방문」은 검사 화면이 열린 수이고 「첫 응답」은 문항 하나라도 답한 수입니다. 둘의 차이가 크면 첫인상 문제,
+「첫 응답 → 결과」가 낮으면 길이 문제입니다. 고칠 곳이 서로 달라 나눠 셉니다.
+<br>첫 응답은 2026-09-07 부터 쌓기 시작했으므로 그 이전 기간에는 「-」로 나옵니다.
+</p>${
       steps.length === 0
         ? `<p class="empty">아직 기록이 없습니다.</p>`
-        : `<div class="scroll"><table><thead><tr><th>테스트</th><th>시작</th><th>2단계</th><th>결과</th><th>완주율</th></tr></thead><tbody>${steps
-            .map(
-              (s) =>
-                `<tr><td>${esc(s.slug)}</td><td>${s.intro}</td><td>${s.step2}</td><td>${s.result}</td><td>${s.intro ? Math.round((s.result / s.intro) * 100) + "%" : "-"}</td></tr>`,
-            )
+        : `<div class="scroll"><table><thead><tr><th>테스트</th><th>방문</th><th>첫 응답</th><th>2단계</th><th>결과</th><th>응답 시작률</th><th>완주율</th></tr></thead><tbody>${steps
+            .map((s) => {
+              const began = answeredBySlug.get(s.slug) ?? 0;
+              const pct = (part: number, whole: number) => (whole ? Math.round((part / whole) * 100) + "%" : "-");
+              return `<tr><td>${esc(s.slug)}</td><td>${s.intro}</td><td>${began || "-"}</td><td>${s.step2}</td><td>${s.result}</td>
+<td>${began ? pct(began, s.intro) : "-"}</td><td>${began ? pct(s.result, began) : pct(s.result, s.intro) + " (방문 기준)"}</td></tr>`;
+            })
             .join("")}</tbody></table></div>`
     }</div>
 

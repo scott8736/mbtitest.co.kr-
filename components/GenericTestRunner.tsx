@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { GenericTest, ScoreMap } from "../lib/generic-tests";
 import { testCatalog } from "../lib/test-catalog";
 import AdUnit from "./AdUnit";
+import { recordTestEvent } from "../lib/test-events";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
 import CrossPromo from "./CrossPromo";
@@ -86,6 +87,10 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
   };
 
   const answer = (add: ScoreMap) => {
+    // 첫 문항에 답한 순간. 화면을 열자마자 나간 사람과 여기까지 온 사람을
+    // 가르는 지점이라 따로 셉니다.
+    if (part === 1 && index === 0) recordTestEvent(test.slug, "answered");
+
     const next = { ...scores };
     Object.entries(add).forEach(([key, value]) => { next[key] = (next[key] || 0) + value; });
     if (index < stepQuestions.length - 1) {
@@ -200,7 +205,6 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
 
       {screen === "test" && ready && (
         <section className="test-shell">
-          <AdUnit key={`test-top-${test.slug}-${part}`} position="testTop" label={`${test.title} ${part}단계 상단 광고`} />
           <div className="test-top">
             <button onClick={() => (part === 1 ? setScreen("intro") : location.assign(`/tests/${test.slug}/`))}>← 나가기</button>
             <span>{answeredBefore + index + 1} / {test.questions.length}</span>
@@ -216,6 +220,9 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
               <button onClick={() => answer(stepQuestions[index].bScores)}><span>B</span><strong>{stepQuestions[index].b}</strong><small>이 문장에 더 가까워요</small></button>
             </div>
           </div>
+          {/* 광고는 질문 아래에 둡니다. 위에 있으면 모바일 첫 화면이 광고로
+              채워져 질문이 접히는데, 같은 페이지라 노출 수는 그대로입니다. */}
+          <AdUnit key={`test-below-${test.slug}-${part}`} position="testTop" label={`${test.title} ${part}단계 광고`} />
         </section>
       )}
 

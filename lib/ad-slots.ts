@@ -48,9 +48,12 @@ export const adSlots: Record<AdPosition, AdSlotConfig> = {
   resultMiddle: { slot: IN_ARTICLE_UNIT, format: "inArticle", name: "결과 본문 중간" },
   resultBottom: { slot: MULTIPLEX_UNIT, format: "multiplex", name: "결과 하단(멀티플렉스)" },
 
-  // 검사 화면 — 최상단에만 두고, 질문 카드·답변 버튼 주변에는 넣지 않습니다.
+  // 검사 화면 — 질문 카드 아래에만 두고, 답변 버튼 주변에는 넣지 않습니다.
+  // 예전에는 질문 위에 있었는데, 모바일 첫 화면이 광고로 채워져 질문이 접혔습니다.
+  // 같은 페이지라 아래로 내려도 노출 수는 그대로입니다. 키 이름은 애드센스
+  // 단위와 보고서가 이미 쓰고 있어 그대로 둡니다.
   testIntro: { slot: DISPLAY_UNIT, format: "display", name: "검사 시작 전" },
-  testTop: { slot: DISPLAY_UNIT, format: "display", name: "검사 화면 상단" },
+  testTop: { slot: DISPLAY_UNIT, format: "display", name: "검사 화면 (질문 아래)" },
 
   // 목록 화면 — 카드 사이에 섞이는 인피드 형식이 자연스럽습니다.
   // 인피드 단위가 하나뿐이라 두 자리가 같은 단위를 씁니다. 노출은 정상이지만

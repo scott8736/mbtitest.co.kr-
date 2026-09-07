@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import AdUnit from "./AdUnit";
 import { questions, type Answer, type Axis } from "../lib/mbti-data";
+import { recordTestEvent } from "../lib/test-events";
 
 export const QUESTIONS_PER_STEP = 20;
 export const TOTAL_STEPS = Math.ceil(questions.length / QUESTIONS_PER_STEP);
@@ -60,6 +61,10 @@ export default function MbtiQuiz({ step = 1 }: { step?: number }) {
   const progressPercent = ((answeredBefore + index + 1) / questions.length) * 100;
 
   const answer = (value: Answer) => {
+    // 첫 문항에 답한 순간을 한 번만 남깁니다. 1단계는 열 때마다 처음부터
+    // 시작하므로 여기가 곧 "검사를 실제로 시작했다"는 뜻입니다.
+    if (step === 1 && index === 0) recordTestEvent("mbti", "answered");
+
     const axis = stepQuestions[index].axis;
     const next = { ...scores, [axis]: scores[axis] + value };
 
@@ -97,7 +102,6 @@ export default function MbtiQuiz({ step = 1 }: { step?: number }) {
 
   return (
     <section className="test-shell">
-      <AdUnit key={`test-top-${step}`} position="testTop" label={`MBTI 검사 ${step}단계 상단 광고`} />
       <div className="test-top">
         <button type="button" onClick={leave}>← 나가기</button>
         <span>{answeredBefore + index + 1} / {questions.length}</span>
@@ -114,6 +118,9 @@ export default function MbtiQuiz({ step = 1 }: { step?: number }) {
         </div>
       </div>
       <p className="test-tip">생각이 길어지면 처음 마음이 간 문장을 선택해 보세요.</p>
+      {/* 광고는 질문 아래에 둡니다. 위에 있으면 모바일 첫 화면이 광고로 채워져
+          질문이 접히는데, 같은 페이지라 아래로 내려도 노출은 그대로입니다. */}
+      <AdUnit key={`test-below-${step}`} position="testTop" label={`MBTI 검사 ${step}단계 광고`} />
     </section>
   );
 }

@@ -2,6 +2,7 @@
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
 import { robotsTxt, sitemapXml } from "../lib/site-urls";
+import { testCatalog } from "../lib/test-catalog";
 import { handleAdmin } from "./admin";
 import { ensureSchema } from "./schema";
 import {
@@ -66,6 +67,14 @@ const worker = {
       });
     }
 
+    // 검사 진행 이벤트. 첫 문항에 답한 시점을 세어, 화면을 열자마자 나간
+    // 사람과 몇 문항 풀다 그만둔 사람을 구분합니다.
+    if (url.pathname === "/api/event" && request.method === "POST") {
+      ctx.waitUntil(recordTestEvent(request, url, env));
+      // 브라우저는 응답을 기다리지 않습니다. 기록보다 먼저 돌려줍니다.
+      return new Response(null, { status: 204 });
+    }
+
     // /admin 은 워커에서 직접 처리합니다. Next 페이지로 두면 output: "export" 의
     // 프리렌더가 Node 에서 cloudflare:workers 를 읽지 못해 빌드가 깨집니다.
     const admin = await handleAdmin(request, url, env?.DB);
@@ -96,6 +105,39 @@ const worker = {
     return response;
   },
 };
+
+/** 카탈로그에 있는 slug 만 받습니다. 아무 값이나 들어오면 표가 쓰레기가 됩니다. */
+const KNOWN_SLUGS = new Set(testCatalog.map((item) => item.slug));
+
+/**
+ * 검사 진행 이벤트를 남깁니다.
+ *
+ * 공개 주소라 누구나 부를 수 있습니다. 내부 지표라 인증까지 두지는 않고,
+ * 아는 slug 와 정해진 이름만 받고 봇을 걸러 쓰레기가 쌓이지 않게 합니다.
+ */
+async function recordTestEvent(request: Request, url: URL, env: Env): Promise<void> {
+  try {
+    if (!env?.DB) return;
+    if (isBot(request.headers.get("user-agent") ?? "")) return;
+
+    const slug = url.searchParams.get("slug") ?? "";
+    const name = url.searchParams.get("name") ?? "";
+    if (!KNOWN_SLUGS.has(slug) || name !== "answered") return;
+
+    await ensureSchema(env.DB);
+    await env.DB.prepare("INSERT INTO test_events (slug, name, day) VALUES (?, ?, ?)")
+      .bind(slug, name, seoulDay())
+      .run();
+
+    // page_views 와 같은 기간만 남깁니다.
+    if (Math.random() < 0.01) {
+      const cutoff = new Date(Date.now() - RETENTION_DAYS * 86400000);
+      await env.DB.prepare("DELETE FROM test_events WHERE day < ?").bind(seoulDay(cutoff)).run();
+    }
+  } catch {
+    // 통계 기록 실패가 사이트를 멈추게 하면 안 됩니다.
+  }
+}
 
 /**
  * 한 번의 페이지 조회를 D1 에 남깁니다.

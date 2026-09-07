@@ -38,6 +38,15 @@ const STATEMENTS = [
   `CREATE INDEX IF NOT EXISTS page_views_day_idx ON page_views (day)`,
   `CREATE INDEX IF NOT EXISTS page_views_path_idx ON page_views (path)`,
   `CREATE INDEX IF NOT EXISTS page_views_source_idx ON page_views (source)`,
+  `CREATE TABLE IF NOT EXISTS test_events (
+     id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+     slug text NOT NULL,
+     name text NOT NULL,
+     day text NOT NULL,
+     created_at text DEFAULT CURRENT_TIMESTAMP NOT NULL
+   )`,
+  `CREATE INDEX IF NOT EXISTS test_events_day_idx ON test_events (day)`,
+  `CREATE INDEX IF NOT EXISTS test_events_slug_idx ON test_events (slug)`,
   `CREATE TABLE IF NOT EXISTS app_settings (
      key text PRIMARY KEY NOT NULL,
      value text NOT NULL,
