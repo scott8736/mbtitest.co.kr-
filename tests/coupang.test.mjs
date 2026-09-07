@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import crypto from "node:crypto";
 import { build } from "esbuild";
+import { fileURLToPath } from "node:url";
+
+// new URL(..).pathname 은 윈도우에서 "/D:/..." 를 내놓아 esbuild 가 못 읽습니다.
+const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 
 /**
  * 쿠팡 파트너스 서명이 규격과 맞는지 봅니다.
@@ -14,7 +18,7 @@ import { build } from "esbuild";
  * 특히 GET 은 서명한 쿼리와 실제로 보내는 쿼리가 같아야 하므로 함께 봅니다.
  */
 const { outputFiles } = await build({
-  stdin: { contents: `export * from "./worker/coupang";`, resolveDir: new URL("..", import.meta.url).pathname, loader: "ts" },
+  stdin: { contents: `export * from "./worker/coupang";`, resolveDir: repoRoot, loader: "ts" },
   bundle: true,
   format: "esm",
   platform: "neutral",
@@ -89,4 +93,44 @@ test("검색 주소와 날짜 형식", () => {
   assert.equal(coupang.searchUrl("소음 차단 이어플러그"), "https://www.coupang.com/np/search?q=" + encodeURIComponent("소음 차단 이어플러그"));
   // KST 기준이라 UTC 20시는 다음 날입니다.
   assert.equal(coupang.reportDay(new Date(Date.UTC(2026, 8, 6, 20, 0, 0))), "20260907");
+});
+
+/**
+ * 실적을 채널별로 나누는 부분.
+ *
+ * 쿠팡은 숫자를 문자열로 주기도 하고, 채널 아이디 없이 만든 링크는 subId 를
+ * 비워서 돌려줍니다. 그대로 더하면 "12" + "3" 이 되거나 undefined 키가 생겨서
+ * 금액이 조용히 틀립니다.
+ */
+test("채널별 합계가 문자열 숫자와 빈 채널을 견딘다", () => {
+  const rows = [
+    { date: "20260901", trackingCode: "AF1", subId: "result", click: 10, order: 2, cancel: 0, commission: 500, gmv: 10000 },
+    { date: "20260902", trackingCode: "AF1", subId: "result", click: "5", order: "1", cancel: "1", commission: "250", gmv: "5000" },
+    { date: "20260902", trackingCode: "AF1", subId: "", click: 3, order: 0, cancel: 0, commission: 0, gmv: 0 },
+  ];
+  const totals = coupang.totalsBySubId(rows);
+  // 수수료가 큰 채널이 앞에 옵니다.
+  assert.deepEqual(totals, [
+    { subId: "result", click: 15, order: 3, cancel: 1, commission: 750, gmv: 15000 },
+    { subId: "", click: 3, order: 0, cancel: 0, commission: 0, gmv: 0 },
+  ]);
+});
+
+test("날짜별 수수료가 같은 날을 합친다", () => {
+  const byDay = coupang.commissionByDay([
+    { date: "20260901", commission: 100 },
+    { date: "20260901", commission: "50" },
+    { date: "20260902", commission: 20 },
+  ]);
+  assert.equal(byDay.get("20260901"), 150);
+  assert.equal(byDay.get("20260902"), 20);
+});
+
+test("최근 N일 목록은 오늘로 끝나고 하루씩 이어진다", () => {
+  // 그래프의 x축이라 빠진 날 없이 이어져야 합니다. KST 기준입니다.
+  const days = coupang.recentDays(7, new Date("2026-09-07T12:00:00Z"));
+  assert.equal(days.length, 7);
+  assert.equal(days.at(-1), "20260907");
+  assert.equal(days[0], "20260901");
+  assert.deepEqual([...new Set(days)], days);
 });

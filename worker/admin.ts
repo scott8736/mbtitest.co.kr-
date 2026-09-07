@@ -23,10 +23,15 @@ import {
 } from "./naver";
 import { ensureSchema } from "./schema";
 import {
+  commissionByDay,
   createDeeplinks,
   fetchReport,
+  MAX_REPORT_DAYS,
+  recentDays,
   reportDay,
   searchUrl,
+  totalsBySubId,
+  type CommissionRow,
   type CoupangCreds,
   type Deeplink,
   type ReportRow,
@@ -380,19 +385,101 @@ function readCache(raw: string, keywords: string[], maxAge = TREND_CACHE_MS): { 
 /**
  * 쿠팡 파트너스 화면.
  *
- * 두 가지를 합니다. 키를 등록하고, 그 키가 실제로 통하는지 검색어 하나로
- * 확인합니다. 통하면 아래에 실적이 함께 나옵니다. 결과 화면에 추천 블록을
- * 붙이기 전에 API 권한이 있는지부터 여기서 판명됩니다.
+ * 키를 등록하고, 그 키가 실제로 통하는지 검색어 하나로 확인하고, 실적을
+ * 채널별로 봅니다.
+ *
+ * 실적은 수익 리포트 하나만 부릅니다. 그 안에 클릭·주문·취소·수수료·거래액이
+ * 모두 들어 있어서, 클릭·주문 리포트를 따로 부르면 같은 값을 세 번 받으면서
+ * 호출 한도만 세 배로 씁니다. 채널을 걸러 받지 않고 전부 받아 여기서 나눕니다.
  */
-function coupangPage(
-  creds: CoupangCreds,
-  query: string,
-  links: Deeplink[],
-  reports: { kind: string; rows: ReportRow[] }[],
-  error: string,
-  saved: boolean,
-): string {
+function coupangPage(opts: {
+  creds: CoupangCreds;
+  subId: string;
+  days: number;
+  query: string;
+  links: Deeplink[];
+  rows: CommissionRow[];
+  orders: ReportRow[];
+  showOrders: boolean;
+  error: string;
+  saved: boolean;
+}): string {
+  const { creds, subId, days, query, links, rows, orders, showOrders, error, saved } = opts;
   const hasKeys = Boolean(creds.accessKey && creds.secretKey);
+
+  const channels = totalsBySubId(rows);
+  const sum = channels.reduce(
+    (a, c) => ({
+      click: a.click + c.click,
+      order: a.order + c.order,
+      cancel: a.cancel + c.cancel,
+      commission: a.commission + c.commission,
+      gmv: a.gmv + c.gmv,
+    }),
+    { click: 0, order: 0, cancel: 0, commission: 0, gmv: 0 },
+  );
+
+  const byDay = commissionByDay(rows);
+  const series = recentDays(days).map((day) => byDay.get(day) ?? 0);
+  const won = (v: number) => `${v.toLocaleString()}원`;
+  const keep = query ? `&q=${encodeURIComponent(query)}` : "";
+
+  const channelRows = channels.length
+    ? channels
+        .map((c) => {
+          // 저장해 둔 채널은 눈에 띄게 둡니다. 여러 채널이 섞이면 어느 줄이
+          // 이 사이트 것인지 한눈에 안 보입니다.
+          const mine = Boolean(c.subId) && c.subId === subId;
+          const name = c.subId || "(채널 없음)";
+          return `<tr${mine ? ' style="background:#faf8ff"' : ""}>
+<td>${esc(name)}${mine ? ' <b style="color:#7657d6;font-size:12px">저장된 채널</b>' : ""}</td>
+<td>${c.click.toLocaleString()}</td><td>${c.order.toLocaleString()}</td><td>${c.cancel.toLocaleString()}</td>
+<td>${won(c.commission)}</td><td>${won(c.gmv)}</td></tr>`;
+        })
+        .join("")
+    : "";
+
+  const performance = `<div class="box">
+<div class="head" style="margin-bottom:18px"><div><h2 style="margin:0">실적</h2>
+<p style="margin:6px 0 0;color:#697184;font-size:14px">채널별로 나눠 봅니다. 쿠팡은 매일 오후 3시에 갱신합니다.</p></div>
+<nav class="ranges">${[7, 30]
+    .map(
+      (d) =>
+        `<a class="${d === days ? "on" : ""}" href="/admin/coupang/?days=${d}${keep}">${d}일</a>`,
+    )
+    .join("")}</nav></div>
+<div class="cards" style="margin-bottom:22px">
+<div><b>${sum.click.toLocaleString()}</b><span>클릭</span></div>
+<div><b>${sum.order.toLocaleString()}</b><span>주문 (취소 ${sum.cancel.toLocaleString()})</span></div>
+<div><b>${won(sum.commission)}</b><span>수수료</span></div>
+<div><b>${won(sum.gmv)}</b><span>거래액</span></div>
+</div>
+${
+    series.some((v) => v > 0)
+      ? `<div style="margin-bottom:20px">${sparkline(series, "#7657d6")}
+<span style="margin-left:10px;color:#8a90a0;font-size:13px">일별 수수료</span></div>`
+      : ""
+  }
+${
+    channelRows
+      ? `<div class="scroll"><table><thead><tr><th>채널</th><th>클릭</th><th>주문</th><th>취소</th><th>수수료</th><th>거래액</th></tr></thead>
+<tbody>${channelRows}</tbody></table></div>`
+      : `<p class="empty">최근 ${days}일 실적이 아직 없습니다. 링크를 걸고 클릭이 생기면 다음 날 오후에 들어옵니다.</p>`
+  }
+${
+    showOrders
+      ? orders.length
+        ? `<div class="scroll" style="margin-top:22px"><table><thead><tr>${Object.keys(orders[0])
+            .map((c) => `<th>${esc(c)}</th>`)
+            .join("")}</tr></thead><tbody>${orders
+            .slice(0, 50)
+            .map((row) => `<tr>${Object.keys(orders[0]).map((c) => `<td>${esc(row[c] ?? "")}</td>`).join("")}</tr>`)
+            .join("")}</tbody></table></div>`
+        : `<p class="empty" style="margin-top:22px">주문 상세가 없습니다.</p>`
+      : `<p class="note" style="margin:18px 0 0"><a href="/admin/coupang/?days=${days}&orders=1${keep}" style="color:#7657d6">주문 상세 보기</a>
+ — 호출을 한 번 더 쓰므로 평소에는 받지 않습니다.</p>`
+  }
+</div>`;
 
   const linkTable = links.length
     ? `<div class="box"><h2>생성된 링크</h2>
@@ -405,37 +492,37 @@ function coupangPage(
 <p class="note" style="margin:14px 0 0">여기까지 나왔다면 API 권한이 있습니다. 결과 화면 추천 블록을 붙일 수 있습니다.</p></div>`
     : "";
 
-  const reportTables = reports
-    .filter((r) => r.rows.length)
-    .map((r) => {
-      const cols = Object.keys(r.rows[0]);
-      return `<div class="box"><h2>${esc(r.kind)}</h2><div class="scroll"><table><thead><tr>${cols
-        .map((c) => `<th>${esc(c)}</th>`)
-        .join("")}</tr></thead><tbody>${r.rows
-        .slice(0, 30)
-        .map((row) => `<tr>${cols.map((c) => `<td>${esc(row[c] ?? "")}</td>`).join("")}</tr>`)
-        .join("")}</tbody></table></div></div>`;
-    })
-    .join("");
-
   return shell(
     "쿠팡 파트너스",
     `<div class="wrap">
-<div class="head"><div><h1>쿠팡 파트너스</h1><p>딥링크 생성 · 실적</p></div>
+<div class="head"><div><h1>쿠팡 파트너스</h1><p>실적 · 딥링크 생성</p></div>
 <nav class="ranges"><a href="/admin/">접속 현황</a><a href="/admin/trends/">트렌드</a><a href="/admin/keywords/">키워드 조회</a></nav></div>
 
 ${saved ? `<p class="ok">저장했습니다.</p>` : ""}
 ${error ? `<div class="box"><p class="err" style="margin:0">${esc(error)}</p></div>` : ""}
 
+${hasKeys ? performance : ""}
+
+<div class="box"><h2>채널 아이디</h2>
+<p class="note">
+링크를 만들 때 붙는 <b>subId</b> 입니다. 실적이 이 값으로 나뉘어 들어오므로, 어느 화면이 얼마를 벌었는지 보려면 필요합니다.
+<br>쿠팡 파트너스에 <b>등록해 둔 채널 아이디</b>를 그대로 넣어 주세요. 등록하지 않은 값으로 링크를 만들면 정산에서 빠질 수 있습니다.
+<br>비워 두면 채널 없이 링크를 만듭니다. 이 칸은 비운 대로 저장됩니다.
+</p>
+<form method="post" action="/admin/coupang/channel" autocomplete="off" class="row">
+<input name="sub_id" value="${esc(subId)}" placeholder="예: mbtitest" maxlength="50" spellcheck="false" autocomplete="off">
+<button type="submit">저장</button></form></div>
+
 ${
       hasKeys
         ? `<div class="box"><h2>딥링크 만들어 보기</h2>
-<p class="note">검색어를 넣으면 쿠팡 검색 주소를 추적 링크로 바꿉니다. 개별 상품이 아니라 검색 결과라서 품절·단종으로 링크가 죽지 않습니다.</p>
+<p class="note">검색어를 넣으면 쿠팡 검색 주소를 추적 링크로 바꿉니다. 개별 상품이 아니라 검색 결과라서 품절·단종으로 링크가 죽지 않습니다.
+${subId ? `채널 <b>${esc(subId)}</b> 로 만듭니다.` : "채널 아이디가 비어 있어 채널 없이 만듭니다."}</p>
 <form method="get" class="row">
+<input type="hidden" name="days" value="${days}">
 <input name="q" value="${esc(query)}" placeholder="소음 차단 이어플러그" required autocomplete="off">
 <button type="submit">생성</button></form></div>
-${linkTable}
-${reportTables || `<div class="box"><p class="empty">최근 7일 실적이 아직 없습니다. 쿠팡은 매일 오후 3시에 갱신합니다.</p></div>`}`
+${linkTable}`
         : ""
     }
 
@@ -451,6 +538,9 @@ ${field("secret_key", "SECRET KEY", creds.secretKey ? "등록됨" : "", { secret
 </div>
 <p class="note" style="margin:16px 0 12px">빈 칸은 기존 값을 그대로 둡니다.</p>
 <button type="submit">저장</button></form></div>
+
+<p class="foot">리포트는 한 시간에 500번까지 부를 수 있고 한 번에 ${MAX_REPORT_DAYS}일까지 봅니다.
+이 화면은 열 때마다 한 번(주문 상세를 켜면 두 번) 부릅니다.</p>
 </div>`,
   );
 }
@@ -704,6 +794,14 @@ export async function handleAdmin(request: Request, url: URL, db: D1Database | u
       return redirect("/admin/coupang/?saved=1");
     }
 
+    if (path === "/admin/coupang/channel") {
+      if (!(await isSignedIn(request, db))) return redirect("/admin/");
+      // 키와 달리 빈 값도 그대로 저장합니다. 잘못 넣은 채널을 지울 수 있어야
+      // 하고, 폼이 따로라 실수로 다른 값을 덮어쓸 일이 없습니다.
+      await writeSetting(db, "coupang_sub_id", String(form.get("sub_id") ?? "").trim().slice(0, 50));
+      return redirect("/admin/coupang/?saved=1");
+    }
+
     if (path === "/admin/trends/save") {
       if (!(await isSignedIn(request, db))) return redirect("/admin/");
       const list = String(form.get("keywords") ?? "")
@@ -757,30 +855,52 @@ export async function handleAdmin(request: Request, url: URL, db: D1Database | u
       accessKey: await readSetting(db, "coupang_access_key"),
       secretKey: await readSetting(db, "coupang_secret_key"),
     };
+    const subId = await readSetting(db, "coupang_sub_id");
+    const asked = Number(url.searchParams.get("days"));
+    const days = [7, MAX_REPORT_DAYS].includes(asked) ? asked : 7;
     const query = url.searchParams.get("q") ?? "";
+    const showOrders = url.searchParams.get("orders") === "1";
+
     let links: Deeplink[] = [];
-    const reports: { kind: string; rows: ReportRow[] }[] = [];
+    let rows: CommissionRow[] = [];
+    let orders: ReportRow[] = [];
     let error = "";
 
     if (creds.accessKey && creds.secretKey) {
       const to = reportDay(new Date());
-      const from = reportDay(new Date(Date.now() - 6 * 86400000));
-      // 링크 생성과 실적 조회는 서로 독립이라 하나가 실패해도 나머지는 보여줍니다.
-      const results = await Promise.allSettled([
-        query.trim() ? createDeeplinks(creds, [searchUrl(query.trim())], "admin-test") : Promise.resolve([]),
-        fetchReport(creds, "clicks", from, to),
-        fetchReport(creds, "orders", from, to),
+      const from = reportDay(new Date(Date.now() - (days - 1) * 86400000));
+      // 서로 독립이라 하나가 실패해도 나머지는 보여줍니다. 실적은 채널을
+      // 걸러 받지 않습니다 — 전부 받아야 채널별로 나눠 볼 수 있습니다.
+      const [commission, deep, orderRows] = await Promise.allSettled([
         fetchReport(creds, "commission", from, to),
+        query.trim() ? createDeeplinks(creds, [searchUrl(query.trim())], subId) : Promise.resolve([]),
+        showOrders ? fetchReport(creds, "orders", from, to) : Promise.resolve([]),
       ]);
-      const [deep, clicks, orders, commission] = results;
+
+      if (commission.status === "fulfilled") rows = commission.value as CommissionRow[];
+      else error = commission.reason instanceof Error ? commission.reason.message : "실적 조회에 실패했습니다.";
+
       if (deep.status === "fulfilled") links = deep.value;
-      else error = deep.reason instanceof Error ? deep.reason.message : "링크 생성에 실패했습니다.";
-      for (const [kind, r] of [["클릭", clicks], ["주문", orders], ["수수료", commission]] as const) {
-        if (r.status === "fulfilled") reports.push({ kind, rows: r.value });
-        else if (!error) error = r.reason instanceof Error ? r.reason.message : "실적 조회에 실패했습니다.";
-      }
+      else if (!error) error = deep.reason instanceof Error ? deep.reason.message : "링크 생성에 실패했습니다.";
+
+      if (orderRows.status === "fulfilled") orders = orderRows.value;
+      else if (!error) error = orderRows.reason instanceof Error ? orderRows.reason.message : "주문 상세 조회에 실패했습니다.";
     }
-    return html(coupangPage(creds, query, links, reports, error, url.searchParams.get("saved") === "1"));
+
+    return html(
+      coupangPage({
+        creds,
+        subId,
+        days,
+        query,
+        links,
+        rows,
+        orders,
+        showOrders,
+        error,
+        saved: url.searchParams.get("saved") === "1",
+      }),
+    );
   }
 
   if (path === "/admin/trends") {

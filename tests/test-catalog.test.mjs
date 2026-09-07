@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { build } from "esbuild";
+import { fileURLToPath } from "node:url";
+
+// new URL(..).pathname 은 윈도우에서 "/D:/..." 를 내놓아 esbuild 가 못 읽습니다.
+const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 
 /**
  * 테스트 목록과 실제 문항 데이터가 어긋나지 않는지 봅니다.
@@ -20,7 +24,7 @@ const { outputFiles } = await build({
       export { newTestMeta, newTestSlugs } from "./lib/test-meta";
       export { newGenericTests } from "./lib/new-tests";
     `,
-    resolveDir: new URL("..", import.meta.url).pathname,
+    resolveDir: repoRoot,
     loader: "ts",
   },
   bundle: true,

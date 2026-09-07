@@ -136,3 +136,71 @@ export function reportDay(at: Date): string {
 export function searchUrl(keyword: string): string {
   return `https://www.coupang.com/np/search?q=${encodeURIComponent(keyword)}`;
 }
+
+/** 리포트가 한 번에 받을 수 있는 최대 기간. 쿠팡이 정한 값입니다. */
+export const MAX_REPORT_DAYS = 30;
+
+/**
+ * 수익 리포트 한 행.
+ *
+ * 이 리포트 하나에 클릭·주문·취소·수수료·거래액이 모두 들어 있습니다. 그래서
+ * 실적 모니터링은 이것만 부르면 됩니다. 클릭·주문 리포트를 따로 부르면 같은
+ * 값을 세 번 받으면서 호출 한도만 세 배로 씁니다.
+ */
+export type CommissionRow = {
+  date: string;
+  trackingCode: string;
+  /** 채널 아이디. 링크를 만들 때 넣은 subId 가 그대로 돌아옵니다 */
+  subId: string;
+  commission: number;
+  click: number;
+  order: number;
+  cancel: number;
+  gmv: number;
+};
+
+export type ChannelTotal = {
+  subId: string;
+  click: number;
+  order: number;
+  cancel: number;
+  commission: number;
+  gmv: number;
+};
+
+const n = (value: unknown) => (typeof value === "number" ? value : Number(value)) || 0;
+
+/**
+ * 채널(subId)별로 합칩니다. 어느 화면이 얼마를 벌었는지 여기서 갈립니다.
+ * 수수료가 큰 순서로, 같으면 클릭이 많은 순서로 정렬합니다.
+ */
+export function totalsBySubId(rows: CommissionRow[]): ChannelTotal[] {
+  const byId = new Map<string, ChannelTotal>();
+  for (const row of rows) {
+    // 채널 아이디 없이 만든 링크는 빈 문자열로 돌아옵니다.
+    const key = String(row.subId ?? "");
+    const total = byId.get(key) ?? { subId: key, click: 0, order: 0, cancel: 0, commission: 0, gmv: 0 };
+    total.click += n(row.click);
+    total.order += n(row.order);
+    total.cancel += n(row.cancel);
+    total.commission += n(row.commission);
+    total.gmv += n(row.gmv);
+    byId.set(key, total);
+  }
+  return [...byId.values()].sort((a, b) => b.commission - a.commission || b.click - a.click);
+}
+
+/** 날짜(YYYYMMDD)별 수수료 합계. */
+export function commissionByDay(rows: CommissionRow[]): Map<string, number> {
+  const byDay = new Map<string, number>();
+  for (const row of rows) {
+    const day = String(row.date ?? "");
+    byDay.set(day, (byDay.get(day) ?? 0) + n(row.commission));
+  }
+  return byDay;
+}
+
+/** 오늘까지 최근 days 일의 YYYYMMDD 목록. 값이 없는 날도 그래프에 자리를 둡니다. */
+export function recentDays(days: number, now: Date = new Date()): string[] {
+  return Array.from({ length: days }, (_, i) => reportDay(new Date(now.getTime() - (days - 1 - i) * 86400000)));
+}
