@@ -132,6 +132,15 @@ export function reportDay(at: Date): string {
     .replace(/-/g, "");
 }
 
+/** 검색 주소에서 검색어를 되꺼냅니다. 표에 긴 주소 대신 검색어를 보여주려고 씁니다. */
+export function keywordFromSearchUrl(url: string): string {
+  try {
+    return new URL(url).searchParams.get("q") ?? "";
+  } catch {
+    return "";
+  }
+}
+
 /** 쿠팡 검색 결과 주소. 품절·단종으로 링크가 죽지 않습니다. */
 export function searchUrl(keyword: string): string {
   return `https://www.coupang.com/np/search?q=${encodeURIComponent(keyword)}`;

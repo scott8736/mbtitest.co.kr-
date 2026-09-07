@@ -25,6 +25,7 @@ import { ensureSchema } from "./schema";
 import {
   commissionByDay,
   createDeeplinks,
+  keywordFromSearchUrl,
   fetchReport,
   MAX_REPORT_DAYS,
   recentDays,
@@ -152,6 +153,8 @@ ol.steps a{color:#7657d6}
 details summary{cursor:pointer;font-size:15px;font-weight:700;color:#4b4560}
 details.box{margin-top:26px}
 .ghost button{background:#e9e6f2;color:#4b4560}
+button.copy{padding:7px 13px;font-size:13px;font-weight:600;background:#e9e6f2;color:#4b4560}
+button.copy:disabled{opacity:.6;cursor:default}
 .foot{color:#8a90a0;font-size:13px;line-height:1.7}
 @media(max-width:820px){.cards{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}}
 </style></head><body>${body}</body></html>`;
@@ -362,6 +365,42 @@ function field(
 </label>`;
 }
 
+/**
+ * 복사 버튼. 관리자 화면에서 유일하게 쓰는 스크립트라 파일로 빼지 않고 여기 둡니다.
+ *
+ * navigator.clipboard 는 보안 컨텍스트에서만 동작합니다. 배포는 https 라 되지만
+ * 로컬 http 로 열면 막히므로, 그때는 낡은 execCommand 로 넘어갑니다.
+ */
+const COPY_SCRIPT = `<script>
+document.addEventListener("click", function (e) {
+  var target = e.target;
+  var button = target && target.closest ? target.closest("button[data-copy]") : null;
+  if (!button) return;
+  var text = button.getAttribute("data-copy") || "";
+  var was = button.textContent;
+  var done = function (ok) {
+    button.textContent = ok ? "복사됨" : "복사 실패";
+    button.disabled = true;
+    setTimeout(function () { button.textContent = was; button.disabled = false; }, 1500);
+  };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+    return;
+  }
+  var box = document.createElement("textarea");
+  box.value = text;
+  box.setAttribute("readonly", "");
+  box.style.position = "fixed";
+  box.style.opacity = "0";
+  document.body.appendChild(box);
+  box.select();
+  var ok = false;
+  try { ok = document.execCommand("copy"); } catch (err) { ok = false; }
+  document.body.removeChild(box);
+  done(ok);
+});
+</script>`;
+
 const MASK = (v: string) => (v ? `${v.slice(0, 4)}${"•".repeat(Math.max(0, v.length - 8))}${v.slice(-4)}` : "");
 
 const num = (v: number) => (v < 0 ? "10 미만" : v.toLocaleString());
@@ -483,13 +522,23 @@ ${
 
   const linkTable = links.length
     ? `<div class="box"><h2>생성된 링크</h2>
-<div class="scroll"><table><thead><tr><th>원본</th><th>추적 링크</th></tr></thead><tbody>${links
-        .map(
-          (l) => `<tr><td>${esc(l.originalUrl)}</td>
-<td><a href="${esc(l.shortenUrl || l.landingUrl)}" target="_blank" rel="noopener nofollow sponsored" style="color:#7657d6">${esc(l.shortenUrl || l.landingUrl)}</a></td></tr>`,
-        )
+<div class="scroll"><table><thead><tr><th>검색어</th><th>추적 링크</th><th></th></tr></thead><tbody>${links
+        .map((l) => {
+          const url = l.shortenUrl || l.landingUrl;
+          // 표에는 검색어를 보여줍니다. 원본 주소는 길어서 표를 밀어내는데,
+          // 정작 확인하고 싶은 건 "무엇으로 만들었나"입니다.
+          const word = keywordFromSearchUrl(l.originalUrl);
+          return `<tr>
+<td title="${esc(l.originalUrl)}">${esc(word || l.originalUrl)}</td>
+<td><a href="${esc(url)}" target="_blank" rel="noopener nofollow sponsored" style="color:#7657d6">${esc(url)}</a></td>
+<td style="text-align:right"><button type="button" class="copy" data-copy="${esc(url)}">복사</button></td></tr>`;
+        })
         .join("")}</tbody></table></div>
-<p class="note" style="margin:14px 0 0">여기까지 나왔다면 API 권한이 있습니다. 결과 화면 추천 블록을 붙일 수 있습니다.</p></div>`
+<p class="note" style="margin:14px 0 0">${
+        subId
+          ? `이 링크로 들어간 구매는 채널 <b>${esc(subId)}</b> 실적에 잡힙니다.`
+          : "채널 아이디 없이 만들어서 어느 채널 실적인지 나뉘지 않습니다."
+      } 위 실적 표에는 다음 날 오후 3시 이후에 나타납니다.</p>${COPY_SCRIPT}</div>`
     : "";
 
   return shell(

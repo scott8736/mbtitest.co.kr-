@@ -134,3 +134,12 @@ test("최근 N일 목록은 오늘로 끝나고 하루씩 이어진다", () => {
   assert.equal(days[0], "20260901");
   assert.deepEqual([...new Set(days)], days);
 });
+
+test("검색 주소에서 검색어를 되꺼낸다", () => {
+  // 관리자 표에 원본 주소 대신 이 값을 보여줍니다.
+  const url = coupang.searchUrl("소음 차단 이어플러그");
+  assert.equal(coupang.keywordFromSearchUrl(url), "소음 차단 이어플러그");
+  // 상품 주소처럼 q 가 없으면 빈 문자열. 화면은 그때 원본 주소로 되돌립니다.
+  assert.equal(coupang.keywordFromSearchUrl("https://www.coupang.com/vp/products/1846"), "");
+  assert.equal(coupang.keywordFromSearchUrl("주소가 아님"), "");
+});
