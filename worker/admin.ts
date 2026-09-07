@@ -22,6 +22,15 @@ import {
   type TrendRow,
 } from "./naver";
 import { ensureSchema } from "./schema";
+import {
+  createDeeplinks,
+  fetchReport,
+  reportDay,
+  searchUrl,
+  type CoupangCreds,
+  type Deeplink,
+  type ReportRow,
+} from "./coupang";
 
 const COOKIE = "mbtitest_admin";
 // 워커 런타임이 허용하는 최대치입니다. 이보다 크게 잡으면 crypto.subtle 이
@@ -265,7 +274,7 @@ async function dashboard(db: D1Database, days: number, notice: string): Promise<
   return shell(
     "접속 현황",
     `<div class="wrap">
-<div class="head"><div><h1>접속 현황</h1><p>${from} ~ ${to} (KST)</p></div><nav class="ranges">${ranges}<a href="/admin/trends/">트렌드</a><a href="/admin/keywords/">키워드 조회</a></nav></div>
+<div class="head"><div><h1>접속 현황</h1><p>${from} ~ ${to} (KST)</p></div><nav class="ranges">${ranges}<a href="/admin/trends/">트렌드</a><a href="/admin/keywords/">키워드 조회</a><a href="/admin/coupang/">쿠팡</a></nav></div>
 
 <div class="cards">
 <div><b>${total.views.toLocaleString()}</b><span>페이지뷰</span></div>
@@ -368,6 +377,84 @@ function readCache(raw: string, keywords: string[], maxAge = TREND_CACHE_MS): { 
   }
 }
 
+/**
+ * 쿠팡 파트너스 화면.
+ *
+ * 두 가지를 합니다. 키를 등록하고, 그 키가 실제로 통하는지 검색어 하나로
+ * 확인합니다. 통하면 아래에 실적이 함께 나옵니다. 결과 화면에 추천 블록을
+ * 붙이기 전에 API 권한이 있는지부터 여기서 판명됩니다.
+ */
+function coupangPage(
+  creds: CoupangCreds,
+  query: string,
+  links: Deeplink[],
+  reports: { kind: string; rows: ReportRow[] }[],
+  error: string,
+  saved: boolean,
+): string {
+  const hasKeys = Boolean(creds.accessKey && creds.secretKey);
+
+  const linkTable = links.length
+    ? `<div class="box"><h2>생성된 링크</h2>
+<div class="scroll"><table><thead><tr><th>원본</th><th>추적 링크</th></tr></thead><tbody>${links
+        .map(
+          (l) => `<tr><td>${esc(l.originalUrl)}</td>
+<td><a href="${esc(l.shortenUrl || l.landingUrl)}" target="_blank" rel="noopener nofollow sponsored" style="color:#7657d6">${esc(l.shortenUrl || l.landingUrl)}</a></td></tr>`,
+        )
+        .join("")}</tbody></table></div>
+<p class="note" style="margin:14px 0 0">여기까지 나왔다면 API 권한이 있습니다. 결과 화면 추천 블록을 붙일 수 있습니다.</p></div>`
+    : "";
+
+  const reportTables = reports
+    .filter((r) => r.rows.length)
+    .map((r) => {
+      const cols = Object.keys(r.rows[0]);
+      return `<div class="box"><h2>${esc(r.kind)}</h2><div class="scroll"><table><thead><tr>${cols
+        .map((c) => `<th>${esc(c)}</th>`)
+        .join("")}</tr></thead><tbody>${r.rows
+        .slice(0, 30)
+        .map((row) => `<tr>${cols.map((c) => `<td>${esc(row[c] ?? "")}</td>`).join("")}</tr>`)
+        .join("")}</tbody></table></div></div>`;
+    })
+    .join("");
+
+  return shell(
+    "쿠팡 파트너스",
+    `<div class="wrap">
+<div class="head"><div><h1>쿠팡 파트너스</h1><p>딥링크 생성 · 실적</p></div>
+<nav class="ranges"><a href="/admin/">접속 현황</a><a href="/admin/trends/">트렌드</a><a href="/admin/keywords/">키워드 조회</a></nav></div>
+
+${saved ? `<p class="ok">저장했습니다.</p>` : ""}
+${error ? `<div class="box"><p class="err" style="margin:0">${esc(error)}</p></div>` : ""}
+
+${
+      hasKeys
+        ? `<div class="box"><h2>딥링크 만들어 보기</h2>
+<p class="note">검색어를 넣으면 쿠팡 검색 주소를 추적 링크로 바꿉니다. 개별 상품이 아니라 검색 결과라서 품절·단종으로 링크가 죽지 않습니다.</p>
+<form method="get" class="row">
+<input name="q" value="${esc(query)}" placeholder="소음 차단 이어플러그" required autocomplete="off">
+<button type="submit">생성</button></form></div>
+${linkTable}
+${reportTables || `<div class="box"><p class="empty">최근 7일 실적이 아직 없습니다. 쿠팡은 매일 오후 3시에 갱신합니다.</p></div>`}`
+        : ""
+    }
+
+<div class="box"><h2>API 키</h2>
+<p class="note">
+쿠팡 파트너스 → <b>내 정보 → 오픈 API 키 발급</b>에서 받습니다. 발급에 별도 승인이 필요할 수 있습니다.
+<br>저장소에는 남지 않고 데이터베이스에만 보관됩니다. 암호화하지 않으므로 데이터베이스를 볼 수 있는 사람은 값을 확인할 수 있습니다.
+</p>
+<form method="post" action="/admin/coupang/save" autocomplete="off">
+<div class="fields">
+${field("access_key", "ACCESS KEY", creds.accessKey ? `등록됨 · ${MASK(creds.accessKey)}` : "")}
+${field("secret_key", "SECRET KEY", creds.secretKey ? "등록됨" : "", { secret: true })}
+</div>
+<p class="note" style="margin:16px 0 12px">빈 칸은 기존 값을 그대로 둡니다.</p>
+<button type="submit">저장</button></form></div>
+</div>`,
+  );
+}
+
 /** 30일 흐름을 작은 선그래프로 그립니다. 라이브러리 없이 좌표만 계산합니다. */
 function sparkline(values: number[], color: string): string {
   if (values.length < 2) return "";
@@ -417,7 +504,7 @@ function trendsPage(
     "트렌드",
     `<div class="wrap">
 <div class="head"><div><h1>트렌드</h1><p>네이버 데이터랩 · 최근 30일${fetchedAt ? ` · ${new Date(fetchedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })} 기준` : ""}</p></div>
-<nav class="ranges"><a href="/admin/trends/?refresh=1">새로고침</a><a href="/admin/">접속 현황</a><a href="/admin/keywords/">키워드 조회</a></nav></div>
+<nav class="ranges"><a href="/admin/trends/?refresh=1">새로고침</a><a href="/admin/">접속 현황</a><a href="/admin/keywords/">키워드 조회</a><a href="/admin/coupang/">쿠팡</a></nav></div>
 
 ${saved ? `<p class="ok">저장했습니다.</p>` : ""}
 ${error ? `<div class="box"><p class="err" style="margin:0">${esc(error)}</p></div>` : ""}
@@ -535,7 +622,7 @@ ${openKeys}
     "키워드 조회",
     `<div class="wrap">
 <div class="head"><div><h1>키워드 조회</h1><p>네이버 검색광고 키워드도구</p></div>
-<nav class="ranges"><a href="/admin/">접속 현황</a><a href="/admin/trends/">트렌드</a></nav></div>
+<nav class="ranges"><a href="/admin/">접속 현황</a><a href="/admin/trends/">트렌드</a><a href="/admin/coupang/">쿠팡</a></nav></div>
 
 ${saved ? `<p class="ok">저장했습니다.</p>` : ""}
 ${error ? `<div class="box"><p class="err" style="margin:0">${esc(error)}</p></div>` : ""}
@@ -608,6 +695,15 @@ export async function handleAdmin(request: Request, url: URL, db: D1Database | u
       return redirect("/admin/", { "set-cookie": `${COOKIE}=; HttpOnly; Secure; SameSite=Lax; Path=/admin; Max-Age=0` });
     }
 
+    if (path === "/admin/coupang/save") {
+      if (!(await isSignedIn(request, db))) return redirect("/admin/");
+      for (const [key, formKey] of [["coupang_access_key", "access_key"], ["coupang_secret_key", "secret_key"]]) {
+        const value = String(form.get(formKey) ?? "").trim();
+        if (value) await writeSetting(db, key, value);
+      }
+      return redirect("/admin/coupang/?saved=1");
+    }
+
     if (path === "/admin/trends/save") {
       if (!(await isSignedIn(request, db))) return redirect("/admin/");
       const list = String(form.get("keywords") ?? "")
@@ -655,6 +751,37 @@ export async function handleAdmin(request: Request, url: URL, db: D1Database | u
   }
 
   if (!(await isSignedIn(request, db))) return html(loginPage(url.searchParams.get("error") === "1"));
+
+  if (path === "/admin/coupang") {
+    const creds: CoupangCreds = {
+      accessKey: await readSetting(db, "coupang_access_key"),
+      secretKey: await readSetting(db, "coupang_secret_key"),
+    };
+    const query = url.searchParams.get("q") ?? "";
+    let links: Deeplink[] = [];
+    const reports: { kind: string; rows: ReportRow[] }[] = [];
+    let error = "";
+
+    if (creds.accessKey && creds.secretKey) {
+      const to = reportDay(new Date());
+      const from = reportDay(new Date(Date.now() - 6 * 86400000));
+      // 링크 생성과 실적 조회는 서로 독립이라 하나가 실패해도 나머지는 보여줍니다.
+      const results = await Promise.allSettled([
+        query.trim() ? createDeeplinks(creds, [searchUrl(query.trim())], "admin-test") : Promise.resolve([]),
+        fetchReport(creds, "clicks", from, to),
+        fetchReport(creds, "orders", from, to),
+        fetchReport(creds, "commission", from, to),
+      ]);
+      const [deep, clicks, orders, commission] = results;
+      if (deep.status === "fulfilled") links = deep.value;
+      else error = deep.reason instanceof Error ? deep.reason.message : "링크 생성에 실패했습니다.";
+      for (const [kind, r] of [["클릭", clicks], ["주문", orders], ["수수료", commission]] as const) {
+        if (r.status === "fulfilled") reports.push({ kind, rows: r.value });
+        else if (!error) error = r.reason instanceof Error ? r.reason.message : "실적 조회에 실패했습니다.";
+      }
+    }
+    return html(coupangPage(creds, query, links, reports, error, url.searchParams.get("saved") === "1"));
+  }
 
   if (path === "/admin/trends") {
     const creds = await loadCreds(db);
