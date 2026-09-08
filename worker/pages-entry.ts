@@ -22,6 +22,7 @@ import {
   visitorHash,
 } from "../lib/analytics";
 import { ensureSchema } from "./schema";
+import { handleTestEvent } from "./test-events";
 
 interface Env {
   ASSETS: Fetcher;
@@ -35,6 +36,11 @@ interface ExecutionContext {
 const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+
+    // 검사 진행 이벤트. 첫 문항에 답한 시점을 세어, 화면을 열자마자 나간
+    // 사람과 몇 문항 풀다 그만둔 사람을 구분합니다.
+    const testEvent = handleTestEvent(request, url, env, ctx);
+    if (testEvent) return testEvent;
 
     try {
       const admin = await handleAdmin(request, url, env?.DB);
