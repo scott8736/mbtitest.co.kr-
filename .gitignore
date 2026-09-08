@@ -33,6 +33,9 @@ yarn-error.log*
 # 쿠팡 파트너스 오픈API 키. scripts/coupang-links.mjs 가 읽습니다.
 coupang.env
 
+# Pexels 오픈API 키. scripts/pexels-images.mjs 가 읽습니다.
+pexels.env
+
 # vercel
 .vercel
 
