@@ -1,25 +1,18 @@
 #!/usr/bin/env node
 /**
- * MBTI 결과 추천 카드마다 검색어와 비슷한 사진을 Pexels 에서 찾아
- * lib/mbti-picks.ts 에 직접 적습니다.
+ * MBTI 외 테스트들의 결과 추천 카드마다 Pexels 에서 비슷한 사진을 찾아
+ * lib/test-picks.ts 에 직접 적습니다. scripts/pexels-images.mjs(MBTI 전용)와
+ * 같은 구조이되, 이 파일은 테스트 slug 로 한 번 더 감싸인 중첩 객체를 다룹니다.
  *
- *   node scripts/pexels-images.mjs            사진 없는 유형만
- *   node scripts/pexels-images.mjs --all      전부 다시
- *   node scripts/pexels-images.mjs --dry      무엇을 할지만 출력
- *
- * 쿠팡 상품 검색 API 를 쓰지 않는 이유: 그 API 는 딥링크와 호출 한도를
- * 나눠 쓰고(scripts/coupang-links.mjs 의 한 줄 요약: 1시간 30회), 상품이
- * 품절·단종되면 사진도 같이 죽는다. Pexels 는 검색어 기반 스톡 사진이라
- * 둘 다 해당 없다 — "이런 물건이다"라는 예시일 뿐 실제 판매 상품 사진이
- * 아니므로 오히려 그 편이 정확하다.
- *
- * 키는 저장소 루트 pexels.env 나 환경변수에서 읽고, 어디에도 커밋되지 않습니다.
+ *   node scripts/test-pexels-images.mjs            사진 없는 항목만
+ *   node scripts/test-pexels-images.mjs --all      전부 다시
+ *   node scripts/test-pexels-images.mjs --dry      무엇을 할지만 출력
  */
 import fs from "node:fs";
 import path from "node:path";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
-const PICKS_FILE = path.join(ROOT, "lib", "mbti-picks.ts");
+const PICKS_FILE = path.join(ROOT, "lib", "test-picks.ts");
 
 const args = new Set(process.argv.slice(2));
 const REDO = args.has("--all");
@@ -63,15 +56,12 @@ async function search(key, query) {
 
 function collect(source) {
   const found = [];
-  for (const m of source.matchAll(
-    /(\b[A-Z]{4}\b): \{\s*label: "([^"]+)",[\s\S]*?\},/g,
-  )) {
-    found.push({
-      code: m[1],
-      label: m[2],
-      hasImage: m[0].includes("image:"),
-      raw: m[0],
-    });
+  const blockRe = /^ {2}(?:"([a-z0-9-]+)"|([a-z0-9-]+)): \{\n([\s\S]*?)\n {2}\},$/gm;
+  for (const block of source.matchAll(blockRe)) {
+    const slug = block[1] ?? block[2];
+    for (const m of block[3].matchAll(/ {4}(\w+): \{ label: "([^"]+)",[\s\S]*?\},/g)) {
+      found.push({ slug, key: m[1], label: m[2], hasImage: m[0].includes("image:"), raw: m[0] });
+    }
   }
   return found;
 }
@@ -88,10 +78,10 @@ function write(source, raw, imageUrl) {
 let source = fs.readFileSync(PICKS_FILE, "utf8");
 const picks = collect(source);
 const todo = REDO ? picks : picks.filter((p) => !p.hasImage);
-console.log(`유형 ${picks.length}개 · 사진 찾을 것 ${todo.length}개\n`);
+console.log(`항목 ${picks.length}개 · 사진 찾을 것 ${todo.length}개\n`);
 
 if (DRY) {
-  for (const p of todo) console.log(`  ${p.code.padEnd(6)} ${p.label}`);
+  for (const p of todo) console.log(`  ${p.slug}.${p.key.padEnd(14)} ${p.label}`);
   process.exit(0);
 }
 
@@ -112,19 +102,16 @@ for (const pick of todo) {
   try {
     const image = await search(key, pick.label);
     source = write(source, pick.raw, image);
-    console.log(`  ✓ ${pick.code.padEnd(6)} ${pick.label}`);
+    console.log(`  ✓ ${pick.slug}.${pick.key.padEnd(14)} ${pick.label}`);
     ok += 1;
   } catch (error) {
-    console.log(`  ✗ ${pick.code.padEnd(6)} ${pick.label} — ${error.message}`);
-    failed.push(pick.label);
+    console.log(`  ✗ ${pick.slug}.${pick.key.padEnd(14)} ${pick.label} — ${error.message}`);
+    failed.push(`${pick.slug}.${pick.key}`);
   }
-  // 무료 등급 호출 한도(시간당 200회)가 있어 한 박자 쉬어 갑니다.
   await new Promise((r) => setTimeout(r, 250));
 }
 
 if (ok > 0) fs.writeFileSync(PICKS_FILE, source, "utf8");
 
-console.log(
-  `\n완료 ${ok}개${failed.length ? ` · 실패 ${failed.length}개: ${failed.join(", ")}` : ""}`,
-);
-if (ok > 0) console.log("lib/mbti-picks.ts 가 수정됐습니다. git diff 로 확인하고 커밋하세요.");
+console.log(`\n완료 ${ok}개${failed.length ? ` · 실패 ${failed.length}개: ${failed.join(", ")}` : ""}`);
+if (ok > 0) console.log("lib/test-picks.ts 가 수정됐습니다. git diff 로 확인하고 커밋하세요.");

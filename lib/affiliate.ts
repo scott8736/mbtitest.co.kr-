@@ -23,3 +23,6 @@ export const SUBID_PREFIX = "mbtitest";
 
 /** 결과 화면 추천 카드 하나의 subId. 접두사 + 화면 + MBTI 코드. */
 export const mbtiPickSubId = (code: string) => `${SUBID_PREFIX}_result_${code.toLowerCase()}`;
+
+/** MBTI 외 테스트의 추천 카드 subId. 접두사 + 화면 + 테스트 slug + 결과 키. */
+export const testPickSubId = (slug: string, key: string) => `${SUBID_PREFIX}_result_${slug}_${key}`;
