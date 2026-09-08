@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import AdUnit from "./AdUnit";
+import MbtiResultPick from "./MbtiResultPick";
 import { questions, typeData, typeDetails, type Axis } from "../lib/mbti-data";
 
 const TEST_PATH = "/tests/mbti/";
@@ -102,6 +103,7 @@ export default function MbtiResult() {
       </div>
       <AdUnit key={`result-middle-${result}`} position="resultMiddle" label="MBTI 결과 본문 광고" />
       <div className="growth-plan mbti-growth"><span>GROWTH POINT</span><h2>나를 더 편안하게 만드는 실천</h2>{typeDetails[result].growth.map((x, i) => <p key={x}><b>{String(i + 1).padStart(2, "0")}</b>{x}</p>)}</div>
+      <MbtiResultPick code={result} />
       <div className="result-actions"><button className="primary-button" onClick={share}>결과 공유하기 <span>↗</span></button><button className="secondary-button" onClick={downloadResult}>결과 이미지 저장</button><button className="secondary-button" onClick={start}>다시 검사하기</button></div>
       <p className="disclaimer">본 테스트는 자기이해를 위한 간이 성격 테스트이며, 전문적인 심리 진단을 대신하지 않습니다.</p>
       <div className="related-results result-deep-link">

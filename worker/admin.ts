@@ -568,7 +568,7 @@ ${hasKeys ? performance : ""}
 <div class="box"><h2>채널 아이디</h2>
 <p class="note">
 링크를 만들 때 붙는 <b>subId</b> 입니다. 실적이 이 값으로 나뉘어 들어오므로, 어느 화면이 얼마를 벌었는지 보려면 필요합니다.
-<br>쿠팡 파트너스에 <b>등록해 둔 채널 아이디</b>를 그대로 넣어 주세요. 등록하지 않은 값으로 링크를 만들면 정산에서 빠질 수 있습니다.
+<br>subId 는 파트너스에 미리 등록하지 않아도 됩니다 — 링크를 만들 때 자유롭게 정한 값이 리포트에 그대로 돌아옵니다. 원하는 이름을 적어 주세요.
 <br>비워 두면 채널 없이 링크를 만듭니다. 이 칸은 비운 대로 저장됩니다.
 </p>
 <form method="post" action="/admin/coupang/channel" autocomplete="off" class="row">

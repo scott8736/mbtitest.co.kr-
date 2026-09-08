@@ -567,6 +567,16 @@ main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% -
 .mbti-deep-result h2 { margin:20px 0 14px; font-size:21px; }
 .mbti-deep-result p { margin:0; color:#626b78; line-height:1.8; }
 .mbti-growth { max-width:1050px; margin-top:18px; text-align:left; }
+.mbti-pick { max-width:1050px; margin:28px auto 0; padding:26px 30px; border:1px solid var(--line); border-radius:22px; background:rgba(255,255,255,.91); text-align:left; }
+.mbti-pick-head { display:flex; align-items:center; gap:10px; }
+.mbti-pick-head span { font-size:13px; font-weight:700; color:var(--muted); }
+.mbti-pick-head b { font-size:10px; font-weight:800; letter-spacing:.06em; color:var(--muted); background:var(--line); border-radius:999px; padding:3px 9px; }
+.mbti-pick a { display:block; margin-top:14px; padding:18px 20px; border-radius:16px; background:var(--paper); text-decoration:none; color:var(--ink); transition:background .15s; }
+.mbti-pick a:hover { background:var(--lavender); }
+.mbti-pick a strong { display:block; font-size:17px; }
+.mbti-pick a span { display:block; margin-top:6px; color:#626b78; font-size:14px; line-height:1.7; }
+.mbti-pick a i { display:block; margin-top:12px; color:var(--violet); font-size:13px; font-style:normal; font-weight:750; }
+.mbti-pick-disclosure { margin:14px 2px 0; color:#9aa0ac; font-size:11px; line-height:1.6; }
 .mbti-related { margin-top:90px; }
 
 @media (max-width:760px) {

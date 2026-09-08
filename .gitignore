@@ -30,6 +30,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# 쿠팡 파트너스 오픈API 키. scripts/coupang-links.mjs 가 읽습니다.
+coupang.env
+
 # vercel
 .vercel
 
