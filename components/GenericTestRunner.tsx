@@ -193,7 +193,6 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
             <p className="test-disclaimer">{test.disclaimer}</p>
           </section>
           )}
-          <AdUnit position="testIntro" label={`${test.title} 시작 전 광고`} />
           <TestGuide test={test} />
         </>
       )}
