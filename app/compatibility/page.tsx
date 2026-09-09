@@ -101,7 +101,6 @@ export default function Page() {
           </p>
         </section>
 
-        <AdUnit position="pageFooter" label="MBTI 궁합 하단 광고" />
       </section>
       <SiteFooter />
     </main>

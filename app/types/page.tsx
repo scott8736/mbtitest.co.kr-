@@ -93,7 +93,6 @@ export default function Page() {
           </section>
         ))}
 
-        <AdUnit position="pageFooter" label="16가지 유형 하단 광고" />
 
         <section className="related-page-cta">
           <div>
