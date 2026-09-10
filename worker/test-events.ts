@@ -4,7 +4,8 @@
  * 넣었다가 라이브(pages-entry.ts)에는 없어서 안 쌓인 적이 있어, 같은 일이
  * 반복되지 않도록 공유 모듈로 뺐습니다.
  *
- * 저장하는 것: 첫 문항에 답했다는 사실과 slug, 날짜. 응답 내용은 보내지 않습니다.
+ * 저장하는 것: 첫 문항에 답했다는 사실과 검사를 끝냈다는 사실, slug, 날짜.
+ * 응답 내용은 보내지 않습니다.
  */
 import { testCatalog } from "../lib/test-catalog";
 import { isBot, RETENTION_DAYS, seoulDay } from "../lib/analytics";
@@ -20,6 +21,9 @@ interface EventCtx {
 
 /** 카탈로그에 있는 slug 만 받습니다. 아무 값이나 들어오면 표가 쓰레기가 됩니다. */
 const KNOWN_SLUGS = new Set(testCatalog.map((item) => item.slug));
+
+/** 받는 이벤트 이름. 여기 없는 이름은 버립니다. */
+const KNOWN_NAMES = new Set(["answered", "completed"]);
 
 /**
  * `/api/event` POST 요청이면 처리하고 204 를 돌려줍니다. 아니면 null 이라
@@ -39,7 +43,7 @@ async function recordTestEvent(request: Request, url: URL, env: EventEnv): Promi
 
     const slug = url.searchParams.get("slug") ?? "";
     const name = url.searchParams.get("name") ?? "";
-    if (!KNOWN_SLUGS.has(slug) || name !== "answered") return;
+    if (!KNOWN_SLUGS.has(slug) || !KNOWN_NAMES.has(name)) return;
 
     await ensureSchema(env.DB);
     await env.DB.prepare("INSERT INTO test_events (slug, name, day) VALUES (?, ?, ?)")

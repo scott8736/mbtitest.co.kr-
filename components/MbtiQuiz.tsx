@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import AdUnit from "./AdUnit";
 import { questions, type Answer, type Axis } from "../lib/mbti-data";
-import { recordTestEvent } from "../lib/test-events";
+import { markTestCompleted, recordTestEvent } from "../lib/test-events";
 
 export const QUESTIONS_PER_STEP = 20;
 export const TOTAL_STEPS = Math.ceil(questions.length / QUESTIONS_PER_STEP);
@@ -84,6 +84,7 @@ export default function MbtiQuiz({ step = 1 }: { step?: number }) {
     const type = `${next.EI >= 0 ? "E" : "I"}${next.SN >= 0 ? "S" : "N"}${next.TF >= 0 ? "T" : "F"}${next.JP >= 0 ? "J" : "P"}`;
     sessionStorage.removeItem(PROGRESS_KEY);
     sessionStorage.setItem(RESULT_KEY, JSON.stringify({ result: type, scores: next }));
+    markTestCompleted("mbti");
     location.assign("/mbti-result/");
   };
 

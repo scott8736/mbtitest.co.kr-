@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { GenericTest, ScoreMap } from "../lib/generic-tests";
 import { testCatalog } from "../lib/test-catalog";
 import AdUnit from "./AdUnit";
-import { recordTestEvent } from "../lib/test-events";
+import { markTestCompleted, recordCompletionOnce, recordTestEvent } from "../lib/test-events";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
 import CrossPromo from "./CrossPromo";
@@ -66,6 +66,7 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
       setResultKey(parsed.resultKey);
       setScores(parsed.scores || {});
       setGender(parsed.gender || "");
+      recordCompletionOnce(test.slug);
     } catch {
       sessionStorage.removeItem(`test-result:${test.slug}`);
       location.replace(`/tests/${test.slug}/`);
@@ -109,6 +110,7 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
     setResultKey(nextResultKey);
     sessionStorage.removeItem(PROGRESS_KEY(test.slug));
     sessionStorage.setItem(`test-result:${test.slug}`, JSON.stringify({ resultKey: nextResultKey, scores: next, gender }));
+    markTestCompleted(test.slug);
     location.assign(`/tests/${test.slug}/result/`);
   };
 

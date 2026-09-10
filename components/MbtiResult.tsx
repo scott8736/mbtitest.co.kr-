@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import AdUnit from "./AdUnit";
 import MbtiResultPick from "./MbtiResultPick";
 import { questions, typeData, typeDetails, type Axis } from "../lib/mbti-data";
+import { recordCompletionOnce } from "../lib/test-events";
 
 const TEST_PATH = "/tests/mbti/";
 const STORAGE_KEY = "mbti-test-result";
@@ -25,6 +26,7 @@ export default function MbtiResult() {
       const parsed = JSON.parse(saved) as StoredResult;
       if (!typeData[parsed.result] || !parsed.scores) throw new Error("invalid result");
       setStored(parsed);
+      recordCompletionOnce("mbti");
     } catch {
       sessionStorage.removeItem(STORAGE_KEY);
       location.replace(TEST_PATH);

@@ -217,6 +217,18 @@ ${error ? `<p class="err">비밀번호가 맞지 않습니다.</p>` : ""}
   );
 }
 
+/**
+ * 이벤트별 집계 시작일.
+ *
+ * 이 날 이전이 조회 기간에 걸치면 분모와 분자가 세어 온 기간이 달라 비율이
+ * 100% 를 넘는 등 뜻 없는 값이 됩니다. 그럴 때는 숫자 대신 「-」 를 적습니다.
+ */
+const ANSWERED_SINCE = "2026-09-07";
+const COMPLETED_SINCE = "2026-09-10";
+
+/** 이보다 표본이 작으면 비율을 내지 않습니다. 몇 건짜리 비율은 뜻이 없습니다. */
+const MIN_SAMPLE = 20;
+
 async function dashboard(db: D1Database, days: number, notice: string): Promise<string> {
   const to = seoulDay();
   const from = seoulDay(new Date(Date.now() - (days - 1) * 86400000));
@@ -274,12 +286,17 @@ async function dashboard(db: D1Database, days: number, notice: string): Promise<
        FROM stages WHERE slug IS NOT NULL AND slug <> ''
       GROUP BY slug HAVING intro > 0 ORDER BY intro DESC LIMIT 15`, from, to);
 
-  // 첫 문항에 답한 수. 방문만 하고 나간 사람과 풀다 그만둔 사람을 가릅니다.
-  const answered = await q<{ slug: string; count: number }>(
-    `SELECT slug, COUNT(*) AS count FROM test_events
-      WHERE day BETWEEN ? AND ? AND name = 'answered'
-      GROUP BY slug`, from, to);
-  const answeredBySlug = new Map(answered.map((row) => [row.slug, row.count]));
+  // 첫 문항에 답한 수와 끝까지 푼 수. 방문만 하고 나간 사람, 풀다 그만둔 사람,
+  // 끝낸 사람을 가릅니다. 완주는 결과 화면 조회수가 아니라 이벤트로 셉니다.
+  // 결과 주소는 공유되고 새로고침되어 조회수가 완주 수보다 큽니다.
+  const events = await q<{ slug: string; name: string; count: number }>(
+    `SELECT slug, name, COUNT(*) AS count FROM test_events
+      WHERE day BETWEEN ? AND ? AND name IN ('answered', 'completed')
+      GROUP BY slug, name`, from, to);
+  const countsFor = (name: string) =>
+    new Map(events.filter((row) => row.name === name).map((row) => [row.slug, row.count]));
+  const answeredBySlug = countsFor("answered");
+  const completedBySlug = countsFor("completed");
 
   const peak = Math.max(1, ...daily.map((d) => d.views));
   const ranges = [1, 7, 30, 90]
@@ -318,18 +335,27 @@ async function dashboard(db: D1Database, days: number, notice: string): Promise<
 
 <div class="box"><h2>테스트 완주율</h2>
 <p class="note">
-「방문」은 검사 화면이 열린 수이고 「첫 응답」은 문항 하나라도 답한 수입니다. 둘의 차이가 크면 첫인상 문제,
-「첫 응답 → 결과」가 낮으면 길이 문제입니다. 고칠 곳이 서로 달라 나눠 셉니다.
-<br>첫 응답은 2026-09-07 부터 쌓기 시작했으므로 그 이전 기간에는 「-」로 나옵니다.
+「방문」은 검사 화면이 열린 수, 「첫 응답」은 문항 하나라도 답한 수, 「완주」는 끝까지 풀고 결과를 받은 수입니다.
+방문과 첫 응답의 차이가 크면 첫인상 문제, 「첫 응답 → 완주」가 낮으면 길이 문제입니다. 고칠 곳이 서로 달라 나눠 셉니다.
+<br>「결과 조회」는 결과 화면 조회수입니다. 공유 링크로 들어온 사람과 새로고침이 섞여 있어 완주 수보다 큽니다. 비율에는 쓰지 않습니다.
+<br>첫 응답은 ${ANSWERED_SINCE}, 완주는 ${COMPLETED_SINCE} 부터 쌓기 시작했습니다. 조회 기간이 그 전을 포함하면 비율은 「-」로 나옵니다.
+표본이 ${MIN_SAMPLE}건 미만이어도 비율 대신 「표본 부족」으로 적습니다.
 </p>${
       steps.length === 0
         ? `<p class="empty">아직 기록이 없습니다.</p>`
-        : `<div class="scroll"><table><thead><tr><th>테스트</th><th>방문</th><th>첫 응답</th><th>2단계</th><th>결과</th><th>응답 시작률</th><th>완주율</th></tr></thead><tbody>${steps
+        : `<div class="scroll"><table><thead><tr><th>테스트</th><th>방문</th><th>첫 응답</th><th>2단계</th><th>결과 조회</th><th>완주</th><th>응답 시작률</th><th>완주율</th></tr></thead><tbody>${steps
             .map((s) => {
               const began = answeredBySlug.get(s.slug) ?? 0;
-              const pct = (part: number, whole: number) => (whole ? Math.round((part / whole) * 100) + "%" : "-");
-              return `<tr><td>${esc(s.slug)}</td><td>${s.intro}</td><td>${began || "-"}</td><td>${s.step2}</td><td>${s.result}</td>
-<td>${began ? pct(began, s.intro) : "-"}</td><td>${began ? pct(s.result, began) : pct(s.result, s.intro) + " (방문 기준)"}</td></tr>`;
+              const finished = completedBySlug.get(s.slug) ?? 0;
+              // 조회 기간이 집계 시작 전을 포함하면 분모만 짧은 기간이라 비율이
+              // 부풀려집니다. 표본이 작아도 마찬가지로 숫자를 내지 않습니다.
+              const rate = (part: number, whole: number, since: string) => {
+                if (from < since) return "-";
+                if (whole < MIN_SAMPLE) return "표본 부족";
+                return Math.round((part / whole) * 100) + "%";
+              };
+              return `<tr><td>${esc(s.slug)}</td><td>${s.intro}</td><td>${began || "-"}</td><td>${s.step2}</td><td>${s.result}</td><td>${finished || "-"}</td>
+<td>${rate(began, s.intro, ANSWERED_SINCE)}</td><td>${rate(finished, began, COMPLETED_SINCE)}</td></tr>`;
             })
             .join("")}</tbody></table></div>`
     }</div>
