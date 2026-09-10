@@ -37,6 +37,13 @@ const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
+    // 피드는 /rss.xml 한 곳에만 둡니다. 예전 주소로 들어온 구독자를 넘겨보냅니다.
+    // 라이브에 도는 워커는 이 파일이라, worker/index.ts 의 같은 처리만으로는
+    // 실제 요청에 아무 일도 일어나지 않습니다.
+    if (url.pathname.replace(/\/+$/, "") === "/feed.xml") {
+      return Response.redirect(`${url.origin}/rss.xml`, 301);
+    }
+
     // 검사 진행 이벤트. 첫 문항에 답한 시점을 세어, 화면을 열자마자 나간
     // 사람과 몇 문항 풀다 그만둔 사람을 구분합니다.
     const testEvent = handleTestEvent(request, url, env, ctx);
