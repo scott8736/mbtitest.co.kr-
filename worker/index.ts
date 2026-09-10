@@ -43,13 +43,14 @@ const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
-    // sitemap.xml 과 robots.txt 는 여기서 직접 응답합니다.
+    // sitemap.xml, rss.xml, robots.txt 는 여기서 직접 응답합니다.
     //
-    // next.config.ts 의 trailingSlash: true 때문에 /sitemap.xml 요청이
-    // /sitemap.xml/ 로 308 리다이렉트되는데, 그 주소에는 라우트가 없어 404 가 됩니다
-    // (app/sitemap.ts, app/robots.ts 는 이 빌드에서 어느 경로로도 잡히지 않습니다).
-    // 크롤러는 robots.txt 를 슬래시 없는 정확한 주소로만 요청하므로,
-    // 라우터에 넘기기 전에 가로채야 합니다.
+    // 이것은 vite dev 워커용입니다. 라이브(Cloudflare Pages)에서는 build-pages.sh 가
+    // 뽑은 out/ 의 정적 파일이 나가고, _routes.json 이 이 세 주소를 워커에서 빼 둡니다.
+    //
+    // dev 에서 가로채는 이유는 next.config.ts 의 trailingSlash: true 입니다.
+    // /sitemap.xml 요청이 /sitemap.xml/ 로 308 되는데 그 주소에는 라우트가 없어
+    // 404 가 되고, 크롤러는 슬래시 없는 정확한 주소로만 요청하기 때문입니다.
     const metadataPath = url.pathname.replace(/\/$/, "");
     if (metadataPath === "/sitemap.xml") {
       return new Response(sitemapXml(), {

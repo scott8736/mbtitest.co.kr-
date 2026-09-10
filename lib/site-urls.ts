@@ -125,10 +125,21 @@ ${entries}
 }
 
 export function robotsTxt(): string {
+  // Yeti 는 네이버 크롤러입니다. 위 와일드카드가 이미 허용하지만, 서치어드바이저는
+  // 이름 붙은 그룹을 찾지 못하면 수집 설정을 확인하지 못했다고 표시합니다.
+  // 이름 붙은 그룹은 와일드카드를 대체하므로 Disallow 도 그 안에 다시 적습니다.
+  //
+  // RSS 줄은 사이트맵과 별개입니다. 사이트맵이 "이 주소들이 있다" 라면 피드는
+  // "이것이 새로 생겼다" 라, 네이버는 둘을 따로 받고 신규 수집은 피드가 빠릅니다.
   return `User-agent: *
 Allow: /
 Disallow: /admin
 
+User-agent: Yeti
+Allow: /
+Disallow: /admin
+
 Sitemap: ${SITE_ORIGIN}/sitemap.xml
+RSS: ${SITE_ORIGIN}/rss.xml
 `;
 }
