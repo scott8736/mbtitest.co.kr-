@@ -23,7 +23,10 @@ export const metadata: Metadata = {
     "MBTI 성격유형검사",
     "16가지 성격유형",
   ],
-  alternates: { canonical: "/" },
+  alternates: {
+    canonical: "/",
+    types: { "application/rss+xml": [{ url: "/rss.xml", title: "MBTI 검사 블로그" }] },
+  },
   openGraph: {
     type: "website",
     locale: "ko_KR",

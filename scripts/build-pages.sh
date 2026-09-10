@@ -41,7 +41,8 @@ cat > "${out}/_routes.json" <<'JSON'
     "/window.svg",
     "/ads.txt",
     "/robots.txt",
-    "/sitemap.xml"
+    "/sitemap.xml",
+    "/rss.xml"
   ]
 }
 JSON

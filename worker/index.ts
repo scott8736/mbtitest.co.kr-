@@ -2,6 +2,7 @@
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
 import { robotsTxt, sitemapXml } from "../lib/site-urls";
+import { rssXml } from "../lib/rss";
 import { handleAdmin } from "./admin";
 import { ensureSchema } from "./schema";
 import { handleTestEvent } from "./test-events";
@@ -54,6 +55,18 @@ const worker = {
       return new Response(sitemapXml(), {
         headers: {
           "content-type": "application/xml; charset=utf-8",
+          "cache-control": "public, max-age=3600",
+        },
+      });
+    }
+    // 피드는 /rss.xml 한 곳에만 둡니다. 예전 주소로 들어오면 넘겨보냅니다.
+    if (metadataPath === "/feed.xml") {
+      return Response.redirect(`${url.origin}/rss.xml`, 301);
+    }
+    if (metadataPath === "/rss.xml") {
+      return new Response(rssXml(), {
+        headers: {
+          "content-type": "application/rss+xml; charset=utf-8",
           "cache-control": "public, max-age=3600",
         },
       });
