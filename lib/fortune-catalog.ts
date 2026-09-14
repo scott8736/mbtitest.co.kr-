@@ -32,6 +32,15 @@ export const fortuneEntries: FortuneEntry[] = [
     kind: "tool",
   },
   {
+    href: "/fortune/tojeong/",
+    title: "토정비결 보는 법",
+    shortTitle: "토정비결",
+    description: "음력으로 상괘·중괘·하괘를 구하는 방식과 양력 음력 변환기를 함께 정리했습니다.",
+    emoji: "📖",
+    keywords: ["토정비결", "토정비결 보는 법", "음력 변환", "양력 음력 변환기"],
+    kind: "content",
+  },
+  {
     href: "/fortune/gunghap/",
     title: "사주 궁합",
     shortTitle: "사주 궁합",
