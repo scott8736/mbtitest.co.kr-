@@ -93,11 +93,17 @@ button:focus-visible { outline:3px solid #91a98b; outline-offset:4px; }
 .content-body { padding:90px clamp(24px,7vw,110px) 120px; background:#fffefa; }
 .content-body>h2,.type-section h2,.long-copy h2 { margin:0 0 18px; font-size:clamp(30px,4vw,46px); letter-spacing:-.05em; }
 .seo-card-grid { max-width:1180px; display:grid; grid-template-columns:repeat(4,1fr); gap:15px; margin:30px 0 80px; }
-.seo-card-grid article { min-height:210px; padding:27px; border:1px solid var(--line); border-radius:19px; background:#f8f9f4; }
-.seo-card-grid b { color:#58745e; font-size:20px; }
-.seo-card-grid h3 { margin:22px 0 10px; font-size:19px; }
+.seo-card-grid article { min-height:210px; padding:24px 26px 26px; display:flex; flex-direction:column; border:1px solid var(--line); border-top:3px solid var(--card-accent,#58745e); border-radius:19px; background:#f8f9f4; }
+/* 유형 코드 옆에 마스코트. 32장이 글자만 있어서 목록이 표처럼 보였다 */
+.seo-card-head { display:flex; align-items:center; gap:11px; margin-bottom:16px; }
+.seo-card-head .seo-card-face { flex:none; display:grid; place-items:center; width:52px; height:52px; border-radius:14px; background:color-mix(in srgb,var(--card-accent,#58745e) 13%,#fff); border:1px solid color-mix(in srgb,var(--card-accent,#58745e) 24%,#fff); }
+.seo-card-grid b { color:var(--card-accent,#58745e); font-size:20px; letter-spacing:.01em; }
+.seo-card-grid h3 { margin:0 0 10px; font-size:19px; }
 .seo-card-grid p { margin:0; color:#707a71; line-height:1.7; word-break:keep-all; }
-.seo-card-grid a { display:inline-block; margin-top:20px; color:#315448; font-size:13px; font-weight:750; text-decoration:none; }
+/* inline-block 이면 두 링크가 한 줄에 붙는다. 카드마다 줄 수가 달라져 격자가 어긋났다 */
+.seo-card-grid a { display:block; width:fit-content; margin-top:11px; color:var(--card-accent,#315448); font-size:13px; font-weight:750; text-decoration:none; }
+.seo-card-grid a:first-of-type { margin-top:20px; }
+.seo-card-grid a:hover { text-decoration:underline; }
 .type-section { max-width:1180px; margin:0 auto 90px; }
 .type-section>div:first-child>p { margin:0; color:#707a71; font-size:17px; }
 .type-section .seo-card-grid { margin-bottom:0; }
@@ -533,7 +539,9 @@ main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% -
 .generic-explain article { padding:30px; border:1px solid var(--line); border-radius:20px; background:#faf8ff; }
 .generic-explain article b { color:var(--violet); font-size:18px; }
 .generic-explain article p { margin:14px 0 0; color:var(--muted); line-height:1.75; }
-.test-disclaimer { max-width:850px; margin:50px auto 0; padding:22px; border-radius:14px; background:#f3efff; color:#6f687d; font-size:13px; line-height:1.7; text-align:center; }
+/* 밝은 상자 위에서는 글씨를 충분히 진하게. #6f687d/13px 는 흰 글씨처럼 보였다 */
+.test-disclaimer { max-width:760px; margin:50px auto 0; padding:22px 24px; border:1px solid #e3dbf6; border-radius:14px; background:#f3efff; color:#4a4360; font-size:14px; line-height:1.75; text-align:center; word-break:keep-all; }
+.test-disclaimer b { color:#2f2946; font-weight:750; }
 .rich-result { min-height:80vh; padding:80px 24px 120px; text-align:center; background:radial-gradient(circle at 50% 4%,color-mix(in srgb,var(--test-accent) 18%,#eee9ff),transparent 30%),var(--paper); }
 .result-symbol { width:126px; height:126px; margin:28px auto 22px; display:grid; place-items:center; border-radius:38px; color:white; box-shadow:0 20px 46px color-mix(in srgb,var(--test-accent) 30%,transparent); font-size:30px; font-weight:900; }
 .rich-result>h1 { margin:0; font-size:clamp(42px,6vw,68px); letter-spacing:-.055em; }
@@ -1089,3 +1097,19 @@ main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% -
 /* 마스코트는 기본이 왼쪽 정렬이다. 가운데 정렬된 결과 화면에서만 가운데로 */
 .mascot-center { margin-left:auto; margin-right:auto; }
 @media (max-width:620px) { .result-card-image { border-radius:15px; margin-bottom:20px; } }
+
+/* 넓은 화면 대응.
+   .test-shell 과 .rich-result 에는 최대 폭이 없어서, 큰 모니터에서는 문항 카드와
+   제목이 화면 끝까지 늘어났다. 홈은 1180px 로 묶여 있는데 검사 화면만 안 묶여
+   있어서 같은 사이트로 보이지 않았다. 한 줄이 너무 길면 읽기도 어렵다. */
+.test-shell > .test-top,
+.test-shell > .progress,
+.test-shell > .step-badge,
+.test-shell > .question-card,
+.test-shell > .test-tip { max-width:880px; margin-inline:auto; }
+.rich-result > h1,
+.rich-result > .rich-tagline { max-width:860px; margin-inline:auto; }
+.result-shell > h1,
+.result-shell > .result-tagline,
+.result-shell > .result-description { max-width:860px; margin-inline:auto; }
+
