@@ -21,7 +21,8 @@ const OG_DIR = join(repoRoot, "public", "images", "og", "r");
  */
 const { outputFiles } = await build({
   stdin: {
-    contents: `export { genericTests } from "./lib/generic-tests";`,
+    contents: `export { genericTests } from "./lib/generic-tests";
+               export { typeData } from "./lib/mbti-data";`,
     resolveDir: repoRoot,
     loader: "ts",
   },
@@ -30,13 +31,23 @@ const { outputFiles } = await build({
   platform: "neutral",
   write: false,
 });
-const { genericTests } = await import(
+const { genericTests, typeData } = await import(
   `data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString("base64")}`
 );
 
 const allResults = Object.entries(genericTests).flatMap(([slug, t]) =>
   Object.keys(t.results).map((key) => ({ slug, key, file: `${slug}-${key}.png` })),
 );
+
+// MBTI 16유형은 genericTests 가 아니라 lib/mbti-data 에 있습니다. 방문이 가장
+// 많은 검사라 카드가 빠지면 손해도 제일 큽니다.
+const mbtiResults = Object.keys(typeData).map((code) => ({
+  slug: "mbti",
+  key: code.toLowerCase(),
+  file: `mbti-${code.toLowerCase()}.png`,
+}));
+
+allResults.push(...mbtiResults);
 
 test("모든 결과에 공유 이미지가 있다", () => {
   const missing = allResults
@@ -64,6 +75,12 @@ test("결과 키에 주소로 쓸 수 없는 문자가 없다", () => {
     .filter((row) => !/^[a-z0-9-]+$/.test(row.key))
     .map((row) => `${row.slug}/${row.key}`);
   assert.deepEqual(bad, [], `주소로 쓸 수 없는 결과 키: ${bad.join(", ")}`);
+});
+
+test("MBTI 16유형이 빠짐없이 있다", () => {
+  // 유형이 16개가 아니면 데이터 쪽이 깨진 것이고, 그 상태로 카드를 구우면
+  // 없는 유형의 결과 화면이 빈 그림이 됩니다.
+  assert.equal(mbtiResults.length, 16, `MBTI 유형이 16개가 아닙니다: ${mbtiResults.length}개`);
 });
 
 test("공유 이미지에 쓰는 결과 문구가 비어 있지 않다", () => {

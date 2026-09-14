@@ -38,7 +38,8 @@ async function loadTests() {
   const { outputFiles } = await build({
     stdin: {
       contents: `export { genericTests } from "./lib/generic-tests";
-                 export { testCatalog } from "./lib/test-catalog";`,
+                 export { testCatalog } from "./lib/test-catalog";
+                 export { typeData } from "./lib/mbti-data";`,
       resolveDir: root,
       loader: "ts",
     },
@@ -165,7 +166,7 @@ async function main() {
     return 1;
   }
 
-  const { genericTests, testCatalog } = await loadTests();
+  const { genericTests, testCatalog, typeData } = await loadTests();
   await mkdir(OUT_DIR, { recursive: true });
 
   const fonts = [{ name: "NotoKR", data: font, weight: 700, style: "normal" }];
@@ -198,6 +199,34 @@ async function main() {
       } catch (error) {
         failed.push(`${slug}-${key}: ${String(error).slice(0, 120)}`);
       }
+    }
+  }
+
+  // MBTI 16유형. 방문이 가장 많은 검사인데 결과 카드가 없어서, 결과 화면에
+  // 띄울 그림도 공유 썸네일도 없었습니다. 파일 이름은 mbti-{소문자코드}.png 입니다
+  // (genericTests 의 mbti-love-compatibility-* 와 겹치지 않습니다).
+  for (const [code, info] of Object.entries(typeData)) {
+    const file = join(OUT_DIR, `mbti-${code.toLowerCase()}.png`);
+    if (!force && (await exists(file))) {
+      skipped += 1;
+      continue;
+    }
+    try {
+      const svg = await satori(
+        card({
+          eyebrow: "무료 MBTI 검사",
+          // 네 글자를 가장 크게 둡니다. 썸네일로 줄어들면 이것만 읽힙니다.
+          name: code,
+          tagline: `${info.name} · ${info.tagline}`,
+          traits: info.strengths || [],
+          color: info.color || "#738b6d",
+        }),
+        { width: WIDTH, height: HEIGHT, fonts },
+      );
+      await writeFile(file, await sharp(Buffer.from(svg)).png().toBuffer());
+      made += 1;
+    } catch (error) {
+      failed.push(`mbti-${code}: ${String(error).slice(0, 120)}`);
     }
   }
 
