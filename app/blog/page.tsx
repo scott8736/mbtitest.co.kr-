@@ -80,7 +80,13 @@ export default function BlogPage() {
       {blogCategories
         .filter((category) => category !== "전체")
         .map((category) => {
-          const posts = blogPosts.filter((post) => post.category === category);
+          // 배열 순서가 아니라 최신순입니다. 그대로 두면 카테고리 안에서도
+          // 예전 글이 맨 앞에 서고, 새로 올린 글은 스크롤 아래로 밀립니다.
+          const posts = blogPosts
+            .filter((post) => post.category === category)
+            .sort((a, b) =>
+              (b.updatedAt || b.publishedAt).localeCompare(a.updatedAt || a.publishedAt),
+            );
           if (!posts.length) return null;
           return (
             <section className="blog-category-section" key={category}>
