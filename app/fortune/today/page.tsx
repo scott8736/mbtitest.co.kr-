@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import AdUnit from "../../../components/AdUnit";
 import ContentHeader from "../../../components/ContentHeader";
 import SiteFooter from "../../../components/SiteFooter";
+import DailyFortune from "../../../components/DailyFortune";
 import FortuneTool from "../../../components/FortuneTool";
 import { breadcrumbJsonLd, faqJsonLd, articleJsonLd, graph } from "../../../lib/fortune-catalog";
 import { zodiacFortunes } from "../../../lib/fortune-zodiac";
@@ -79,7 +80,19 @@ export default function TodayFortunePage() {
       </header>
 
       <article className={styles.body}>
+        {/* 생년월일 없이 읽을 것을 먼저 둡니다. 이 주소로 들어오는 사람은
+            지금 뭔가 읽으러 온 것이지 서식을 채우러 온 것이 아닙니다. */}
+        <DailyFortune />
+
         <AdUnit position="testIntro" label="오늘의 운세 입력 전 광고" />
+
+        <section className={styles.section}>
+          <h2>생년월일까지 넣으면 더 자세히 봅니다</h2>
+          <p>
+            위 총운은 날짜만으로 본 오늘의 흐름입니다. 태어난 날의 간지를 함께 계산하면 나에게 맞춘 풀이가
+            나옵니다. 태어난 시간을 몰라도 됩니다.
+          </p>
+        </section>
 
         <FortuneTool mode="today" />
 

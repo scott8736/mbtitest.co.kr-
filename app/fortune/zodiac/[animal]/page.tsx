@@ -3,6 +3,7 @@ import CrossPromo from "../../../../components/CrossPromo";
 import { notFound } from "next/navigation";
 import AdUnit from "../../../../components/AdUnit";
 import ContentHeader from "../../../../components/ContentHeader";
+import DailyFortune from "../../../../components/DailyFortune";
 import SiteFooter from "../../../../components/SiteFooter";
 import { breadcrumbJsonLd, faqJsonLd, articleJsonLd, graph } from "../../../../lib/fortune-catalog";
 import {
@@ -116,6 +117,9 @@ export default async function ZodiacDetailPage({ params }: { params: Promise<{ a
       </header>
 
       <article className={styles.body}>
+        {/* 띠별 운세로 들어온 사람이 가장 먼저 찾는 것은 오늘입니다.
+            해운(2027 정미년)은 그 아래에 둡니다. */}
+        <DailyFortune scope={zodiac.slug} label={zodiac.name} />
         <section className={styles.answer}>
           <strong>{zodiac.name}는 어떤 성격인가요?</strong>
           <p>{zodiac.personality}</p>

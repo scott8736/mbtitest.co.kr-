@@ -121,3 +121,23 @@
 .coupleGrid p{font-size:13.5px!important;color:#7a7466!important}
 .coupleAdvice{margin:0;padding-left:20px;display:grid;gap:8px;color:#5a5647;font-size:15.5px;line-height:1.8}
 @media(max-width:580px){.coupleGrid{grid-template-columns:1fr}}
+
+/* 입력 없이 바로 읽는 오늘의 운세. 이 주소의 첫 화면이라 눈에 먼저 들어와야 한다 */
+.dailyCard{padding:32px clamp(20px,4vw,36px);border:1px solid #ecdfc8;border-radius:22px;background:linear-gradient(160deg,#fffaf0,#fff6f1)}
+.dailyHead span{color:#9a6b34;font-size:13px;font-weight:800;letter-spacing:.02em}
+.dailyHead h2{margin:8px 0 0;font-size:clamp(24px,3.4vw,34px);letter-spacing:-.04em}
+.dailyHeadline{margin:18px 0 0;font-size:clamp(19px,2.4vw,24px);line-height:1.55;font-weight:800;letter-spacing:-.03em;color:#3d3524;word-break:keep-all}
+.dailyMeter{height:10px;margin:20px 0 8px;border-radius:999px;background:#f0e4d2;overflow:hidden}
+.dailyMeter i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#e0a94f,#d98a3f)}
+.dailyScore{margin:0;color:#8b8271;font-size:14px}
+.dailyScore strong{margin-left:4px;color:#9a6b34;font-size:20px;font-variant-numeric:tabular-nums}
+.dailyScore span{margin-left:3px;font-size:13px}
+.dailyDetail{margin:18px 0 0;color:#5a5647;font-size:16.5px;line-height:1.9;word-break:keep-all}
+.dailyGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:24px 0 0}
+.dailyGrid article{padding:14px 16px;border:1px solid #ecdfc8;border-radius:14px;background:#fffefb;text-align:center}
+.dailyGrid span{display:block;color:#9a8f7a;font-size:12px}
+.dailyGrid b{display:block;margin-top:6px;font-size:16px;letter-spacing:-.02em}
+.dailyNotes{display:grid;gap:10px;margin:22px 0 18px}
+.dailyNotes p{margin:0;padding:14px 16px;border-radius:12px;background:#fffefb;border:1px solid #ecdfc8;color:#5a5647;font-size:15px;line-height:1.75;word-break:keep-all}
+.dailyNotes b{display:block;margin-bottom:5px;color:#9a6b34;font-size:12.5px;font-weight:800}
+@media(max-width:580px){.dailyGrid{grid-template-columns:1fr}}
