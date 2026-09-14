@@ -194,6 +194,14 @@ export const celebrityPosts: BlogPost[] = [
           "MBTI 는 자기보고식이라 최근 환경과 답할 때 떠올린 상황에 따라 한두 글자가 바뀌는 일이 흔합니다. 네 글자만 비교하기보다 각 지표의 비율을 함께 보는 편이 낫습니다.",
         ],
       },
+      {
+        heading: "이 글의 자료에 대하여",
+        paragraphs: [
+          "이 글은 공개된 방송·인터뷰 보도와 검색으로 확인되는 자료를 모아 정리한 것입니다. 소속사 공식 발표가 아닌 항목은 본문에 ‘추정’으로 표시했습니다.",
+          "MBTI 는 자기보고식 검사라 같은 사람도 시기와 상황에 따라 결과가 달라집니다. 공개한 뒤 다시 검사해 바뀐 경우도 많습니다.",
+          "따라서 위 내용은 작성 시점(2026년 9월) 기준이며 지금과 다를 수 있습니다. 새로 확인되는 자료가 있으면 이 글을 고칩니다.",
+        ],
+      },
     ],
     cta,
     relatedSlugs: ["lim-young-woong-mbti", "rescene-mbti", "mbti-result-changes"],
@@ -244,6 +252,14 @@ export const celebrityPosts: BlogPost[] = [
         paragraphs: [
           "I 는 혼자 있는 시간에서 에너지를 회복한다는 뜻이지, 사람 앞에 서지 못한다는 뜻이 아닙니다. 큰 공연을 끝내고 조용한 시간이 꼭 필요하다면 그것이 I 의 설명에 가깝습니다.",
           "임영웅 본인의 발언도 ‘출연이 망설여졌다’는 것이지 ‘하지 못한다’가 아니었습니다.",
+        ],
+      },
+      {
+        heading: "이 글의 자료에 대하여",
+        paragraphs: [
+          "이 글은 공개된 방송·인터뷰 보도와 검색으로 확인되는 자료를 모아 정리한 것입니다. 소속사 공식 발표가 아닌 항목은 본문에 ‘추정’으로 표시했습니다.",
+          "MBTI 는 자기보고식 검사라 같은 사람도 시기와 상황에 따라 결과가 달라집니다. 공개한 뒤 다시 검사해 바뀐 경우도 많습니다.",
+          "따라서 위 내용은 작성 시점(2026년 9월) 기준이며 지금과 다를 수 있습니다. 새로 확인되는 자료가 있으면 이 글을 고칩니다.",
         ],
       },
     ],
@@ -321,6 +337,14 @@ export const celebrityPosts: BlogPost[] = [
           "비교가 목적이라면 내 결과부터 확인하는 편이 빠릅니다. 40문항, 약 4분이면 끝납니다.",
         ],
       },
+      {
+        heading: "이 글의 자료에 대하여",
+        paragraphs: [
+          "이 글은 공개된 방송·인터뷰 보도와 검색으로 확인되는 자료를 모아 정리한 것입니다. 소속사 공식 발표가 아닌 항목은 본문에 ‘추정’으로 표시했습니다.",
+          "MBTI 는 자기보고식 검사라 같은 사람도 시기와 상황에 따라 결과가 달라집니다. 공개한 뒤 다시 검사해 바뀐 경우도 많습니다.",
+          "따라서 위 내용은 작성 시점(2026년 9월) 기준이며 지금과 다를 수 있습니다. 새로 확인되는 자료가 있으면 이 글을 고칩니다.",
+        ],
+      },
     ],
     cta,
     relatedSlugs: ["yoo-jae-suk-mbti", "lim-young-woong-mbti", "mbti-result-changes"],
@@ -329,6 +353,451 @@ export const celebrityPosts: BlogPost[] = [
       { label: "한국기업평판연구소 브랜드평판 랭킹", href: "https://brikorea.com/" },
       { label: "RESCENE 프로필 (나무위키)", href: "https://namu.wiki/w/RESCENE" },
       { label: "메이(RESCENE) 프로필 (Kpop Wiki)", href: "https://kpop.fandom.com/wiki/May_(RESCENE)" },
+    ],
+  },
+  {
+    slug: "bts-members-mbti",
+    category: "트렌드",
+    title: "방탄소년단 멤버 MBTI 총정리 — 2020년과 2022년이 이렇게 다릅니다",
+    description:
+      "방탄소년단 일곱 멤버가 공식 채널에서 직접 검사해 공개한 MBTI와, 2020년 결과에서 바뀐 멤버를 나란히 정리했습니다. 2026년 9월 광고모델 브랜드평판 1위 기록도 함께 봅니다.",
+    keywords: ["방탄소년단 MBTI", "BTS MBTI", "정국 MBTI", "뷔 MBTI", "지민 MBTI", "RM MBTI", "슈가 MBTI"],
+    readTime: "약 8분",
+    publishedAt: septReputationAt,
+    updatedAt: septReputationAt,
+    intro: [
+      "방탄소년단이 공식 채널에서 직접 검사해 공개한 2022년 기준 MBTI는 RM ENFP, 진 INTP, 슈가 ISTP, 제이홉 INFJ, 지민 ESTP, 뷔 INFP, 정국 INTP 입니다.",
+      "이 목록이 다른 곳과 어긋나 보인다면 시점이 다르기 때문입니다. 2020년에 알려진 값과 비교하면 일곱 명 중 다섯 명이 달라졌습니다.",
+      "방탄소년단은 2026년 9월 광고모델 브랜드평판에서도 1위에 올랐습니다.",
+    ],
+    sections: [
+      {
+        heading: "2022년 공개 결과 (본인들이 직접 검사)",
+        paragraphs: [
+          "멤버들이 공식 유튜브 채널에서 함께 검사를 진행하고 결과를 공개한 내용입니다. 팬 투표가 아니라 본인 검사라는 점에서 아이돌 MBTI 자료 중에서는 근거가 단단한 편입니다.",
+        ],
+        bullets: [
+          "RM — ENFP",
+          "진 — INTP",
+          "슈가 — ISTP",
+          "제이홉 — INFJ",
+          "지민 — ESTP",
+          "뷔 — INFP",
+          "정국 — INTP",
+        ],
+      },
+      {
+        heading: "2020년과 비교하면 다섯 명이 바뀌었습니다",
+        paragraphs: [
+          "2020년에 알려진 값은 RM ENFP, 진 INTP, 슈가 INTP, 제이홉 ESFJ, 지민 ENFJ, 뷔 ENFP, 정국 INFP 였습니다. RM 은 그 전 INFP 에서 ENFP 로 바뀌었다고 언급된 적이 있고, 슈가도 INFP 에서 INTP 로 바뀌었다고 생일 방송에서 말했습니다.",
+          "2022년과 견주면 그대로인 사람은 RM 과 진 둘뿐입니다. 제이홉은 ESFJ 에서 INFJ 로 네 글자 중 두 글자가, 지민은 ENFJ 에서 ESTP 로 세 글자가 달라졌습니다.",
+          "그래서 ‘정국 MBTI 는 INFP 다’ 같은 문장은 어느 해 자료인지 붙이지 않으면 절반만 맞습니다.",
+        ],
+      },
+      {
+        heading: "왜 이렇게 많이 바뀌었을까",
+        paragraphs: [
+          "두 검사 사이에 활동 환경이 크게 달라졌습니다. 사람이 달라졌다기보다, 답할 때 떠올리는 일상이 달라지면 경계에 가까운 지표가 쉽게 뒤집힙니다.",
+          "특히 E·I 와 J·P 는 상황을 많이 탑니다. 단체 활동이 많은 시기와 개인 작업이 많은 시기에 같은 사람이 다른 답을 고르는 일이 흔합니다.",
+          "MBTI 를 ‘고정된 정체성’으로 보면 이 변화가 이상해 보이지만, ‘지금 선호하는 방식’으로 보면 자연스러운 결과입니다.",
+        ],
+      },
+      {
+        heading: "2026년 9월 광고모델 브랜드평판 1위",
+        paragraphs: [
+          "한국기업평판연구소의 2026년 9월 광고모델 브랜드평판에서 1위 방탄소년단, 2위 리센느, 3위 임영웅, 4위 유재석, 5위 아이브 순으로 분석됐습니다.",
+          "광고모델 평판은 브랜드가 실제 기용을 검토할 때 참고하는 지표라, 팬덤 규모와 대중 호감도가 함께 반영됩니다.",
+        ],
+      },
+      {
+        heading: "이 글의 자료에 대하여",
+        paragraphs: [
+          "이 글은 공개된 방송·인터뷰 보도와 검색으로 확인되는 자료를 모아 정리한 것입니다. 소속사 공식 발표가 아닌 항목은 본문에 ‘추정’으로 표시했습니다.",
+          "MBTI 는 자기보고식 검사라 같은 사람도 시기와 상황에 따라 결과가 달라집니다. 공개한 뒤 다시 검사해 바뀐 경우도 많습니다.",
+          "따라서 위 내용은 작성 시점(2026년 9월) 기준이며 지금과 다를 수 있습니다. 새로 확인되는 자료가 있으면 이 글을 고칩니다.",
+        ],
+      },
+    ],
+    cta,
+    relatedSlugs: ["blackpink-members-mbti", "ive-members-mbti", "mbti-result-changes"],
+    sources: [
+      { label: "방탄소년단 멤버별 MBTI 2022년 버전 공개 보도", href: "https://www.nbntv.co.kr/news/articleView.html?idxno=970943" },
+      { label: "광고모델 2026년 9월 브랜드평판 분석 보도", href: "https://www.dtoday.co.kr/news/articleView.html?idxno=789446" },
+      { label: "한국기업평판연구소 브랜드평판 랭킹", href: "https://brikorea.com/" },
+    ],
+  },
+  {
+    slug: "blackpink-members-mbti",
+    category: "트렌드",
+    title: "블랙핑크 멤버 MBTI — 지수만 본인이 직접 밝혔습니다",
+    description:
+      "블랙핑크 지수·제니·로제·리사의 MBTI 를 확인된 것과 추정으로 나눠 정리했습니다. 2026년 9월 광고모델 브랜드평판 6위 기록도 함께 봅니다.",
+    keywords: ["블랙핑크 MBTI", "지수 MBTI", "제니 MBTI", "로제 MBTI", "리사 MBTI"],
+    readTime: "약 6분",
+    publishedAt: septReputationAt,
+    updatedAt: septReputationAt,
+    intro: [
+      "블랙핑크 멤버 중 본인이 직접 밝힌 사람은 지수입니다. 지수는 ISTP 와 INTP 를 오간다고 말했고, 전문 검사지로 다시 검사했을 때는 ISTP 가 나왔습니다.",
+      "제니 INFP, 로제 ENFP, 리사 ESFJ 는 팬 커뮤니티와 프로필 사이트에 정리된 값으로, 소속사 공식 발표로 확인된 것은 아닙니다.",
+      "블랙핑크는 2026년 9월 광고모델 브랜드평판에서 6위에 올랐습니다.",
+    ],
+    sections: [
+      {
+        heading: "확인된 것과 추정을 나누면",
+        paragraphs: [
+          "아이돌 MBTI 목록이 사이트마다 다른 이유가 여기 있습니다. 같은 표 안에 근거가 다른 값이 섞여 있는데, 그걸 구분해 적는 곳이 드뭅니다.",
+        ],
+        bullets: [
+          "지수 — ISTP (본인 언급, 재검사 결과 확인)",
+          "제니 — INFP (팬 정리 기준 추정)",
+          "로제 — ENFP (팬 정리 기준 추정)",
+          "리사 — ESFJ (팬 정리 기준 추정)",
+        ],
+      },
+      {
+        heading: "지수가 ‘왔다 갔다 한다’고 말한 이유",
+        paragraphs: [
+          "ISTP 와 INTP 는 세 번째 글자만 다릅니다. S 는 구체적인 사실과 경험을, N 은 가능성과 의미를 먼저 보는 선호인데, 이 축은 경계에 가까우면 검사할 때마다 쉽게 뒤집힙니다.",
+          "두 결과를 오간다는 말은 검사가 틀렸다는 뜻이 아니라, 그 지표에서 한쪽으로 크게 치우치지 않았다는 뜻에 가깝습니다.",
+        ],
+      },
+      {
+        heading: "나머지 세 명은 왜 ‘추정’인가",
+        paragraphs: [
+          "제니·로제·리사는 네 글자를 본인이 공개한 자료를 찾지 못했습니다. 검색에 나오는 값은 팬이 모아 정리한 위키나 투표 사이트의 집계입니다.",
+          "투표 결과는 ‘팬들이 그렇게 본다’는 자료입니다. 인상과 실제 검사 결과는 자주 어긋납니다.",
+        ],
+      },
+      {
+        heading: "이 글의 자료에 대하여",
+        paragraphs: [
+          "이 글은 공개된 방송·인터뷰 보도와 검색으로 확인되는 자료를 모아 정리한 것입니다. 소속사 공식 발표가 아닌 항목은 본문에 ‘추정’으로 표시했습니다.",
+          "MBTI 는 자기보고식 검사라 같은 사람도 시기와 상황에 따라 결과가 달라집니다. 공개한 뒤 다시 검사해 바뀐 경우도 많습니다.",
+          "따라서 위 내용은 작성 시점(2026년 9월) 기준이며 지금과 다를 수 있습니다. 새로 확인되는 자료가 있으면 이 글을 고칩니다.",
+        ],
+      },
+    ],
+    cta,
+    relatedSlugs: ["bts-members-mbti", "ive-members-mbti", "rescene-mbti"],
+    sources: [
+      { label: "블랙핑크 지수 프로필 직접 작성 보도", href: "https://www.ggilbo.com/news/articleView.html?idxno=1009129" },
+      { label: "광고모델 2026년 9월 브랜드평판 분석 보도", href: "https://www.dtoday.co.kr/news/articleView.html?idxno=789446" },
+      { label: "한국기업평판연구소 브랜드평판 랭킹", href: "https://brikorea.com/" },
+    ],
+  },
+  {
+    slug: "ive-members-mbti",
+    category: "트렌드",
+    title: "아이브 멤버 MBTI — 장원영은 본인도 기억하지 못했습니다",
+    description:
+      "아이브 안유진·가을·레이·리즈·이서의 MBTI 와, 장원영이 E 라는 것만 확인하고 네 글자는 기억하지 못한다고 한 이야기를 정리했습니다. 2026년 9월 광고모델 브랜드평판 5위.",
+    keywords: ["아이브 MBTI", "IVE MBTI", "장원영 MBTI", "안유진 MBTI", "레이 MBTI", "리즈 MBTI"],
+    readTime: "약 6분",
+    publishedAt: septReputationAt,
+    updatedAt: septReputationAt,
+    intro: [
+      "아이브 멤버의 MBTI 로 정리돼 있는 값은 안유진 ISTP, 가을 ISTJ, 레이 INFJ, 리즈 INFP, 이서 ENFP 입니다.",
+      "장원영은 네 글자가 확정돼 있지 않습니다. 본인이 정확한 유형을 기억하지 못하고 E(외향형)라는 것만 확인했다고 알려져 있어, 이 글도 장원영 칸은 비워 둡니다.",
+      "아이브는 2026년 9월 광고모델 브랜드평판에서 5위에 올랐습니다.",
+    ],
+    sections: [
+      {
+        heading: "멤버별 정리",
+        paragraphs: [
+          "아래 값은 팬 커뮤니티와 프로필 사이트에 정리된 기준입니다. 소속사 공식 발표로 교차 확인되지는 않았습니다.",
+        ],
+        bullets: [
+          "안유진 — ISTP (추정)",
+          "가을 — ISTJ (추정)",
+          "레이 — INFJ (추정)",
+          "리즈 — INFP (추정)",
+          "이서 — ENFP (추정)",
+          "장원영 — 네 글자 미확정, E 만 언급됨",
+        ],
+      },
+      {
+        heading: "‘기억이 안 난다’가 사실 가장 흔한 답입니다",
+        paragraphs: [
+          "검사를 한 번 받아 본 뒤 네 글자를 정확히 기억하는 사람은 생각보다 적습니다. 특히 경계에 가까운 지표가 있으면 본인도 매번 다르게 답하게 됩니다.",
+          "그래서 ‘장원영 MBTI’ 로 검색하면 ENFP 를 비롯해 여러 값이 나오는데, 어느 것도 본인이 확정한 값은 아닙니다.",
+        ],
+      },
+      {
+        heading: "여섯 명 중 I 가 넷",
+        paragraphs: [
+          "정리된 값만 놓고 보면 안유진·가을·레이·리즈가 I, 이서가 E, 장원영이 E 로 언급됐습니다. 무대 위 에너지와 일상의 에너지 방향이 같지 않다는 점을 보여주는 구성입니다.",
+          "다만 이것도 추정치 위에서 세어 본 것이라 그대로 믿을 이야기는 아닙니다.",
+        ],
+      },
+      {
+        heading: "이 글의 자료에 대하여",
+        paragraphs: [
+          "이 글은 공개된 방송·인터뷰 보도와 검색으로 확인되는 자료를 모아 정리한 것입니다. 소속사 공식 발표가 아닌 항목은 본문에 ‘추정’으로 표시했습니다.",
+          "MBTI 는 자기보고식 검사라 같은 사람도 시기와 상황에 따라 결과가 달라집니다. 공개한 뒤 다시 검사해 바뀐 경우도 많습니다.",
+          "따라서 위 내용은 작성 시점(2026년 9월) 기준이며 지금과 다를 수 있습니다. 새로 확인되는 자료가 있으면 이 글을 고칩니다.",
+        ],
+      },
+    ],
+    cta,
+    relatedSlugs: ["bts-members-mbti", "twice-members-mbti", "rescene-mbti"],
+    sources: [
+      { label: "광고모델 2026년 9월 브랜드평판 분석 보도", href: "https://www.dtoday.co.kr/news/articleView.html?idxno=789446" },
+      { label: "한국기업평판연구소 브랜드평판 랭킹", href: "https://brikorea.com/" },
+    ],
+  },
+  {
+    slug: "twice-members-mbti",
+    category: "트렌드",
+    title: "트와이스 멤버 MBTI — 정연은 세 번 바뀌었습니다",
+    description:
+      "트와이스 아홉 멤버의 MBTI 정리와, 정연·모모·미나처럼 값이 여러 번 바뀐 멤버를 시점과 함께 짚었습니다. 2026년 9월 광고모델 브랜드평판 21위.",
+    keywords: ["트와이스 MBTI", "TWICE MBTI", "나연 MBTI", "사나 MBTI", "지효 MBTI", "쯔위 MBTI"],
+    readTime: "약 7분",
+    publishedAt: septReputationAt,
+    updatedAt: septReputationAt,
+    intro: [
+      "트와이스 멤버의 MBTI 로 정리돼 있는 값은 나연 ISTP, 정연 ESFJ, 모모 INTP, 사나 ENFP, 지효 ESFP, 미나 ISFP, 다현 ISFJ, 채영 INFP, 쯔위 ISFP 입니다.",
+      "이 중 정연·모모·미나는 시기에 따라 다른 값이 함께 돌아다닙니다. 목록끼리 어긋나는 이유가 대부분 여기에 있습니다.",
+      "트와이스는 2026년 9월 광고모델 브랜드평판에서 21위에 올랐습니다.",
+    ],
+    sections: [
+      {
+        heading: "아홉 명 정리 (팬 정리 기준 추정)",
+        paragraphs: [
+          "괄호 안은 예전에 함께 정리돼 있던 값입니다. 어느 쪽이 최신인지 본인 발표로 확정된 것은 아닙니다.",
+        ],
+        bullets: [
+          "나연 — ISTP",
+          "정연 — ESFJ (이전 ISFJ → ISFP)",
+          "모모 — INTP (이전 INFP)",
+          "사나 — ENFP",
+          "지효 — ESFP",
+          "미나 — ISFP (ISTP 로도 정리됨)",
+          "다현 — ISFJ",
+          "채영 — INFP",
+          "쯔위 — ISFP",
+        ],
+      },
+      {
+        heading: "정연처럼 세 번 바뀌는 일이 이상한가",
+        paragraphs: [
+          "ISFJ → ISFP → ESFJ 는 크게 달라 보이지만, 한 번에 한두 글자씩 옮겨간 결과입니다. J·P 와 E·I 는 생활 리듬이 바뀌면 함께 움직이는 축입니다.",
+          "데뷔 초와 몇 년 뒤의 일상은 같지 않습니다. 검사는 그 시점의 선호를 재는 것이라, 사람이 변덕스러워서 결과가 바뀌는 것이 아닙니다.",
+        ],
+      },
+      {
+        heading: "‘두 개가 같이 적힌’ 멤버는 어떻게 읽나",
+        paragraphs: [
+          "미나처럼 ISFP 와 ISTP 가 함께 적히는 경우는, 그 사람이 T·F 축에서 한쪽으로 크게 기울지 않았다는 뜻으로 읽는 편이 낫습니다.",
+          "둘 중 하나를 골라 확정하는 목록이 오히려 정확도를 떨어뜨립니다.",
+        ],
+      },
+      {
+        heading: "이 글의 자료에 대하여",
+        paragraphs: [
+          "이 글은 공개된 방송·인터뷰 보도와 검색으로 확인되는 자료를 모아 정리한 것입니다. 소속사 공식 발표가 아닌 항목은 본문에 ‘추정’으로 표시했습니다.",
+          "MBTI 는 자기보고식 검사라 같은 사람도 시기와 상황에 따라 결과가 달라집니다. 공개한 뒤 다시 검사해 바뀐 경우도 많습니다.",
+          "따라서 위 내용은 작성 시점(2026년 9월) 기준이며 지금과 다를 수 있습니다. 새로 확인되는 자료가 있으면 이 글을 고칩니다.",
+        ],
+      },
+    ],
+    cta,
+    relatedSlugs: ["ive-members-mbti", "blackpink-members-mbti", "mbti-result-changes"],
+    sources: [
+      { label: "광고모델 2026년 9월 브랜드평판 분석 보도", href: "https://www.dtoday.co.kr/news/articleView.html?idxno=789446" },
+      { label: "한국기업평판연구소 브랜드평판 랭킹", href: "https://brikorea.com/" },
+    ],
+  },
+  {
+    slug: "byeon-woo-seok-mbti",
+    category: "트렌드",
+    title: "변우석 MBTI는 INTJ — 본인이 세 번 검사했다고 밝혔습니다",
+    description:
+      "변우석이 인터뷰에서 직접 말한 MBTI 변화와 최근 결과 INTJ, 그리고 2026년 9월 광고모델 브랜드평판 9위 기록을 정리했습니다.",
+    keywords: ["변우석 MBTI", "변우석 INTJ", "변우석 성격", "변우석 인터뷰", "배우 MBTI"],
+    readTime: "약 5분",
+    publishedAt: septReputationAt,
+    updatedAt: septReputationAt,
+    intro: [
+      "변우석이 인터뷰에서 밝힌 가장 최근 검사 결과는 INTJ 입니다. 본인이 지금까지 세 번 검사했고 최근에 완전히 바뀌었다고 말했습니다.",
+      "변우석은 2026년 9월 광고모델 브랜드평판에서 9위에 올랐습니다.",
+    ],
+    sections: [
+      {
+        heading: "본인이 말한 내용",
+        paragraphs: [
+          "변우석은 “MBTI 가 정확하게 ‘이거다’라고는 안 나오는 것 같다, 어떤 장소에서는 E 가 되고 어떨 땐 I 가 되는 것 같다”고 말했습니다.",
+          "마지막 검사는 인터뷰 시점 기준 한 달 반 전이었고 INTJ 가 나왔다며, “요즘은 집에 있는 걸 좋아하다 보니까 그렇게 나왔더라”고 설명했습니다.",
+          "즉 INTJ 는 본인이 직접 밝힌 값이지만, 본인 스스로 고정된 결과가 아니라고 말한 값이기도 합니다.",
+        ],
+      },
+      {
+        heading: "‘장소에 따라 E 도 I 도 된다’는 말",
+        paragraphs: [
+          "E·I 는 사람을 좋아하느냐 아니냐가 아니라 에너지를 어디서 회복하느냐의 선호입니다. 현장에서는 활발하게 움직이다가 끝나면 혼자 쉬어야 회복되는 사람이 흔합니다.",
+          "배우처럼 일과 일상의 리듬 차이가 큰 직업은 이 축이 특히 흔들립니다. 변우석의 설명은 그 상태를 그대로 말한 것에 가깝습니다.",
+        ],
+      },
+      {
+        heading: "그래서 지금도 INTJ 인가",
+        paragraphs: [
+          "확인된 것은 그 인터뷰 시점의 결과까지입니다. 이후 다시 검사했는지는 알려진 자료가 없습니다.",
+          "본인이 세 번 검사해 매번 달랐다고 말한 만큼, 이 글도 ‘지금도 반드시 INTJ’ 라고는 쓰지 않습니다.",
+        ],
+      },
+      {
+        heading: "이 글의 자료에 대하여",
+        paragraphs: [
+          "이 글은 공개된 방송·인터뷰 보도와 검색으로 확인되는 자료를 모아 정리한 것입니다. 소속사 공식 발표가 아닌 항목은 본문에 ‘추정’으로 표시했습니다.",
+          "MBTI 는 자기보고식 검사라 같은 사람도 시기와 상황에 따라 결과가 달라집니다. 공개한 뒤 다시 검사해 바뀐 경우도 많습니다.",
+          "따라서 위 내용은 작성 시점(2026년 9월) 기준이며 지금과 다를 수 있습니다. 새로 확인되는 자료가 있으면 이 글을 고칩니다.",
+        ],
+      },
+    ],
+    cta,
+    relatedSlugs: ["go-youn-jung-mbti", "yoo-jae-suk-mbti", "mbti-result-changes"],
+    sources: [
+      { label: "변우석 바뀐 MBTI 공개 인터뷰 보도", href: "https://news.nate.com/view/20250127n03113" },
+      { label: "광고모델 2026년 9월 브랜드평판 분석 보도", href: "https://www.dtoday.co.kr/news/articleView.html?idxno=789446" },
+      { label: "한국기업평판연구소 브랜드평판 랭킹", href: "https://brikorea.com/" },
+    ],
+  },
+  {
+    slug: "faker-mbti",
+    category: "트렌드",
+    title: "페이커 MBTI는 INTP가 아니었습니다 — 최근 검사는 ENFP",
+    description:
+      "페이커 이상혁의 MBTI 로 오래 알려진 INTP 와, 이후 검사에서 나온 ENFP 를 시점과 함께 정리했습니다. 2026년 9월 광고모델 브랜드평판 24위.",
+    keywords: ["페이커 MBTI", "이상혁 MBTI", "페이커 INTP", "페이커 ENFP", "프로게이머 MBTI"],
+    readTime: "약 5분",
+    publishedAt: septReputationAt,
+    updatedAt: septReputationAt,
+    intro: [
+      "페이커 이상혁의 MBTI 로 오래 알려진 값은 INTP 였지만, 이후 검사에서는 ENFP 가 나왔다고 보도됐습니다. 인터뷰 자리에서 결과를 두고 “F 가 아닌 것 같다”는 반응이 나올 만큼 의외로 받아들여진 결과입니다.",
+      "페이커는 2026년 9월 광고모델 브랜드평판에서 24위에 올랐습니다. e스포츠 선수가 배우·가수와 같은 표에 들어가는 자리입니다.",
+    ],
+    sections: [
+      {
+        heading: "INTP 에서 ENFP 로",
+        paragraphs: [
+          "INTP 와 ENFP 는 네 글자 중 세 글자가 다릅니다. 이 정도 차이가 나면 검사 오차라기보다 답할 때 떠올린 상황이 크게 달라졌다고 보는 편이 자연스럽습니다.",
+          "다만 어느 쪽이 최신이고 본인이 어느 쪽을 자기 유형으로 여기는지는 확정된 자료가 없습니다.",
+        ],
+      },
+      {
+        heading: "‘게임 잘하면 T’ 라는 통념",
+        paragraphs: [
+          "분석적인 일을 한다고 T 가 나오는 것은 아닙니다. T·F 는 능력이 아니라 판단할 때 무엇을 먼저 보는지의 선호입니다.",
+          "팀 경기에서 오래 버틴 선수라면 사람과 분위기를 읽는 쪽에 무게가 실릴 수 있습니다. 결과가 의외로 느껴지는 것은 대체로 통념 쪽이 틀렸기 때문입니다.",
+        ],
+      },
+      {
+        heading: "이 글의 자료에 대하여",
+        paragraphs: [
+          "이 글은 공개된 방송·인터뷰 보도와 검색으로 확인되는 자료를 모아 정리한 것입니다. 소속사 공식 발표가 아닌 항목은 본문에 ‘추정’으로 표시했습니다.",
+          "MBTI 는 자기보고식 검사라 같은 사람도 시기와 상황에 따라 결과가 달라집니다. 공개한 뒤 다시 검사해 바뀐 경우도 많습니다.",
+          "따라서 위 내용은 작성 시점(2026년 9월) 기준이며 지금과 다를 수 있습니다. 새로 확인되는 자료가 있으면 이 글을 고칩니다.",
+        ],
+      },
+    ],
+    cta,
+    relatedSlugs: ["son-heung-min-mbti", "bts-members-mbti", "mbti-t-vs-f"],
+    sources: [
+      { label: "페이커 MBTI 결과 언급 보도", href: "https://www.topstarnews.net/news/articleView.html?idxno=16029313" },
+      { label: "광고모델 2026년 9월 브랜드평판 분석 보도", href: "https://www.dtoday.co.kr/news/articleView.html?idxno=789446" },
+      { label: "한국기업평판연구소 브랜드평판 랭킹", href: "https://brikorea.com/" },
+    ],
+  },
+  {
+    slug: "son-heung-min-mbti",
+    category: "트렌드",
+    title: "손흥민 MBTI는? 팬 사이에서는 ESFJ 로 정리됩니다",
+    description:
+      "손흥민의 MBTI 로 알려진 ESFJ 가 어디서 나온 값인지와, 2026년 9월 광고모델 브랜드평판 12위·스포츠 스타 10위 기록을 함께 정리했습니다.",
+    keywords: ["손흥민 MBTI", "손흥민 성격", "축구선수 MBTI", "손흥민 브랜드평판", "스포츠 스타 MBTI"],
+    readTime: "약 5분",
+    publishedAt: septReputationAt,
+    updatedAt: septReputationAt,
+    intro: [
+      "손흥민의 MBTI 는 팬 커뮤니티에서 ESFJ 로 정리돼 돌아다닙니다. 다만 본인이 검사 결과를 직접 공개한 자료는 찾지 못했으므로, 이 값은 확정이 아니라 추정입니다.",
+      "손흥민은 2026년 9월 광고모델 브랜드평판 12위, 스포츠 스타 브랜드평판 10위에 올랐습니다.",
+    ],
+    sections: [
+      {
+        heading: "ESFJ 는 어디서 나온 값인가",
+        paragraphs: [
+          "인터뷰 태도와 경기 후 인터뷰에서 보이는 모습, 동료를 대하는 장면 등을 근거로 팬들이 정리한 값입니다. 소속 구단이나 본인이 발표한 자료가 아닙니다.",
+          "공적인 자리에서 보이는 모습으로 유형을 역산하는 방식은 한계가 분명합니다. 인터뷰는 준비된 자리이고, 경기 직후는 평소 상태가 아닙니다.",
+        ],
+      },
+      {
+        heading: "운동선수의 MBTI 가 잘 안 알려지는 이유",
+        paragraphs: [
+          "아이돌과 달리 선수들은 프로필에 MBTI 를 적는 관행이 없고, 예능 출연으로 검사를 받는 기회도 적습니다. 그래서 추정만 남습니다.",
+          "‘본인이 밝힌 적 없음’ 이라는 답이 정확합니다. 네 글자를 채워 넣는 목록보다 이 편이 낫습니다.",
+        ],
+      },
+      {
+        heading: "이 글의 자료에 대하여",
+        paragraphs: [
+          "이 글은 공개된 방송·인터뷰 보도와 검색으로 확인되는 자료를 모아 정리한 것입니다. 소속사 공식 발표가 아닌 항목은 본문에 ‘추정’으로 표시했습니다.",
+          "MBTI 는 자기보고식 검사라 같은 사람도 시기와 상황에 따라 결과가 달라집니다. 공개한 뒤 다시 검사해 바뀐 경우도 많습니다.",
+          "따라서 위 내용은 작성 시점(2026년 9월) 기준이며 지금과 다를 수 있습니다. 새로 확인되는 자료가 있으면 이 글을 고칩니다.",
+        ],
+      },
+    ],
+    cta,
+    relatedSlugs: ["faker-mbti", "yoo-jae-suk-mbti", "lim-young-woong-mbti"],
+    sources: [
+      { label: "광고모델 2026년 9월 브랜드평판 분석 보도", href: "https://www.dtoday.co.kr/news/articleView.html?idxno=789446" },
+      { label: "스포츠 스타 2026년 9월 브랜드평판 분석 보도", href: "https://www.dtoday.co.kr/news/articleView.html?idxno=790256" },
+      { label: "한국기업평판연구소 브랜드평판 랭킹", href: "https://brikorea.com/" },
+    ],
+  },
+  {
+    slug: "go-youn-jung-mbti",
+    category: "트렌드",
+    title: "고윤정 MBTI는 ISTP — 방송에서 박명수와 같은 유형으로 확인",
+    description:
+      "고윤정의 MBTI 로 정리되는 ISTP 와, 예능에서 같은 유형끼리 공감대를 나눈 장면을 정리했습니다. 2026년 9월 광고모델 브랜드평판 10위.",
+    keywords: ["고윤정 MBTI", "고윤정 ISTP", "고윤정 성격", "고윤정 프로필", "여배우 MBTI"],
+    readTime: "약 5분",
+    publishedAt: septReputationAt,
+    updatedAt: septReputationAt,
+    intro: [
+      "고윤정의 MBTI 는 ISTP 로 정리됩니다. 2026년 2월 예능에서 박명수와 같은 유형이라는 이야기가 나오며 공감대를 형성한 장면이 보도됐습니다.",
+      "고윤정은 2026년 9월 광고모델 브랜드평판에서 10위에 올랐습니다.",
+    ],
+    sections: [
+      {
+        heading: "ISTP 는 어떤 선호인가",
+        paragraphs: [
+          "ISTP 는 상황을 먼저 관찰하고 필요한 순간에 움직이는 쪽을 편하게 느끼는 유형으로 설명됩니다. 말수보다 실제로 되는 방법을 찾는 데 관심이 갑니다.",
+          "감정이 없다는 뜻이 아니라, 판단할 때 기준과 사실을 먼저 본다는 선호입니다.",
+        ],
+      },
+      {
+        heading: "연기한 배역과 배우를 겹쳐 읽지 않기",
+        paragraphs: [
+          "작품 속 인물의 성격을 배우의 성격 증거로 쓰는 글이 많지만, 배역은 대본과 연기의 결과입니다.",
+          "같은 배우가 다음 작품에서 정반대 인물을 연기하면 그 글은 곧바로 무너집니다.",
+        ],
+      },
+      {
+        heading: "이 글의 자료에 대하여",
+        paragraphs: [
+          "이 글은 공개된 방송·인터뷰 보도와 검색으로 확인되는 자료를 모아 정리한 것입니다. 소속사 공식 발표가 아닌 항목은 본문에 ‘추정’으로 표시했습니다.",
+          "MBTI 는 자기보고식 검사라 같은 사람도 시기와 상황에 따라 결과가 달라집니다. 공개한 뒤 다시 검사해 바뀐 경우도 많습니다.",
+          "따라서 위 내용은 작성 시점(2026년 9월) 기준이며 지금과 다를 수 있습니다. 새로 확인되는 자료가 있으면 이 글을 고칩니다.",
+        ],
+      },
+    ],
+    cta,
+    relatedSlugs: ["byeon-woo-seok-mbti", "yoo-jae-suk-mbti", "mbti-t-vs-f"],
+    sources: [
+      { label: "고윤정 예능 MBTI 공감대 형성 보도", href: "https://m.news.nate.com/view/20260222n16833" },
+      { label: "광고모델 2026년 9월 브랜드평판 분석 보도", href: "https://www.dtoday.co.kr/news/articleView.html?idxno=789446" },
+      { label: "한국기업평판연구소 브랜드평판 랭킹", href: "https://brikorea.com/" },
     ],
   },
 ];
