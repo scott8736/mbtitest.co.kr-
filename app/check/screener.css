@@ -1,0 +1,386 @@
+/*
+ * 자가진단 화면 전용 스타일.
+ *
+ * globals.css 를 건드리지 않고 /check 라우트에서만 불러옵니다. 성향 테스트와
+ * 공통인 부분(.generic-intro, .test-shell, .rich-result, .primary-button 등)은
+ * globals.css 것을 그대로 쓰고, 여기에는 자가진단에만 있는 것 — 4단계 척도
+ * 버튼, 점수 막대, 상담 안내 상자 — 만 둡니다.
+ *
+ * 색은 사이트 팔레트(--paper/--ink/--muted/--line)를 따릅니다. 다만 상담 안내
+ * 상자만 팔레트 밖의 색을 씁니다. 그 자리는 눈에 띄어야 제 역할을 합니다.
+ */
+
+.screener .generic-intro > p {
+  max-width: 62ch;
+}
+
+.screener-period {
+  margin: 18px 0 26px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--sage);
+  border-radius: 10px;
+  background: #f1f4ec;
+  color: #4a5b4e;
+  font-size: 15px;
+  line-height: 1.6;
+  max-width: 62ch;
+}
+.screener-period b {
+  color: var(--ink);
+  font-weight: 750;
+}
+
+/* ---------- 4단계 척도 ---------- */
+
+.screener-options {
+  display: grid;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+.screener-options button {
+  width: 100%;
+  min-height: 62px;
+  padding: 16px 22px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--white);
+  color: var(--ink);
+  font-size: 17px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .16s ease, background .16s ease, transform .16s ease;
+}
+.screener-options button::before {
+  content: "";
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #c4d0bf;
+  border-radius: 50%;
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+.screener-options button:hover {
+  border-color: #a9bda3;
+  background: #f4f7f0;
+  transform: translateX(3px);
+}
+.screener-options button:hover::before {
+  border-color: var(--sage);
+}
+.screener-options button.active {
+  border-color: var(--sage);
+  background: #eef3e9;
+}
+.screener-options button.active::before {
+  border-color: var(--sage);
+  box-shadow: inset 0 0 0 4px var(--sage);
+}
+.screener-options button b {
+  font-weight: 650;
+}
+
+/* ---------- 점수 ---------- */
+
+.screener-score {
+  margin: 6px 0 22px;
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--sage);
+  border-radius: 16px;
+  background: var(--white);
+  max-width: 460px;
+}
+.screener-score strong {
+  display: block;
+  margin-bottom: 14px;
+  font-size: 46px;
+  font-weight: 850;
+  line-height: 1;
+  letter-spacing: -.03em;
+  font-variant-numeric: tabular-nums;
+}
+.screener-score strong span {
+  margin-left: 8px;
+  color: var(--muted);
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: 0;
+}
+.screener-meter {
+  height: 10px;
+  border-radius: 999px;
+  background: #e7ece2;
+  overflow: hidden;
+}
+.screener-meter i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width .5s ease;
+}
+
+/* ---------- 상담 안내 ---------- */
+
+.screener-help {
+  margin: 30px clamp(24px, 6vw, 88px);
+  padding: 24px 26px;
+  border: 1px solid #d6dfd2;
+  border-radius: 16px;
+  background: #f2f5ee;
+}
+.screener-help.urgent {
+  margin-inline: 0;
+  border: 2px solid #c96a5e;
+  background: #fdf1ee;
+}
+.screener-help h2 {
+  margin: 0 0 16px;
+  font-size: 17px;
+  font-weight: 780;
+  letter-spacing: -.02em;
+}
+.screener-help.urgent h2 {
+  color: #a8443a;
+}
+.screener-help ul {
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+.screener-help li {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.screener-help li a {
+  min-width: 104px;
+  color: var(--ink);
+  font-size: 21px;
+  font-weight: 850;
+  letter-spacing: -.02em;
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+}
+.screener-help.urgent li a {
+  color: #a8443a;
+}
+.screener-help li a:hover {
+  text-decoration: underline;
+}
+.screener-help li span {
+  color: var(--muted);
+  font-size: 14px;
+}
+.screener-help > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+
+.screener-critical {
+  margin: 0 0 26px;
+  padding: 20px 22px;
+  border: 1px solid #e0b9b2;
+  border-radius: 14px;
+  background: #fdf5f3;
+  color: #8c3f36;
+  font-size: 15.5px;
+  line-height: 1.7;
+  max-width: 68ch;
+}
+
+/* ---------- 출처·관련 검사 ---------- */
+
+.screener-source {
+  margin: 26px 0 18px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f6f8f3;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.7;
+  max-width: 68ch;
+}
+.screener-source b {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.screener-related {
+  margin-top: 34px;
+}
+.screener-related h2 {
+  margin: 0 0 16px;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -.03em;
+}
+.screener-related ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+.screener-related a {
+  display: block;
+  padding: 16px 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--white);
+  text-decoration: none;
+  color: var(--ink);
+  transition: border-color .16s ease, transform .16s ease;
+}
+.screener-related a:hover {
+  border-color: #a9bda3;
+  transform: translateY(-2px);
+}
+.screener-related a b {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 16px;
+  font-weight: 750;
+}
+.screener-related a span {
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+/* ---------- FAQ ---------- */
+
+.screener-faq {
+  margin-bottom: 10px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--white);
+  overflow: hidden;
+}
+.screener-faq summary {
+  padding: 16px 20px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+.screener-faq summary::-webkit-details-marker {
+  display: none;
+}
+.screener-faq summary::after {
+  content: "+";
+  float: right;
+  color: var(--sage);
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1;
+}
+.screener-faq[open] summary::after {
+  content: "−";
+}
+.screener-faq p {
+  margin: 0;
+  padding: 0 20px 18px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+/* ---------- 목록 ---------- */
+
+.screener-list {
+  margin: 10px clamp(24px, 6vw, 88px) 40px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+  gap: 14px;
+}
+.screener-list a {
+  display: block;
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--white);
+  text-decoration: none;
+  color: var(--ink);
+  transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+}
+.screener-list a:hover {
+  border-color: #a9bda3;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 26px rgba(41, 64, 48, .09);
+}
+.screener-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 19px;
+}
+.screener-list a b {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 18px;
+  font-weight: 780;
+  letter-spacing: -.03em;
+}
+.screener-desc {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.screener-meta {
+  display: inline-block;
+  padding: 5px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #f2f5ee;
+  color: #5d6d61;
+  font-size: 12.5px;
+  font-weight: 650;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screener-options button,
+  .screener-related a,
+  .screener-list a,
+  .screener-meter i {
+    transition: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .screener-help {
+    margin-inline: clamp(16px, 5vw, 24px);
+    padding: 20px;
+  }
+  .screener-list {
+    margin-inline: clamp(16px, 5vw, 24px);
+  }
+  .screener-score strong {
+    font-size: 38px;
+  }
+  .screener-options button {
+    min-height: 56px;
+    padding: 14px 18px;
+    font-size: 16px;
+  }
+}
