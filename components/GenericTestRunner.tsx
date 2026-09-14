@@ -242,8 +242,12 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
         <section className="rich-result">
           <AdUnit key={`result-top-${resultKey}`} position="resultTop" label={`${test.title} 결과 최상단 광고`} />
           <span className="result-kicker">테스트가 완료되었습니다</span>
-          <Mascot className="result-mascot" mood="celebrate" size={120} accent={result.color} />
-          <div className="result-symbol" style={{ background: result.color }}>{result.name.slice(0, 2)}</div>
+          <Mascot className="result-mascot" mood="celebrate" size={96} accent={result.color} />
+          {/* 결과마다 구워 둔 카드입니다. 그동안 카카오톡 미리보기로만 쓰고
+              정작 검사를 끝낸 사람에게는 보여주지 않았습니다. 사람들이
+              캡처해서 올리는 그림이 이것이라 결과의 첫 화면으로 둡니다.
+              색 네모에 두 글자를 넣던 result-symbol 을 대신합니다. */}
+          <img className="result-card-image" src={`/images/og/r/${test.slug}-${resultKey}.png`} width={1200} height={630} alt={`${displayName} 결과 카드`} />
           <h1>{displayName}</h1>
           <p className="rich-tagline">{result.tagline}</p>
           <p className="rich-summary">{result.summary}</p>

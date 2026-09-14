@@ -68,7 +68,7 @@ button:focus-visible { outline:3px solid #91a98b; outline-offset:4px; }
 .is-compact .catalog-grid { grid-template-columns:repeat(4,1fr); }
 .catalog-card { min-height:330px; padding:26px; display:flex; flex-direction:column; border:1px solid #dce3d8; border-radius:22px; background:#fffefa; box-shadow:0 10px 26px rgba(42,62,48,.05); }
 .catalog-card.planned { background:#f8f9f5; }
-.catalog-icon { width:48px; height:48px; display:grid; place-items:center; border-radius:15px; color:white; font-size:21px; }
+.catalog-icon { width:66px; height:66px; display:grid; place-items:center; border-radius:16px; background:color-mix(in srgb,var(--test-accent,#738b6d) 14%,#fff); border:1px solid color-mix(in srgb,var(--test-accent,#738b6d) 26%,#fff); }
 .catalog-badges { display:flex; gap:7px; margin:18px 0 12px; }
 .catalog-badges span,.catalog-badges em { padding:5px 8px; border-radius:7px; background:#edf1e9; color:#647465; font-size:12px; font-style:normal; font-weight:750; }
 .catalog-badges em { background:#eee9df; color:#846f4e; }
@@ -1080,3 +1080,12 @@ main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% -
 .season-go { margin-top:auto; color:var(--accent,#c2763f); font-size:14px; font-weight:750; }
 .season-go span { margin-left:6px; }
 @media (max-width:900px) { .season-cards { grid-template-columns:1fr; } }
+
+/* 결과 화면 맨 위의 결과 카드.
+   결과마다 구워 둔 공유 이미지를 검사한 사람에게도 보여준다. 전에는 카카오톡
+   미리보기로만 쓰여서, 정작 테스트를 끝낸 사람은 색 네모 하나만 봤다.
+   캡처해서 올리는 그림이 이것이라 결과 화면의 첫 그림으로 둔다. */
+.result-card-image { display:block; width:100%; max-width:560px; height:auto; margin:14px auto 26px; border-radius:20px; border:1px solid var(--line); box-shadow:0 18px 42px rgba(34,48,40,.16); }
+/* 마스코트는 기본이 왼쪽 정렬이다. 가운데 정렬된 결과 화면에서만 가운데로 */
+.mascot-center { margin-left:auto; margin-right:auto; }
+@media (max-width:620px) { .result-card-image { border-radius:15px; margin-bottom:20px; } }

@@ -44,10 +44,10 @@ export default function SharedResult({
 
       <section className="rich-result">
         <span className="result-kicker">{test.title} 결과</span>
-        <Mascot className="result-mascot" mood="celebrate" size={120} accent={result.color} />
-        <div className="result-symbol" style={{ background: result.color }}>
-          {result.name.slice(0, 2)}
-        </div>
+        <Mascot className="result-mascot" mood="celebrate" size={96} accent={result.color} />
+        {/* 링크를 받고 들어온 사람이 처음 보는 그림입니다. 카카오톡 썸네일과
+            같은 카드를 그대로 띄워야 눌러서 들어온 화면이 썸네일과 이어집니다. */}
+        <img className="result-card-image" src={`/images/og/r/${test.slug}-${result.key}.png`} width={1200} height={630} alt={`${result.name} 결과 카드`} />
         <h1>{result.name}</h1>
         <p className="rich-tagline">{result.tagline}</p>
         <p className="rich-summary">{result.summary}</p>

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import AdUnit from "./AdUnit";
+import Mascot from "./Mascot";
 import MbtiResultPick from "./MbtiResultPick";
 import { questions, typeData, typeDetails, type Axis } from "../lib/mbti-data";
 import { recordCompletionOnce } from "../lib/test-events";
@@ -86,7 +87,10 @@ export default function MbtiResult() {
   return (
     <section className="result-shell" style={{ "--result-color": resultInfo.color } as React.CSSProperties}>
       <span className="result-kicker">검사가 완료되었습니다</span>
-      <div className="result-code">{result}</div>
+      <Mascot className="result-mascot mascot-center" mood="celebrate" size={96} accent={resultInfo.color} />
+      {/* 네 글자를 색 사각형에 넣던 result-code 를 카드로 바꿉니다. 카드에
+          같은 네 글자가 더 크게 들어가 있고, 캡처해서 공유할 수 있습니다. */}
+      <img className="result-card-image" src={`/images/og/r/mbti-${result.toLowerCase()}.png`} width={1200} height={630} alt={`${result} ${resultInfo.name} 결과 카드`} />
       <h1>{resultInfo.name}</h1>
       <p className="result-tagline">{resultInfo.tagline}</p>
       <p className="result-description">{resultInfo.description}</p>
