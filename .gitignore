@@ -47,3 +47,9 @@ next-env.d.ts
 /.sites-runtime/
 /outputs/
 /work/
+
+# 스티커 생성 스크립트의 파이썬 캐시
+scripts/__pycache__/
+
+# OG 이미지 생성용 폰트 (10MB). 결과 PNG 만 커밋하므로 폰트는 저장소에 넣지 않는다.
+scripts/fonts/

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./mascot.css";
 
 const siteUrl = "https://mbtitest.co.kr";
 const adsenseClient = "ca-pub-8646375689901020";

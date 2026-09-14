@@ -1,0 +1,78 @@
+/*
+ * 마스코트 배치.
+ *
+ * 그림 자체는 components/Mascot.tsx 가 SVG 로 그립니다. 여기서는 어디에 얼마나
+ * 크게 놓을지만 정합니다.
+ *
+ * 문항 화면의 마스코트에는 진입 애니메이션을 줍니다. 문항이 바뀔 때 표정만
+ * 조용히 갈리면 바뀐 줄 모르고 지나가는데, 0.2초짜리 작은 움직임이 붙으면
+ * "넘어갔다"는 감각이 생겨 끝까지 가는 비율이 올라갑니다. React 가 key 로
+ * 엘리먼트를 새로 만들 때마다 애니메이션이 다시 돕니다.
+ */
+
+.intro-mascot,
+.question-mascot,
+.result-mascot,
+.tarot-mascot {
+  display: block;
+  height: auto;
+  max-width: 100%;
+}
+
+.intro-mascot {
+  margin-bottom: 6px;
+  margin-left: -10px;
+}
+
+.question-mascot {
+  margin: 0 auto 4px;
+  animation: mascot-pop .26s ease-out;
+}
+
+.result-mascot {
+  margin: 4px 0 -8px -10px;
+  animation: mascot-cheer .5s ease-out;
+}
+
+.tarot-mascot {
+  margin: 0 0 10px -8px;
+}
+
+@keyframes mascot-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(.92);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes mascot-cheer {
+  0% {
+    opacity: 0;
+    transform: scale(.8) rotate(-6deg);
+  }
+  60% {
+    transform: scale(1.06) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .question-mascot,
+  .result-mascot {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .intro-mascot,
+  .result-mascot {
+    margin-left: 0;
+  }
+}
