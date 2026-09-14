@@ -1,0 +1,60 @@
+/*
+ * 공유용 결과 페이지 전용 스타일.
+ *
+ * 결과 본문은 globals.css 의 .rich-result 를 그대로 씁니다. 여기에는 이 페이지에만
+ * 있는 것 — 링크 받고 들어온 사람을 검사로 보내는 CTA — 만 둡니다.
+ *
+ * 이 CTA 가 이 페이지의 존재 이유입니다. 친구 결과를 보러 온 사람이 자기 결과가
+ * 궁금해지는 지점이 정확히 결과 본문을 다 읽은 다음이라, 그 자리에 놓습니다.
+ */
+
+.shared-cta {
+  margin: 36px 0 28px;
+  padding: 30px 32px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--test-accent, var(--sage));
+  border-radius: 18px;
+  background: var(--white);
+}
+
+.shared-cta p {
+  margin: 0 0 22px;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.shared-cta p b {
+  color: var(--ink);
+  font-weight: 750;
+}
+
+.shared-cta .primary-button {
+  text-decoration: none;
+  min-width: min(330px, 100%);
+}
+
+.rich-result-grid ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.rich-result-grid li {
+  margin-bottom: 6px;
+}
+
+.rich-result-grid li:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 640px) {
+  .shared-cta {
+    padding: 24px 20px;
+  }
+  .shared-cta .primary-button {
+    width: 100%;
+  }
+}

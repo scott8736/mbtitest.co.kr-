@@ -1,8 +1,11 @@
 import { blogPosts } from "./blog-posts";
 import { mbtiCodes } from "./mbti-content";
 import { newTestSlugs } from "./test-meta";
+import { genericTests } from "./generic-tests";
 import { zodiacSlugs, starSignSlugs } from "./fortune-engine";
 import { dreamSlugs } from "./fortune-dreams";
+import { screenerSlugs } from "./screeners";
+import { tarotSlugs } from "./tarot";
 
 export const SITE_ORIGIN = "https://mbtitest.co.kr";
 
@@ -37,6 +40,35 @@ export function siteUrls(now: Date = new Date()): SiteUrl[] {
       lastModified: now,
       changeFrequency: "monthly" as const,
       priority: 0.9,
+    })),
+    // 결과별 공유 페이지. 검사 화면(/result/)과 달리 링크를 받은 사람도 볼 수
+    // 있는 공개 페이지라 색인합니다. "겉테토 속에겐" 처럼 결과 이름으로 찾는
+    // 롱테일 검색을 여기서 받습니다.
+    ...Object.entries(genericTests).flatMap(([slug, test]) =>
+      Object.keys(test.results).map((key) => ({
+        path: `/tests/${slug}/r/${key}/`,
+        lastModified: now,
+        changeFrequency: "monthly" as const,
+        priority: 0.6,
+      })),
+    ),
+    // 자가진단. 검사와 결과가 한 화면이라 주소가 하나뿐이고, 검색으로 들어오는
+    // 유입이 가장 큰 영역이라 우선순위를 성향 테스트와 같게 둡니다.
+    { path: "/check/", lastModified: now, changeFrequency: "weekly" as const, priority: 0.9 },
+    ...screenerSlugs.map((slug) => ({
+      path: `/check/${slug}/`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.9,
+    })),
+    // 오늘의 타로. 매일 카드가 바뀌므로 changeFrequency 는 daily 에 가장 가까운
+    // weekly 로 두고, 재방문을 만드는 영역이라 우선순위를 높게 잡습니다.
+    { path: "/tarot/", lastModified: now, changeFrequency: "weekly" as const, priority: 0.9 },
+    ...tarotSlugs.map((slug) => ({
+      path: `/tarot/${slug}/`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.88,
     })),
     ...["result", "types", "compatibility", "blog"].map((page) => ({
       path: `/${page}/`,

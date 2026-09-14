@@ -10,6 +10,7 @@ import SiteHeader from "./SiteHeader";
 import CrossPromo from "./CrossPromo";
 import TestGuide from "./TestGuide";
 import TestResultPick from "./TestResultPick";
+import Mascot, { moodForQuestion } from "./Mascot";
 
 const PROGRESS_KEY = (slug: string) => `test-progress:${slug}`;
 
@@ -115,10 +116,15 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
   };
 
   const share = async () => {
+    // location.href 를 쓰면 안 됩니다. 지금 주소(/tests/{slug}/result/)는 방금
+    // 검사한 사람의 sessionStorage 를 읽는 개인 화면이라, 링크를 받은 사람에게는
+    // 빈 화면이 열리고 카카오톡 썸네일에도 사이트 로고가 뜹니다. 결과마다 따로
+    // 있는 공유용 주소로 보냅니다.
+    const url = `${location.origin}/tests/${test.slug}/r/${resultKey}/`;
     const text = `나는 ${displayName}! ${result.shareText} 당신의 결과도 확인해 보세요.`;
-    if (navigator.share) await navigator.share({ title: test.title, text, url: location.href });
+    if (navigator.share) await navigator.share({ title: test.title, text, url });
     else {
-      await navigator.clipboard.writeText(`${text} ${location.href}`);
+      await navigator.clipboard.writeText(`${text} ${url}`);
       alert("결과 링크를 복사했습니다.");
     }
   };
@@ -176,6 +182,7 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
       {screen === "intro" && (
         <>
           <section className="generic-intro">
+            <Mascot className="intro-mascot" mood="hello" size={120} />
             <span className="eyebrow">{test.eyebrow}</span>
             <h1>{test.heading || test.title}</h1>
             <p>{test.description}</p>
@@ -214,6 +221,9 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
           <div className="progress"><i style={{ width: `${((answeredBefore + index + 1) / test.questions.length) * 100}%` }} /></div>
           <p className="step-badge">{part}단계 / 총 2단계</p>
           <div className="question-card">
+            {/* 문항마다 표정이 바뀝니다. 같은 그림이 계속 나오면 "안 넘어가는 것
+                같은" 착시가 생겨 중간에 나갑니다. */}
+            <Mascot className="question-mascot" mood={moodForQuestion(answeredBefore + index)} size={112} />
             <span className="question-kicker">나와 더 가까운 문장은?</span>
             <h2>{answeredBefore + index + 1}. 평소의 나를 떠올려<br />한 가지를 선택해 주세요.</h2>
             <div className="answers">
@@ -232,6 +242,7 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
         <section className="rich-result">
           <AdUnit key={`result-top-${resultKey}`} position="resultTop" label={`${test.title} 결과 최상단 광고`} />
           <span className="result-kicker">테스트가 완료되었습니다</span>
+          <Mascot className="result-mascot" mood="celebrate" size={120} accent={result.color} />
           <div className="result-symbol" style={{ background: result.color }}>{result.name.slice(0, 2)}</div>
           <h1>{displayName}</h1>
           <p className="rich-tagline">{result.tagline}</p>
