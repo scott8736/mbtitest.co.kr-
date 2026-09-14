@@ -92,7 +92,7 @@ export function siteUrls(now: Date = new Date()): SiteUrl[] {
     ]),
     // 운세 영역. 도구 화면도 읽을 콘텐츠가 함께 있으므로 사이트맵에 넣습니다.
     { path: "/fortune/", lastModified: now, changeFrequency: "weekly" as const, priority: 0.9 },
-    ...["today", "saju", "saju-mbti", "2027"].map((page) => ({
+    ...["today", "saju", "saju-mbti", "gunghap", "2027"].map((page) => ({
       path: `/fortune/${page}/`,
       lastModified: now,
       changeFrequency: "weekly" as const,

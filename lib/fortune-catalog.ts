@@ -32,6 +32,15 @@ export const fortuneEntries: FortuneEntry[] = [
     kind: "tool",
   },
   {
+    href: "/fortune/gunghap/",
+    title: "사주 궁합",
+    shortTitle: "사주 궁합",
+    description: "두 사람의 생년월일로 일간 오행 관계와 띠 궁합, 서로 채워 주는 기운을 봅니다.",
+    emoji: "💞",
+    keywords: ["사주 궁합", "무료 궁합", "궁합보기", "생년월일 궁합"],
+    kind: "tool",
+  },
+  {
     href: "/fortune/saju-mbti/",
     title: "사주 MBTI",
     shortTitle: "사주 MBTI",

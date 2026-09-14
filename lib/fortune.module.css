@@ -102,3 +102,22 @@
 
 /* 손으로 누르는 화면에서는 이동 경로 링크의 탭 영역을 넓힙니다. */
 @media (hover:none) and (pointer:coarse){.crumbs a{display:inline-flex;align-items:center;min-height:44px}}
+
+/* 사주 궁합. 사람이 둘이라 입력이 두 벌이고, 결과도 두 사람을 나란히 놓는다 */
+.coupleSide{margin:0 0 16px;padding:18px 20px;border:1px solid #ece0cd;border-radius:16px;background:#fffefb}
+.coupleSide legend{padding:0 8px;color:#8a5f26;font-size:13px;font-weight:800}
+.coupleResult{margin-top:28px;padding:28px;border:1px solid #ece0cd;border-radius:20px;background:#fffaf1}
+.coupleResult h3{margin:26px 0 8px;font-size:18px;letter-spacing:-.02em}
+.coupleResult p{margin:0;color:#5a5647;font-size:15.5px;line-height:1.85;word-break:keep-all}
+.coupleScore{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px}
+.coupleScore strong{font-size:52px;font-weight:900;line-height:1;color:var(--score-color,#5d9080);font-variant-numeric:tabular-nums}
+.coupleScore span{color:#8b8271;font-size:16px;font-weight:700}
+.coupleScore b{flex:1 0 100%;margin-top:6px;font-size:20px;letter-spacing:-.03em}
+.coupleSummary{margin:14px 0 0!important;color:#5a5647;line-height:1.85}
+.coupleGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}
+.coupleGrid article{padding:18px;border:1px solid #ece0cd;border-radius:14px;background:#fffefb}
+.coupleGrid span{color:#9a6b34;font-size:12px;font-weight:800}
+.coupleGrid b{display:block;margin:8px 0 6px;font-size:18px;letter-spacing:.02em}
+.coupleGrid p{font-size:13.5px!important;color:#7a7466!important}
+.coupleAdvice{margin:0;padding-left:20px;display:grid;gap:8px;color:#5a5647;font-size:15.5px;line-height:1.8}
+@media(max-width:580px){.coupleGrid{grid-template-columns:1fr}}
