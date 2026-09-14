@@ -44,6 +44,15 @@ const worker = {
       return Response.redirect(`${url.origin}/rss.xml`, 301);
     }
 
+    // 글 주소를 바꾸면 예전 주소가 정적 파일로 남아 그대로 응답합니다.
+    // 같은 내용이 두 주소에서 열리면 중복 문서가 되므로 새 주소로 넘깁니다.
+    // 주소를 바꿀 때마다 여기 한 줄을 추가합니다.
+    const MOVED_PAGES: Record<string, string> = {
+      "/blog/idol-mbti-list-warning": "/blog/rescene-mbti/",
+    };
+    const moved = MOVED_PAGES[url.pathname.replace(/\/+$/, "")];
+    if (moved) return Response.redirect(`${url.origin}${moved}`, 301);
+
     // 검사 진행 이벤트. 첫 문항에 답한 시점을 세어, 화면을 열자마자 나간
     // 사람과 몇 문항 풀다 그만둔 사람을 구분합니다.
     const testEvent = handleTestEvent(request, url, env, ctx);
