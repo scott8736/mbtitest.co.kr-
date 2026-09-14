@@ -387,26 +387,6 @@
 
 /* ---------- 알아두기 · FAQ 폭 ---------- */
 
-/*
- * .generic-explain 은 원래 성향 테스트가 <div><article> 격자를 넣는 자리라
- * `> div` 에만 최대 폭이 걸려 있었다. 자가진단은 생 <p> 를 바로 넣기 때문에
- * 아무 규칙도 안 걸려 문단이 화면 끝까지 퍼졌다 — 큰 모니터에서는 한 줄이
- * 2000px 였다. 가운데 제목 아래 본문만 왼쪽으로 흘러 배열이 어긋나 보였다.
- */
-.screener .generic-explain > p {
-  max-width: 760px;
-  margin: 0 auto 14px;
-  color: #5b6459;
-  font-size: 16.5px;
-  line-height: 1.85;
-  word-break: keep-all;
-}
-.screener .generic-explain > p:last-child {
-  margin-bottom: 0;
-}
-.screener .generic-explain > h2 {
-  margin-bottom: 30px;
-}
 
 /* FAQ 와 관련 검사도 같은 폭으로 묶는다 */
 .screener .screener-faq,
