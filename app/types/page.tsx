@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import AdUnit from "../../components/AdUnit";
 import ContentHeader from "../../components/ContentHeader";
+import Mascot, { moodForKey } from "../../components/Mascot";
 import SiteFooter from "../../components/SiteFooter";
+import { typeData } from "../../lib/mbti-data";
 
 export const metadata: Metadata = {
   title: "MBTI 16가지 유형별 특징",
@@ -79,10 +81,17 @@ export default function Page() {
               <h2>{title as string}</h2>
               <p>{desc as string}</p>
             </div>
+            {/* 16장이 글자만 있어서 목록이 표처럼 보였습니다. 유형 색을 카드 위 선과
+                코드에 쓰고, 그 색을 입은 마스코트를 옆에 둡니다. */}
             <div className="seo-card-grid">
               {(items as string[][]).map(([code, name, trait]) => (
-                <article key={code}>
-                  <b>{code}</b>
+                <article key={code} style={{ "--card-accent": typeData[code].color } as React.CSSProperties}>
+                  <div className="seo-card-head">
+                    <span className="seo-card-face">
+                      <Mascot mood={moodForKey(code)} size={44} accent={typeData[code].color} />
+                    </span>
+                    <b>{code}</b>
+                  </div>
                   <h3>{name}</h3>
                   <p>{trait}</p>
                   <a href={`/types/${code.toLowerCase()}/`}>{code} 상세 설명 →</a>

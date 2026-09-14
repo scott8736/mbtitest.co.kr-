@@ -57,6 +57,18 @@ export function moodForQuestion(index: number): MascotMood {
   return CYCLE[index % CYCLE.length];
 }
 
+/**
+ * 슬러그·유형 코드처럼 고정된 문자열로 표정을 정합니다.
+ *
+ * 목록에서 카드마다 다른 얼굴이 나와야 하고, 다시 그려도 같은 얼굴이 나와야
+ * 합니다. 무작위로 고르면 필터를 누를 때마다 얼굴이 바뀌어 목록이 흔들립니다.
+ */
+export function moodForKey(key: string): MascotMood {
+  let sum = 0;
+  for (let i = 0; i < key.length; i += 1) sum += key.charCodeAt(i);
+  return moodForQuestion(sum);
+}
+
 type Face = {
   /** 왼쪽·오른쪽 눈 */
   eyes: React.ReactNode;

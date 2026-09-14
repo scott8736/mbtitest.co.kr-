@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import AdUnit from "../../components/AdUnit";
 import ContentHeader from "../../components/ContentHeader";
+import Mascot, { moodForKey } from "../../components/Mascot";
 import SiteFooter from "../../components/SiteFooter";
+import { typeData } from "../../lib/mbti-data";
 import { mbtiCodes, profiles } from "../../lib/mbti-content";
 
 export const metadata: Metadata = {
@@ -47,8 +49,13 @@ export default function Page() {
           </div>
           <div className="seo-card-grid">
             {mbtiCodes.map((code) => (
-              <article key={code}>
-                <b>{profiles[code].code}</b>
+              <article key={code} style={{ "--card-accent": typeData[profiles[code].code].color } as React.CSSProperties}>
+                <div className="seo-card-head">
+                  <span className="seo-card-face">
+                    <Mascot mood={moodForKey(code)} size={44} accent={typeData[profiles[code].code].color} />
+                  </span>
+                  <b>{profiles[code].code}</b>
+                </div>
                 <h3>{profiles[code].name} 궁합</h3>
                 <p>{profiles[code].tagline}</p>
                 <a href={`/compatibility/${code}/`}>{profiles[code].code} 궁합 전체 보기 →</a>
