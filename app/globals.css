@@ -524,7 +524,10 @@ main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% -
     linear-gradient(145deg,#101f3c,#2d2262);
 }
 .generic-intro h1 { max-width:920px; margin:28px auto 22px; font-size:clamp(50px,7vw,88px); line-height:1.08; letter-spacing:-.065em; }
-.generic-intro>p { max-width:740px; margin:0 auto 28px; color:rgba(255,255,255,.75); font-size:19px; line-height:1.8; }
+/* 고지문은 어두운 히어로 위에 놓인 밝은 상자라 흰 글씨를 물려받으면 안 된다.
+   .generic-intro>p(0,1,1)가 .test-disclaimer(0,1,0)를 이겨서 75% 흰색이 적용됐고,
+   상자 안 문장이 통째로 안 보였다. <b> 만 보였던 것은 그 규칙이 따로 있었기 때문이다. */
+.generic-intro>p:not(.test-disclaimer) { max-width:740px; margin:0 auto 28px; color:rgba(255,255,255,.75); font-size:19px; line-height:1.8; }
 .generic-intro .eyebrow { color:#eeeaff; border-color:rgba(255,255,255,.18); background:rgba(255,255,255,.08); }
 .generic-intro .primary-button { margin-top:28px; background:linear-gradient(135deg,var(--coral),#ff7069); color:#172a46; }
 .generic-meta { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; }
@@ -599,7 +602,7 @@ main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% -
 @media (max-width:760px) {
   .generic-intro { min-height:590px; padding:80px 20px; }
   .generic-intro h1 { font-size:48px; }
-  .generic-intro>p { font-size:16px; }
+  .generic-intro>p:not(.test-disclaimer) { font-size:16px; }
   .generic-explain>div { grid-template-columns:1fr; }
   .rich-result { padding:60px 20px 90px; }
   .rich-result-grid { grid-template-columns:1fr; }

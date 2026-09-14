@@ -17,8 +17,16 @@
   font-weight: 750;
 }
 
+/*
+ * 카드 뽑는 자리는 가운데로 모읍니다. 위의 히어로(.generic-intro)가 가운데
+ * 정렬이라, 이 블록만 왼쪽 끝에 붙어 있으면 화면이 한쪽으로 쏠려 보입니다.
+ * .tarot-deck 에 max-width 만 있고 margin-inline:auto 가 없어서 그랬습니다.
+ */
 .tarot-pick {
-  margin: 0 clamp(24px, 6vw, 88px) 50px;
+  max-width: 760px;
+  margin: 0 auto 50px;
+  padding-inline: clamp(20px, 5vw, 24px);
+  text-align: center;
 }
 
 .tarot-deck {
@@ -26,6 +34,7 @@
   grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
   gap: 14px;
   max-width: 760px;
+  margin-inline: auto;
 }
 
 .tarot-deck button {

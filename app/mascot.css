@@ -35,7 +35,8 @@
 }
 
 .tarot-mascot {
-  margin: 0 0 10px -8px;
+  /* 카드 뽑는 자리가 가운데 정렬이라 마스코트도 가운데에 둡니다 */
+  margin: 0 auto 10px;
 }
 
 @keyframes mascot-pop {
