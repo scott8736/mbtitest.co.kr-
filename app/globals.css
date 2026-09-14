@@ -102,7 +102,9 @@ button:focus-visible { outline:3px solid #91a98b; outline-offset:4px; }
 .seo-card-grid p { margin:0; color:#707a71; line-height:1.7; word-break:keep-all; }
 /* inline-block 이면 두 링크가 한 줄에 붙는다. 카드마다 줄 수가 달라져 격자가 어긋났다 */
 .seo-card-grid a { display:block; width:fit-content; margin-top:11px; color:var(--card-accent,#315448); font-size:13px; font-weight:750; text-decoration:none; }
-.seo-card-grid a:first-of-type { margin-top:20px; }
+/* 설명 길이가 카드마다 달라서, 링크를 그냥 두면 한 줄 안에서 높이가 제각각이 된다.
+   카드가 flex 열이므로 첫 링크를 auto 로 밀어 바닥에 맞춘다. */
+.seo-card-grid a:first-of-type { margin-top:auto; padding-top:20px; }
 .seo-card-grid a:hover { text-decoration:underline; }
 .type-section { max-width:1180px; margin:0 auto 90px; }
 .type-section>div:first-child>p { margin:0; color:#707a71; font-size:17px; }
