@@ -51,7 +51,9 @@ export const testCatalog: TestCatalogItem[] = [
     color: "#ff806f",
     href: "/tests/egen-teto/",
     status: "published",
-    keywords: ["에겐녀 테스트", "테토녀 테스트", "에겐남 테스트", "테토남 테스트"],
+    // 남성형 키워드는 egen-teto-male 이 가져갑니다. 둘이 같은 키워드를 물면
+    // 검색 결과에서 서로를 밀어내고, 남성 이용자가 여성형 문항을 만나 이탈합니다.
+    keywords: ["에겐녀 테스트", "테토녀 테스트", "에겐테토 테스트", "에겐 테토 뜻"],
   },
   {
     slug: "adult-attachment",
