@@ -86,6 +86,14 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
+        {/* 제목용 둥근 서체. 본문은 기존 스택 그대로라 이 파일만 늦게 와도
+            글이 밀리지 않는다(display=swap). 자가진단 화면에는 적용하지 않는다. */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Jua&display=swap"
+        />
         <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
         <link rel="preconnect" href="https://googleads.g.doubleclick.net" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="//pagead2.googlesyndication.com" />

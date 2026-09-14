@@ -230,3 +230,29 @@ test("한 규칙 안에서 글씨와 배경의 대비가 4.5 미만인 곳이 �
     "작은 글씨는 4.5:1 이 필요합니다. 색상과 채도는 두고 명도만 낮추면 인상이 유지됩니다.",
   );
 });
+
+// 배경이 그라데이션인 버튼은 background:#hex 가 아니라 위 검사를 빠져나갔습니다.
+// 사이트에서 가장 많이 눌리는 두 버튼(홈 히어로·검사 시작)이 흰 글씨에 코랄
+// 바탕으로 2.23:1 이었고, 그 상태로 오래 서 있었습니다. 색 정지점을 전부 봅니다.
+const GRADIENT = new RegExp(`background(?:-image)?:[^;]*gradient\\([^;]*`, "");
+
+test("그라데이션 배경 위의 글씨도 어느 지점에서나 4.5 이상이다", () => {
+  const bad = new Set();
+  for (const [sel, body] of RULES) {
+    const fg = body.match(FG);
+    const grad = body.match(GRADIENT);
+    if (!fg || !grad) continue;
+    const stops = [...grad[0].matchAll(new RegExp(HEX, "g"))].map((m) => m[0]);
+    for (const stop of stops) {
+      const ratio = contrast(fg[1], stop);
+      if (ratio < 4.5) {
+        bad.add(`${sel.slice(0, 55)} — ${fg[1]} / ${stop} = ${ratio.toFixed(2)}:1`);
+      }
+    }
+  }
+  assert.deepEqual(
+    [...bad].slice(0, 8),
+    [],
+    "그라데이션은 가장 불리한 정지점 기준으로 읽힙니다. 밝은 바탕이면 글씨를 어둡게 하세요.",
+  );
+});
