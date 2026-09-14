@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import AdUnit from "./AdUnit";
+import Mascot, { moodForQuestion } from "./Mascot";
 import { questions, type Answer, type Axis } from "../lib/mbti-data";
 import { markTestCompleted, recordTestEvent } from "../lib/test-events";
 
@@ -111,6 +112,10 @@ export default function MbtiQuiz({ step = 1 }: { step?: number }) {
       <p className="step-badge">{step}단계 / 총 {TOTAL_STEPS}단계</p>
       <div className="question-card">
         <span className="question-kicker">둘 중 나와 더 가까운 문장은?</span>
+        {/* 표정이 문항마다 바뀝니다. 같은 화면이 계속 나오면 넘어가지 않는 것
+            같은 착시가 생겨 중간에 나갑니다. 방문 431명 중 204명이 1단계에서
+            빠지는 화면이라 사이트에서 여기가 가장 중요합니다. */}
+        <Mascot className="question-mascot" mood={moodForQuestion(answeredBefore + index)} size={112} />
         <h2>평소의 나를 떠올리며<br />한 가지를 선택해 주세요.</h2>
         <div className="answers">
           <button onClick={() => answer(1)}><span>A</span><strong>{stepQuestions[index].a}</strong><small>이 문장에 더 가까워요</small></button>
