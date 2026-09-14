@@ -17,8 +17,8 @@ export const celebrityPosts: BlogPost[] = [
   {
     slug: "park-eun-bin-mbti",
     category: "트렌드",
-    title: "박은빈 MBTI는? INFP·ISTP 결과 변화와 화제성 1위",
-    description: "박은빈 MBTI 공개 발언과 검사 결과가 달라진 이유, 오싹한 연애 종영 주 FUNdex 화제성 1위를 사실과 추측으로 나눠 정리했습니다.",
+    title: "박은빈 MBTI는? INFP·ISTP 결과가 달라진 이유",
+    description: "박은빈이 공개한 MBTI 발언과 검사 결과가 달라진 이유를 사실과 추측으로 나눠 정리했습니다. 드라마 종영 주 화제성 집계도 함께 담았습니다.",
     keywords: ["박은빈 MBTI", "박은빈 성격", "박은빈 INFP", "박은빈 ISTP", "오싹한 연애 박은빈"],
     readTime: "약 6분",
     publishedAt,
@@ -28,7 +28,7 @@ export const celebrityPosts: BlogPost[] = [
       "박은빈의 MBTI는 한 유형으로 영구 고정해 말하기 어렵습니다. 공개 인터뷰에서 INFP를 포함해 검사할 때 결과가 달라진다고 설명한 내용이 확인되므로, 이 글은 ‘현재도 반드시 INFP’라고 단정하지 않습니다.",
     ],
     sections: [
-      { heading: "이번 주 화제성 1위인 이유", paragraphs: ["‘오싹한 연애’ 최종회는 8월 23일 방송됐고 자체 최고 시청률로 종영했습니다. FUNdex 집계에서도 박은빈이 전주 3위에서 1위로 올라, 종영 직후 작품·배우 관련 탐색 수요가 가장 크게 모인 인물로 판단했습니다."] },
+      { heading: "화제성 1위에 오른 배경", paragraphs: ["‘오싹한 연애’ 최종회는 8월 23일 방송됐고 자체 최고 시청률로 종영했습니다. FUNdex 집계에서도 박은빈이 전주 3위에서 1위로 올라, 종영 직후 작품·배우 관련 탐색 수요가 가장 크게 모인 인물로 판단했습니다."] },
       { heading: "확인된 MBTI 사실", paragraphs: ["박은빈은 공개 콘텐츠에서 검사 시점에 따라 INFP와 ISTP 등 다른 결과가 나왔다고 설명했습니다. 따라서 ‘박은빈 MBTI는 INFP다’보다 ‘INFP를 포함해 결과가 달라진 적이 있다’가 출처에 가까운 표현입니다."] },
       { heading: "온라인 추측과 실제 성격은 구분해야 합니다", paragraphs: ["배역의 섬세함이나 인터뷰 말투만 보고 특정 유형으로 추정하는 글이 많지만, 캐릭터는 대본과 연기의 결과입니다. 작품 속 천여리의 행동을 배우 본인의 성격 증거로 사용하지 않았습니다."] },
       { heading: "검사 결과가 달라질 수 있는 이유", paragraphs: ["E·I, S·N처럼 점수가 경계에 가깝거나 답변할 때 떠올린 역할과 최근 환경이 달라지면 한두 글자가 바뀔 수 있습니다. 네 글자보다 반복해서 나타나는 성향과 각 지표의 비율을 함께 보는 편이 좋습니다."] },
@@ -44,8 +44,8 @@ export const celebrityPosts: BlogPost[] = [
   {
     slug: "yang-se-jong-mbti",
     category: "트렌드",
-    title: "양세종 MBTI는? ISTP·ESTP 직접 답변과 화제성 2위",
-    description: "양세종이 직접 밝힌 ISTP·ESTP 검사 결과와 오싹한 연애 FUNdex 화제성 2위 배경을 원출처 중심으로 정리했습니다.",
+    title: "양세종 MBTI는? ISTP·ESTP 직접 답변 정리",
+    description: "양세종이 직접 밝힌 ISTP·ESTP 검사 결과를 원출처 중심으로 정리했습니다. 드라마 종영 무렵의 화제성 집계도 함께 담았습니다.",
     keywords: ["양세종 MBTI", "양세종 ISTP", "양세종 ESTP", "양세종 성격", "오싹한 연애 양세종"],
     readTime: "약 6분",
     publishedAt,
@@ -71,8 +71,8 @@ export const celebrityPosts: BlogPost[] = [
   {
     slug: "gong-hyo-jin-mbti",
     category: "트렌드",
-    title: "공효진 MBTI는? 공개 인터뷰 확인과 화제성 3위",
-    description: "공효진 MBTI 관련 공개 인터뷰에서 확인되는 범위와 온라인 ESTP 표기를 구분하고, 유부녀 킬러 화제성 3위 배경을 정리했습니다.",
+    title: "공효진 MBTI는? 공개 인터뷰에서 확인되는 범위",
+    description: "공효진 MBTI 관련 공개 인터뷰에서 확인되는 범위와 온라인에 도는 ESTP 표기를 구분해 정리했습니다.",
     keywords: ["공효진 MBTI", "공효진 ESTP", "공효진 성격", "유부녀 킬러 공효진"],
     readTime: "약 6분",
     publishedAt,
@@ -98,7 +98,7 @@ export const celebrityPosts: BlogPost[] = [
   {
     slug: "lee-dong-wook-mbti",
     category: "트렌드",
-    title: "이동욱 MBTI는? 검사 안 했다는 직접 답변과 화제성 4위",
+    title: "이동욱 MBTI는? 검사한 적 없다는 본인 답변",
     description: "이동욱이 MBTI 검사를 하지 않았다고 밝힌 인터뷰를 기준으로 온라인 추측과 사실을 구분하고, 킬러들의 쇼핑몰2 화제성 4위를 정리했습니다.",
     keywords: ["이동욱 MBTI", "이동욱 성격", "이동욱 MBTI 없음", "킬러들의 쇼핑몰2 이동욱"],
     readTime: "약 6분",
@@ -109,7 +109,7 @@ export const celebrityPosts: BlogPost[] = [
       "이동욱의 MBTI는 특정 네 글자로 확정할 수 없습니다. 공개 인터뷰에서 본인이 검사를 하지 않았고 MBTI를 믿지 않는다는 취지로 답한 자료가 확인되기 때문입니다.",
     ],
     sections: [
-      { heading: "이번 주 화제성 4위", paragraphs: ["‘킬러들의 쇼핑몰 시즌2’가 TV·OTT 통합 드라마 화제성 3위를 기록한 가운데 이동욱이 출연자 4위에 올랐습니다. 전주보다 순위는 낮아졌지만 여전히 상위 5명에 남아 글을 유지·갱신했습니다."] },
+      { heading: "화제성 순위와 검색 관심", paragraphs: ["‘킬러들의 쇼핑몰 시즌2’가 TV·OTT 통합 드라마 화제성 3위를 기록한 가운데 이동욱이 출연자 4위에 올랐습니다. 전주보다 순위는 낮아졌지만 여전히 상위 5명에 남아 글을 유지·갱신했습니다."] },
       { heading: "공식적으로 확정된 유형은 없음", paragraphs: ["인터뷰에서 이동욱은 MBTI 검사를 하지 않았다고 밝혔습니다. 그래서 온라인에 떠도는 ISFP, INFJ 등 여러 표기를 본인의 공식 결과처럼 제시하지 않습니다."] },
       { heading: "인터뷰 태도는 검사 결과가 아닙니다", paragraphs: ["솔직한 화법, 진행 능력, 혼자 보내는 시간을 언급한 장면만으로 E·I나 T·F를 판정할 수 없습니다. 관찰자가 느낀 인상은 흥미로운 해석일 뿐 검사 결과와는 다릅니다."] },
       { heading: "MBTI를 원하지 않는 선택도 존중해야 합니다", paragraphs: ["모든 연예인이 성격유형을 공개할 의무는 없습니다. 확인되지 않은 유형을 채우기보다 ‘공식 확정 없음’이라고 남기는 편이 독자와 인물 모두에게 더 정확한 정보입니다."] },
@@ -125,7 +125,7 @@ export const celebrityPosts: BlogPost[] = [
   {
     slug: "ryu-jun-yeol-mbti",
     category: "트렌드",
-    title: "류준열 MBTI는 ESTJ? 직접 답변과 들쥐 화제성 5위",
+    title: "류준열 MBTI는 ESTJ? 본인이 밝힌 내용 정리",
     description: "류준열이 인터뷰에서 직접 밝힌 ESTJ와 T 성향 발언, 넷플릭스 들쥐 공개 직전 FUNdex 화제성 5위 배경을 확인했습니다.",
     keywords: ["류준열 MBTI", "류준열 ESTJ", "류준열 성격", "들쥐 류준열", "류준열 T"],
     readTime: "약 6분",
@@ -358,21 +358,21 @@ export const celebrityPosts: BlogPost[] = [
   {
     slug: "bts-members-mbti",
     category: "트렌드",
-    title: "방탄소년단 멤버 MBTI 총정리 — 2020년과 2022년이 이렇게 다릅니다",
+    title: "방탄소년단 멤버 MBTI 총정리 — 일곱 명 전체 유형",
     description:
-      "방탄소년단 일곱 멤버가 공식 채널에서 직접 검사해 공개한 MBTI와, 2020년 결과에서 바뀐 멤버를 나란히 정리했습니다. 2026년 9월 광고모델 브랜드평판 1위 기록도 함께 봅니다.",
+      "방탄소년단 일곱 멤버가 공식 채널에서 직접 검사해 공개한 MBTI를 정리했습니다. 유형이 바뀐 멤버와 그 이유, 2026년 9월 광고모델 브랜드평판 1위 기록도 함께 봅니다.",
     keywords: ["방탄소년단 MBTI", "BTS MBTI", "정국 MBTI", "뷔 MBTI", "지민 MBTI", "RM MBTI", "슈가 MBTI"],
     readTime: "약 8분",
     publishedAt: septReputationAt,
     updatedAt: septReputationAt,
     intro: [
-      "방탄소년단이 공식 채널에서 직접 검사해 공개한 2022년 기준 MBTI는 RM ENFP, 진 INTP, 슈가 ISTP, 제이홉 INFJ, 지민 ESTP, 뷔 INFP, 정국 INTP 입니다.",
-      "이 목록이 다른 곳과 어긋나 보인다면 시점이 다르기 때문입니다. 2020년에 알려진 값과 비교하면 일곱 명 중 다섯 명이 달라졌습니다.",
+      "방탄소년단 멤버의 MBTI는 RM ENFP, 진 INTP, 슈가 ISTP, 제이홉 INFJ, 지민 ESTP, 뷔 INFP, 정국 INTP 입니다. 멤버들이 공식 채널에서 직접 검사해 공개한 값입니다.",
+      "이 목록이 다른 곳과 어긋나 보인다면 시점이 다르기 때문입니다. 더 이전에 알려진 값과 비교하면 일곱 명 중 다섯 명이 달라졌습니다.",
       "방탄소년단은 2026년 9월 광고모델 브랜드평판에서도 1위에 올랐습니다.",
     ],
     sections: [
       {
-        heading: "2022년 공개 결과 (본인들이 직접 검사)",
+        heading: "멤버별 MBTI (본인들이 직접 검사해 공개)",
         paragraphs: [
           "멤버들이 공식 유튜브 채널에서 함께 검사를 진행하고 결과를 공개한 내용입니다. 팬 투표가 아니라 본인 검사라는 점에서 아이돌 MBTI 자료 중에서는 근거가 단단한 편입니다.",
         ],
@@ -387,17 +387,17 @@ export const celebrityPosts: BlogPost[] = [
         ],
       },
       {
-        heading: "2020년과 비교하면 다섯 명이 바뀌었습니다",
+        heading: "일곱 명 중 다섯 명이 바뀌었습니다",
         paragraphs: [
-          "2020년에 알려진 값은 RM ENFP, 진 INTP, 슈가 INTP, 제이홉 ESFJ, 지민 ENFJ, 뷔 ENFP, 정국 INFP 였습니다. RM 은 그 전 INFP 에서 ENFP 로 바뀌었다고 언급된 적이 있고, 슈가도 INFP 에서 INTP 로 바뀌었다고 생일 방송에서 말했습니다.",
-          "2022년과 견주면 그대로인 사람은 RM 과 진 둘뿐입니다. 제이홉은 ESFJ 에서 INFJ 로 네 글자 중 두 글자가, 지민은 ENFJ 에서 ESTP 로 세 글자가 달라졌습니다.",
-          "그래서 ‘정국 MBTI 는 INFP 다’ 같은 문장은 어느 해 자료인지 붙이지 않으면 절반만 맞습니다.",
+          "더 이전에 알려진 값은 RM ENFP, 진 INTP, 슈가 INTP, 제이홉 ESFJ, 지민 ENFJ, 뷔 ENFP, 정국 INFP 였습니다. RM 은 그 전 INFP 에서 ENFP 로 바뀌었다고 언급된 적이 있고, 슈가도 INFP 에서 INTP 로 바뀌었다고 생일 방송에서 말했습니다.",
+          "지금 값과 견주면 그대로인 사람은 RM 과 진 둘뿐입니다. 제이홉은 ESFJ 에서 INFJ 로 네 글자 중 두 글자가, 지민은 ENFJ 에서 ESTP 로 세 글자가 달라졌습니다.",
+          "그래서 ‘정국 MBTI 는 INFP 다’ 같은 문장은 언제 자료인지 붙이지 않으면 절반만 맞습니다. 지금 알려진 값은 INTP 입니다.",
         ],
       },
       {
         heading: "왜 이렇게 많이 바뀌었을까",
         paragraphs: [
-          "두 검사 사이에 활동 환경이 크게 달라졌습니다. 사람이 달라졌다기보다, 답할 때 떠올리는 일상이 달라지면 경계에 가까운 지표가 쉽게 뒤집힙니다.",
+          "두 번의 검사 사이에 활동 환경이 크게 달라졌습니다. 사람이 달라졌다기보다, 답할 때 떠올리는 일상이 달라지면 경계에 가까운 지표가 쉽게 뒤집힙니다.",
           "특히 E·I 와 J·P 는 상황을 많이 탑니다. 단체 활동이 많은 시기와 개인 작업이 많은 시기에 같은 사람이 다른 답을 고르는 일이 흔합니다.",
           "MBTI 를 ‘고정된 정체성’으로 보면 이 변화가 이상해 보이지만, ‘지금 선호하는 방식’으로 보면 자연스러운 결과입니다.",
         ],

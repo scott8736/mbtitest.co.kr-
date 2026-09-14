@@ -311,7 +311,10 @@ export const blogPosts: BlogPost[] = [
   },
 ];
 
-export const blogCategories = ["전체", "MBTI 기초", "연애·관계", "마음건강", "트렌드", "운세"] as const;
+// 목록에 나오는 순서입니다. 트렌드가 맨 앞입니다 — 연예인 MBTI 와 평판 순위처럼
+// 시의성 있는 글이 여기 들어가고, 그게 지금 검색으로 사람이 가장 많이 들어오는
+// 자리라 목록 맨 위에 둡니다.
+export const blogCategories = ["전체", "트렌드", "MBTI 기초", "연애·관계", "마음건강", "운세"] as const;
 
 export function getBlogPost(slug: string) {
   return blogPosts.find((post) => post.slug === slug);

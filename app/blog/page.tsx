@@ -27,7 +27,11 @@ export const metadata: Metadata = {
 };
 
 export default function BlogPage() {
-  const featured = blogPosts[0];
+  // 배열 순서가 아니라 발행일로 고릅니다. blogPosts 는 celebrityPosts 가 맨
+  // 앞에 붙는 구조라 [0] 을 쓰면 새 글을 올려도 계속 예전 글이 걸립니다.
+  const featured = [...blogPosts].sort((a, b) =>
+    (b.updatedAt || b.publishedAt).localeCompare(a.updatedAt || a.publishedAt),
+  )[0];
 
   return (
     <main>
@@ -54,10 +58,10 @@ export default function BlogPage() {
           </div>
         </div>
         <aside className="blog-featured-card">
-          <span>처음 읽는 분께 추천</span>
+          <span>가장 새로 올라온 글</span>
           <h2>{featured.title}</h2>
           <p>{featured.description}</p>
-          <a href={`/blog/${featured.slug}/`}>MBTI 기본 가이드 읽기 →</a>
+          <a href={`/blog/${featured.slug}/`}>이 글 읽기 →</a>
         </aside>
       </section>
 
