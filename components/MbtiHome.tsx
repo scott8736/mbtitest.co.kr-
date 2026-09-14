@@ -1,4 +1,5 @@
 import TestDirectory from "./TestDirectory";
+import SeasonStrip from "./SeasonStrip";
 import AdUnit from "./AdUnit";
 import { typeData } from "../lib/mbti-data";
 
@@ -19,6 +20,7 @@ export default function MbtiHome() {
               <div><i>E · I</i><i>S · N</i><i>T · F</i><i>J · P</i></div>
             </div>
           </section>
+          <SeasonStrip />
           <AdUnit key="home-start-ad" position="testIntro" label="검사 시작 전 광고" />
           <section className="dimension-strip">
             {[
