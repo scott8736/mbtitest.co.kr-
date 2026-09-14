@@ -20,7 +20,7 @@ const SEASON = {
   lead: "명절 연휴에 친구·가족과 같이 해보기 좋은 세 가지를 모았습니다.",
   items: [
     { slug: "chuseok-food", emoji: "🌕", note: "명절 상 앞에서 손이 먼저 가는 음식으로 보는 성격" },
-    { slug: "holiday-stress", emoji: "🫠", note: "명절에 나를 가장 지치게 하는 지점이 어디인지" },
+    { slug: "holiday-stress", emoji: "😵", note: "명절에 나를 가장 지치게 하는 지점이 어디인지" },
     { slug: "autumn-bti", emoji: "🍂", note: "가을을 보내는 방식으로 알아보는 계절 성향" },
   ],
 };
