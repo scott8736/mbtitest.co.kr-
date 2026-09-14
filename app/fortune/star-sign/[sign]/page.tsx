@@ -3,6 +3,7 @@ import CrossPromo from "../../../../components/CrossPromo";
 import { notFound } from "next/navigation";
 import AdUnit from "../../../../components/AdUnit";
 import ContentHeader from "../../../../components/ContentHeader";
+import DailyFortune from "../../../../components/DailyFortune";
 import SiteFooter from "../../../../components/SiteFooter";
 import { breadcrumbJsonLd, faqJsonLd, articleJsonLd, graph } from "../../../../lib/fortune-catalog";
 import { starSigns, getStarSign, starSignName, starSignElementNotes } from "../../../../lib/fortune-star-signs";
@@ -100,6 +101,9 @@ export default async function StarSignDetailPage({ params }: { params: Promise<{
       </header>
 
       <article className={styles.body}>
+        {/* 별자리 운세로 들어온 사람도 먼저 찾는 것은 오늘입니다.
+            성격과 궁합 설명은 그 아래에 둡니다. 띠별 운세와 같은 구조입니다. */}
+        <DailyFortune scope={starSign.slug} label={starSign.name} />
         <section className={styles.answer}>
           <strong>{starSign.name}는 어떤 성격인가요?</strong>
           <p>{starSign.personality}</p>
