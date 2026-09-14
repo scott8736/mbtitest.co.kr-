@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 const links = [
   ["/tests/mbti/", "MBTI 검사"],
   ["/tests/", "심리테스트"],
+  ["/check/", "자가진단"],
+  ["/tarot/", "오늘의 타로"],
   ["/types/", "16가지 유형"],
   ["/compatibility/", "MBTI 궁합"],
   ["/fortune/", "무료 운세"],
