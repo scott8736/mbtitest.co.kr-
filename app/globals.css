@@ -1229,3 +1229,7 @@ main:not(.screener) .result-card-image {
   main:not(.screener) .season-card,
   main:not(.screener) .tarot-hub a { box-shadow:3px 3px 0 var(--lavender); }
 }
+
+/* 블로그 글 대표 이미지. 제목 바로 아래, 본문 폭에 맞춘다 */
+.blog-article-cover { display:block; width:100%; max-width:900px; height:auto; margin:0 auto 34px; border-radius:18px; border:1px solid var(--line); box-shadow:0 16px 38px rgba(34,40,70,.14); }
+@media (max-width:620px) { .blog-article-cover { border-radius:13px; margin-bottom:24px; } }

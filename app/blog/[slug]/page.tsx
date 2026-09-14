@@ -35,9 +35,11 @@ export async function generateMetadata({
       publishedTime: post.publishedAt,
       modifiedTime: post.updatedAt,
       siteName: "MBTI 검사",
+      // 글마다 카드를 따로 굽습니다. 전부 같은 로고를 쓰면 공유 목록에서
+      // 어느 글인지 구분되지 않아 아무도 누르지 않습니다.
       images: [
         {
-          url: "/images/og/mbti-test-share.jpg",
+          url: `/images/blog/${post.slug}.png`,
           width: 1200,
           height: 630,
           alt: post.title,
@@ -48,7 +50,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: post.title,
       description: post.description,
-      images: ["/images/og/mbti-test-share.jpg"],
+      images: [`/images/blog/${post.slug}.png`],
     },
   };
 }
@@ -128,6 +130,16 @@ export default async function BlogArticlePage({
             <span>MBTI 검사 편집팀</span>
           </div>
         </header>
+
+        {/* 대표 이미지. 인물 사진을 캡처해 쓰면 저작권·초상권이 걸리므로,
+            글의 값(제목과 유형 목록)으로 카드를 구워 씁니다. */}
+        <img
+          className="blog-article-cover"
+          src={`/images/blog/${post.slug}.png`}
+          width={1200}
+          height={630}
+          alt={`${post.title} 카드 이미지`}
+        />
 
         <div className="blog-article-layout">
           <div className="blog-article-content">
