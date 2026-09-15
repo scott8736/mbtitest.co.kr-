@@ -195,6 +195,12 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
             )}
             <button className="primary-button" onClick={start}>무료 테스트 시작 <span>→</span></button>
           </section>
+          {/* 시작 버튼 아래. 홈(MbtiHome)의 testIntro 와 같은 자리입니다.
+              그전까지 이 화면은 푸터 광고 하나뿐이었습니다. 테스트 44개가 전부
+              여기로 착지하는데 광고가 한 자리도 없었습니다. 버튼 위에 두지 않는
+              이유는 검사 화면과 같습니다 — 첫 화면이 광고로 덮이면 시작을 안 누릅니다.
+              시작을 누르면 이 자리는 사라지고 검사 화면의 testTop 으로 바뀝니다. */}
+          <AdUnit key={`intro-${test.slug}`} position="testIntro" label={`${test.title} 시작 전 광고`} />
           {!test.whatYouLearn?.length && (
           <section className="generic-explain">
             <h2>이 테스트에서 확인할 수 있어요</h2>

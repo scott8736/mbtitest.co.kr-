@@ -125,11 +125,19 @@ export default function TarotDaily({ fortune }: { fortune: TarotFortune }) {
               </button>
             ))}
           </div>
+          {/* 카드 아래. 이 화면도 푸터 광고 하나뿐이었습니다. 타로는 매일 다시
+              오게 하려고 만든 자리라 진입 화면 노출이 그대로 손실이었습니다.
+              카드를 뽑으면 이 자리는 사라지고 아래 결과 화면 광고로 바뀌므로
+              한 페이지에 같은 단위가 두 번 나오지 않습니다. */}
+          <AdUnit position="articleTop" label={`${fortune.title} 카드 선택 화면 광고`} />
         </section>
       )}
 
       {ready && picked && (
         <section className="rich-result">
+          {/* 결과 최상단. 성향 테스트 결과(GenericTestRunner)와 같은 구성입니다.
+              타로 결과만 본문 중간 하나뿐이었습니다. */}
+          <AdUnit key={`tarot-result-top-${picked.no}`} position="resultTop" label={`${fortune.title} 결과 상단 광고`} />
           <span className="result-kicker">{dateKey} · {tarotTypeLabels[fortune.type]}</span>
 
           <div className="tarot-card-face" style={{ background: picked.color }}>
