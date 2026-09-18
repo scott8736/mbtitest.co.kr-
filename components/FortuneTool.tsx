@@ -57,6 +57,16 @@ function readStoredDraft(): Draft | null {
   }
 }
 
+/**
+ * year/month/day/timeSlot 은 세 모드(today/saju/saju-mbti)가 저장을 공유하지만,
+ * mbti는 saju-mbti 모드만 쓰는 값이다. 다른 모드에서 채운 draft를 그대로 물려받아
+ * resultOnly 화면에 쓰면 mbti가 빈 채로 "undefined"가 노출되므로, 모드별 필수
+ * 필드가 빠졌는지 여기서 먼저 가른다.
+ */
+export function draftMissingModeField(mode: FortuneMode, draft: Pick<Draft, "mbti"> | null | undefined): boolean {
+  return mode === "saju-mbti" && !draft?.mbti;
+}
+
 function storeDraft(draft: Draft) {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
@@ -91,7 +101,7 @@ export default function FortuneTool({ mode, resultOnly = false }: { mode: Fortun
   // 결과는 별도 주소에서 보여줍니다. 입력값은 브라우저에 저장해 둔 것을 다시 읽습니다.
   useEffect(() => {
     const stored = readStoredDraft();
-    if (!stored) {
+    if (!stored || draftMissingModeField(mode, stored)) {
       if (resultOnly) location.replace(`/fortune/${mode === "today" ? "today" : mode === "saju" ? "saju" : "saju-mbti"}/`);
       return;
     }

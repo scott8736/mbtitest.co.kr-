@@ -184,7 +184,7 @@ export const genericTests: Record<string, GenericTest> = {
   },
   "adult-attachment": {
     slug:"adult-attachment", title:"성인 애착유형 테스트", eyebrow:"ADULT ATTACHMENT", description:"관계 불안과 친밀감 회피의 두 축으로 연애와 가까운 관계에서 반복되는 나의 애착 패턴을 살펴봅니다.", duration:"약 3분", disclaimer:"자기이해를 위한 간이 테스트이며 전문적인 심리 평가나 상담을 대신하지 않습니다.",
-    dimensions:[{key:"anxiety",label:"관계 불안"},{key:"avoidance",label:"친밀감 회피"},{key:"secure",label:"안정 반응"}],
+    dimensions:[{key:"anxiety",label:"관계 불안"},{key:"avoidance",label:"친밀감 회피"},{key:"secure",label:"안정 반응"},{key:"fear",label:"공포·혼란"}],
     questions:attachmentQuestions, related:["egen-teto","mental-age","mbti"],
     evaluation:"attachment",
     results:{

@@ -101,7 +101,8 @@ export function buildCouple(first: BirthInput, second: BirthInput): CoupleResult
   const b = buildChart(second);
 
   const relation = elementRelation(a.dayElement, b.dayElement);
-  const branch = branchRelation(a.year.branchIdx, b.year.branchIdx);
+  // 띠 관계는 입춘 보정이 들어간 zodiacIndex 로 봐야 실제 "띠"와 어긋나지 않습니다.
+  const branch = branchRelation(a.zodiacIndex, b.zodiacIndex);
 
   // 서로 모자란 오행을 채워 주는지. 한쪽이 0개인 오행을 다른 쪽이 2개 이상 가지면 보완으로 봅니다.
   const complements: { giver: "a" | "b"; element: number }[] = [];
