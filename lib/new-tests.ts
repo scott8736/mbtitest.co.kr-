@@ -2,6 +2,7 @@ import type { GenericResult, GenericTest } from "./generic-tests";
 import type { TestCategory } from "./test-catalog";
 import { hspTest } from "./hsp-test";
 import { egenTetoMaleTest } from "./egen-teto-male";
+import { enneagramTest } from "./enneagram";
 import { testMeta } from "./test-meta";
 
 type ResultSeed = {
@@ -429,10 +430,11 @@ const seeds: TestSeed[] = [
 ];
 
 // 이 목록에 들어간 테스트는 /tests/[slug] 동적 라우트로 만들어집니다.
-// hsp 와 egen-teto-male 은 문항과 결과를 손으로 쓴 테스트라 seed 생성기를 거치지 않습니다.
+// hsp·egen-teto-male·enneagram 은 문항과 결과를 손으로 쓴 테스트라 seed 생성기를 거치지 않습니다.
 // 여기 키 순서가 lib/test-meta.ts 의 순서와 같아야 합니다 (tests/test-catalog.test.mjs).
 export const newGenericTests: Record<string, GenericTest> = {
   ...Object.fromEntries(seeds.map((seed) => [seed.slug, makeTest(seed)])),
   [hspTest.slug]: hspTest,
   [egenTetoMaleTest.slug]: egenTetoMaleTest,
+  [enneagramTest.slug]: enneagramTest,
 };

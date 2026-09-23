@@ -254,6 +254,11 @@ export const newTestMeta: TestMeta[] = [
     questionCount: 20, duration: "약 3분",
     description: "20문항으로 에겐남·테토남은 물론, 겉과 속이 다른 두 유형까지 네 가지 중 나를 찾습니다.",
     keywords: ["에겐남 테스트", "테토남 테스트", "에겐남 테토남", "에겐테토 남자", "테토남 특징", "에겐남 특징"] },
+  { slug: "enneagram", title: "에니어그램 테스트", shortTitle: "에니어그램",
+    eyebrow: "ENNEAGRAM", category: "성격", icon: "◎", color: "#5b7f6b",
+    questionCount: 36, duration: "약 5분",
+    description: "36문항으로 아홉 가지 유형의 핵심 동기를 비교해 나에게 가장 가까운 번호를 찾습니다.",
+    keywords: ["에니어그램", "에니어그램 테스트", "에니어그램 유형", "에니어그램 9가지 유형", "에니어그램 검사"] },
 ];
 
 const bySlug = new Map(newTestMeta.map((meta) => [meta.slug, meta]));
