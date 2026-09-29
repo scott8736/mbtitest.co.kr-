@@ -16,12 +16,12 @@ import { newTestMeta } from "../lib/test-meta";
  */
 const SEASON = {
   eyebrow: "이번 시즌",
-  heading: "추석과 가을, 지금 딱 맞는 테스트",
-  lead: "명절 연휴에 친구·가족과 같이 해보기 좋은 세 가지를 모았습니다.",
+  heading: "깊어가는 가을, 지금 딱 맞는 테스트",
+  lead: "핼러윈과 수능을 앞둔 요즘 해보기 좋은 세 가지를 모았습니다.",
   items: [
-    { slug: "chuseok-food", emoji: "🌕", note: "명절 상 앞에서 손이 먼저 가는 음식으로 보는 성격" },
-    { slug: "holiday-stress", emoji: "😵", note: "명절에 나를 가장 지치게 하는 지점이 어디인지" },
     { slug: "autumn-bti", emoji: "🍂", note: "가을을 보내는 방식으로 알아보는 계절 성향" },
+    { slug: "halloween", emoji: "🎃", note: "핼러윈 밤에 어울리는 나의 캐릭터 찾기" },
+    { slug: "suneung-mental", emoji: "✏️", note: "시험을 앞두고 내 멘탈이 버티는 방식" },
   ],
 };
 
