@@ -43,9 +43,9 @@ test("newTestSlugs 가 실제 테스트 목록과 값·순서까지 같다", () 
 });
 
 test("카탈로그에 있는 테스트는 모두 실제 문항을 가지고 있다", () => {
-  // mbti 는 문항이 lib/mbti-data.ts 에 따로 있어 genericTests 에 없습니다.
+  // mbti 는 문항이 lib/mbti-data.ts 에, iq 는 lib/iq-test.ts 에 따로 있어 genericTests 에 없습니다.
   const missing = testCatalog
-    .filter((item) => item.status === "published" && item.slug !== "mbti")
+    .filter((item) => item.status === "published" && !["mbti", "iq"].includes(item.slug))
     .filter((item) => !genericTests[item.slug])
     .map((item) => item.slug);
   assert.deepEqual(missing, [], `문항이 없는 카탈로그 항목: ${missing.join(", ")}`);

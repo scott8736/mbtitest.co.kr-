@@ -1,0 +1,94 @@
+/*
+ * IQ 테스트 전용 스타일. 척도 버튼·점수 막대·FAQ 는 check/screener.css 것을 쓰고,
+ * 여기에는 문제 그림(수열·표), 영역별 정답, 해설 목록만 둡니다.
+ */
+
+.iq-figure {
+  display: grid;
+  gap: 4px;
+  margin-top: 16px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--white);
+  color: var(--ink);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.6;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.iq-areas,
+.iq-review {
+  margin-top: 32px;
+  max-width: 62ch;
+}
+.iq-areas h2,
+.iq-review h2 {
+  margin: 0 0 14px;
+  font-size: 20px;
+}
+
+.iq-areas ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.iq-areas li {
+  display: grid;
+  grid-template-columns: 3.5em 1fr 3.5em;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink);
+}
+.iq-areas li .screener-meter {
+  display: block;
+  margin: 0;
+}
+.iq-areas li em {
+  font-style: normal;
+  text-align: right;
+  color: var(--ink);
+}
+
+.iq-review ol {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.iq-review li {
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-left: 3px solid #5f8e6b;
+  border-radius: 10px;
+  background: var(--white);
+  color: var(--ink);
+}
+.iq-review li.miss {
+  border-left-color: #b0543f;
+}
+.iq-review li p {
+  margin: 4px 0;
+  line-height: 1.6;
+}
+.iq-review-q b {
+  margin-right: 6px;
+  color: #3d6b49;
+}
+.iq-review li.miss .iq-review-q b {
+  color: #a3432f;
+}
+.iq-review-explain {
+  color: #4a5b4e;
+}
+
+@media (max-width: 640px) {
+  .iq-figure {
+    font-size: 17px;
+  }
+}

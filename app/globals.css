@@ -81,7 +81,7 @@ button:focus-visible { outline:3px solid #91a98b; outline-offset:4px; }
 .empty-catalog { padding:70px 20px; text-align:center; color:#7b857c; }
 .directory-hero { padding:90px clamp(24px,8vw,130px) 70px; background:radial-gradient(circle at 80% 20%,#e2eadc,transparent 32%),#f7f8f3; }
 .directory-hero h1 { margin:24px 0 20px; font-size:clamp(48px,6vw,76px); line-height:1.12; letter-spacing:-.06em; }
-.directory-hero p { margin:0; color:#687269; font-size:18px; line-height:1.8; }
+.directory-hero p { margin:0; max-width:62ch; color:#687269; font-size:18px; line-height:1.8; }
 .directory-section { padding:70px clamp(24px,6vw,88px) 110px; background:#fffefa; }
 .directory-note { padding:75px 24px; text-align:center; background:#173c33; color:white; }
 .directory-note h2 { margin:0 0 14px; font-size:32px; }

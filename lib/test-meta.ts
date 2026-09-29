@@ -258,7 +258,12 @@ export const newTestMeta: TestMeta[] = [
     eyebrow: "ENNEAGRAM", category: "성격", icon: "◎", color: "#5b7f6b",
     questionCount: 36, duration: "약 5분",
     description: "36문항으로 아홉 가지 유형의 핵심 동기를 비교해 나에게 가장 가까운 번호를 찾습니다.",
-    keywords: ["에니어그램", "에니어그램 테스트", "에니어그램 유형", "에니어그램 9가지 유형", "에니어그램 검사"] },
+    keywords: ["에니어그램", "에니어그램 테스트", "에니어그램 유형", "에니어그램 9가지 유형", "에니어그램 검사", "애니어그램 테스트"] },
+  { slug: "career", title: "직업적성 테스트", shortTitle: "직업적성",
+    eyebrow: "CAREER · HOLLAND 6", category: "직장", icon: "⬡", color: "#5b6f9b",
+    questionCount: 30, duration: "약 4분",
+    description: "30문항으로 홀랜드 6유형 중 내 흥미가 가장 강한 쪽과 어울리는 직업을 찾습니다.",
+    keywords: ["직업적성 테스트", "직업적성검사", "진로적성검사", "적성검사 무료", "홀랜드 유형", "직업흥미검사"] },
 ];
 
 const bySlug = new Map(newTestMeta.map((meta) => [meta.slug, meta]));

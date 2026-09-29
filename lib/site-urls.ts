@@ -34,6 +34,7 @@ export function siteUrls(now: Date = new Date()): SiteUrl[] {
       "self-esteem",
       "burnout",
       "work-style",
+      "iq",
       ...newTestSlugs,
     ].map((slug) => ({
       path: `/tests/${slug}/`,

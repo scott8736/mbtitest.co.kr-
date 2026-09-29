@@ -4,11 +4,23 @@ import { useMemo, useState } from "react";
 import { testCatalog, testCategories, type TestCategory } from "../lib/test-catalog";
 import Mascot, { moodForKey } from "./Mascot";
 
+/**
+ * 홈의 4칸. 목록 앞 4개를 그대로 쓰면 홈 자체인 MBTI 가 한 칸을 차지해서,
+ * 네이버 월간 검색량이 큰 순서로 직접 고릅니다 (검색광고 키워드도구 2026-09-29).
+ *   애착유형테스트 38,280 · 아이큐+IQ테스트 18,680 · 에겐테토테스트 7,740 · 직업적성테스트 4,380
+ */
+const HOME_PICKS = ["adult-attachment", "iq", "egen-teto", "career"];
+
 export default function TestDirectory({ compact = false }: { compact?: boolean }) {
   const [category, setCategory] = useState<"전체" | TestCategory>("전체");
   const [query, setQuery] = useState("");
 
   const items = useMemo(() => {
+    if (compact) {
+      return HOME_PICKS.map((slug) => testCatalog.find((item) => item.slug === slug)).filter(
+        (item) => item !== undefined,
+      );
+    }
     const normalized = query.trim().toLowerCase();
     return testCatalog
       .filter((item) => category === "전체" || item.category === category)
@@ -17,8 +29,7 @@ export default function TestDirectory({ compact = false }: { compact?: boolean }
         `${item.title} ${item.description} ${item.keywords.join(" ")}`
           .toLowerCase()
           .includes(normalized),
-      )
-      .slice(0, compact ? 4 : undefined);
+      );
   }, [category, query, compact]);
 
   return (

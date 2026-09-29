@@ -1,4 +1,4 @@
-export type TestCategory = "성격" | "연애" | "마음건강" | "직장";
+export type TestCategory = "성격" | "연애" | "마음건강" | "직장" | "두뇌";
 export type TestStatus = "published" | "planned";
 
 export type TestCatalogItem = {
@@ -40,6 +40,22 @@ export const testCatalog: TestCatalogItem[] = [
     keywords: ["MBTI 검사", "엠비티아이 검사", "성격테스트"],
   },
   {
+    // 문항이 lib/iq-test.ts 에 있고 전용 러너(/tests/iq/)를 씁니다. mbti 처럼
+    // genericTests 에 없으므로 tests/test-catalog.test.mjs 에서 예외로 둡니다.
+    slug: "iq",
+    title: "IQ 테스트",
+    shortTitle: "IQ 테스트",
+    description: "수열·언어·논리·수리 20문제로 맞힌 개수와 영역별 강점을 확인합니다.",
+    category: "두뇌",
+    questionCount: 20,
+    duration: "약 5~10분",
+    icon: "◬",
+    color: "#5b4fb0",
+    href: "/tests/iq/",
+    status: "published",
+    keywords: ["IQ 테스트", "아이큐 테스트", "지능 테스트", "두뇌 테스트"],
+  },
+  {
     slug: "egen-teto",
     title: "에겐녀·테토녀 성향 테스트",
     shortTitle: "에겐·테토",
@@ -67,7 +83,7 @@ export const testCatalog: TestCatalogItem[] = [
     color: "#9b6f72",
     href: "/tests/adult-attachment/",
     status: "published",
-    keywords: ["애착유형 테스트", "불안형 테스트", "회피형 테스트"],
+    keywords: ["애착유형 테스트", "애착유형 종류", "불안형 테스트", "회피형 테스트", "혼란형 애착"],
   },
   {
     slug: "mental-age",
@@ -148,4 +164,5 @@ export const testCategories: Array<"전체" | TestCategory> = [
   "연애",
   "마음건강",
   "직장",
+  "두뇌",
 ];
