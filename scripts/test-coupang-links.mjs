@@ -135,7 +135,8 @@ function write(source, raw, link) {
 
 /* ------------------------------------------------------------------ main -- */
 
-let source = fs.readFileSync(PICKS_FILE, "utf8");
+// 윈도우에서 파일이 CRLF 로 저장되면 아래 줄 패턴이 하나도 안 맞아 "항목 0개"가 됩니다(2026-10-01).
+let source = fs.readFileSync(PICKS_FILE, "utf8").replace(/\r\n/g, "\n");
 const all = collect(source);
 const todo = (REDO ? all : all.filter((p) => !p.hasLink)).slice(0, LIMIT);
 console.log(`항목 ${all.length}개 · 링크 만들 것 ${todo.length}개${Number.isFinite(LIMIT) ? ` (--limit=${LIMIT})` : ""}\n`);

@@ -103,3 +103,21 @@ test("자가진단 결과마다 관련 자가진단 추천이 2개 이상이고 
     .map((row) => `${row.slug}: ${row.ok.length}개`);
   assert.deepEqual(problems, []);
 });
+
+test("쿠팡 파트너스 고지문구는 푸터(SiteFooter) 한 곳에만 있다 — 사용자 규칙", async () => {
+  // 2026-10-01 사용자 지시: "쿠팡 파트너스 활동 문구 빼라. 맨 밑에 있다."
+  // 추천 카드마다 고지문구를 붙였다가 두 번 지적받았다. 푸터 말고는 넣지 않는다.
+  const { readdirSync, readFileSync, statSync } = await import("node:fs");
+  const { join, relative } = await import("node:path");
+  const walk = (dir) =>
+    readdirSync(dir).flatMap((name) => {
+      const path = join(dir, name);
+      return statSync(path).isDirectory() ? walk(path) : [path];
+    });
+  const offenders = ["components", "app"]
+    .flatMap((dir) => walk(join(repoRoot, dir)))
+    .filter((file) => /\.(tsx|ts)$/.test(file) && !file.endsWith("SiteFooter.tsx"))
+    .filter((file) => /AFFILIATE_DISCLOSURE|파트너스 활동/.test(readFileSync(file, "utf8")))
+    .map((file) => relative(repoRoot, file));
+  assert.deepEqual(offenders, [], `푸터 밖에 파트너스 고지문구가 있습니다: ${offenders.join(", ")}`);
+});

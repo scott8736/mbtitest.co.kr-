@@ -75,7 +75,8 @@ function write(source, raw, imageUrl) {
 
 /* ------------------------------------------------------------------ main -- */
 
-let source = fs.readFileSync(PICKS_FILE, "utf8");
+// 윈도우에서 파일이 CRLF 로 저장되면 아래 줄 패턴이 하나도 안 맞아 "항목 0개"가 됩니다(2026-10-01).
+let source = fs.readFileSync(PICKS_FILE, "utf8").replace(/\r\n/g, "\n");
 const picks = collect(source);
 const todo = REDO ? picks : picks.filter((p) => !p.hasImage);
 console.log(`항목 ${picks.length}개 · 사진 찾을 것 ${todo.length}개\n`);
