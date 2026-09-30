@@ -377,11 +377,17 @@ button:focus-visible,a:focus-visible,input:focus-visible { outline:3px solid rgb
   padding:12px;
   box-sizing:border-box;
   border-radius:16px;
-  background:#f5f2f8;
+  /* 배경을 칠하지 않습니다. 광고가 안 오면 연보라 빈 상자가 그대로 남아
+     "고장 난 칸"처럼 보였습니다(2026-09-30 MBTI 결과 화면 제보). */
+  background:transparent;
 }
 .ad-unit .adsbygoogle { width:100%; min-width:250px; }
-.ad-unit[data-ad-state="filled"] { background:transparent; }
-.ad-unit[data-ad-state="unfilled"] { display:none; }
+/* 광고를 못 받은 칸은 접습니다. 구글은 "unfilled" 말고 "unfill-optimized" 도
+   보내는데, 그전까지 앞의 것만 숨겨서 모바일 결과 화면에 400px 빈 칸이 두 번 났습니다. */
+.ad-unit[data-ad-state="unfilled"],
+.ad-unit[data-ad-state^="unfill-"] { display:none; }
+/* 요청은 했지만 아직 아무것도 안 들어온 칸은 자리를 차지하지 않게 합니다. */
+.ad-unit:has(> ins.adsbygoogle:empty) { min-height:0; padding:0; margin-block:0; }
 .ad-unit[data-ad-placement="testTop"] { margin:0 auto 26px; }
 .ad-unit[data-ad-placement="resultTop"] { margin:0 auto 30px; }
 main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% - 40px)); }
