@@ -118,6 +118,10 @@ font-size:15px;font-weight:700;cursor:pointer}
 .ranges{display:flex;gap:6px}.ranges a{padding:8px 15px;border:1px solid #e5e0ef;border-radius:99px;
 background:#fff;color:#172a46;font-size:14px;font-weight:600;text-decoration:none}
 .ranges a.on{border-color:#7657d6;background:#7657d6;color:#fff}
+.range-form{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:-8px 0 24px;font-size:14px;color:#697184}
+.range-form input{padding:6px 10px;border:1px solid #e5e0ef;border-radius:10px;font:inherit;color:#172a46}
+.range-form button{padding:7px 14px;border:0;border-radius:99px;background:#172a46;color:#fff;font:inherit;font-weight:600;cursor:pointer}
+.muted{color:#9aa0ad}
 .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
 .cards div{padding:20px;border:1px solid #e5e0ef;border-radius:16px;background:#fff}
 .cards b{display:block;font-size:26px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
@@ -225,13 +229,31 @@ ${error ? `<p class="err">비밀번호가 맞지 않습니다.</p>` : ""}
  */
 const ANSWERED_SINCE = "2026-09-07";
 const COMPLETED_SINCE = "2026-09-10";
+/** 2단계 도착을 페이지뷰가 아니라 이벤트(사람당 한 번)로 세기 시작한 날 */
+const STEP2_SINCE = "2026-10-01";
 
 /** 이보다 표본이 작으면 비율을 내지 않습니다. 몇 건짜리 비율은 뜻이 없습니다. */
 const MIN_SAMPLE = 20;
 
-async function dashboard(db: D1Database, days: number, notice: string): Promise<string> {
-  const to = seoulDay();
-  const from = seoulDay(new Date(Date.now() - (days - 1) * 86400000));
+/** ?from=YYYY-MM-DD&to=YYYY-MM-DD. 잘못된 값이면 null 이라 최근 N일로 돌아갑니다 */
+export function parseRange(url: URL): { from: string; to: string } | null {
+  const from = url.searchParams.get("from") ?? "";
+  const to = url.searchParams.get("to") ?? "";
+  const ok = (d: string) => /^\d{4}-\d{2}-\d{2}$/.test(d) && !Number.isNaN(Date.parse(d));
+  if (!ok(from) || !ok(to) || from > to) return null;
+  const today = seoulDay();
+  return { from, to: to > today ? today : to };
+}
+
+async function dashboard(
+  db: D1Database,
+  days: number,
+  notice: string,
+  range: { from: string; to: string } | null = null,
+): Promise<string> {
+  // 설정을 바꾼 날 전·후를 비교하려면 날짜를 직접 지정할 수 있어야 합니다.
+  const to = range?.to ?? seoulDay();
+  const from = range?.from ?? seoulDay(new Date(Date.now() - (days - 1) * 86400000));
   const q = async <T,>(sql: string, ...b: unknown[]) =>
     ((await db.prepare(sql).bind(...b).all<T>()).results ?? []) as T[];
 
@@ -291,22 +313,25 @@ async function dashboard(db: D1Database, days: number, notice: string): Promise<
   // 결과 주소는 공유되고 새로고침되어 조회수가 완주 수보다 큽니다.
   const events = await q<{ slug: string; name: string; count: number }>(
     `SELECT slug, name, COUNT(*) AS count FROM test_events
-      WHERE day BETWEEN ? AND ? AND name IN ('answered', 'completed')
+      WHERE day BETWEEN ? AND ? AND name IN ('answered', 'step2', 'completed')
       GROUP BY slug, name`, from, to);
   const countsFor = (name: string) =>
     new Map(events.filter((row) => row.name === name).map((row) => [row.slug, row.count]));
   const answeredBySlug = countsFor("answered");
   const completedBySlug = countsFor("completed");
+  const step2BySlug = countsFor("step2");
 
   const peak = Math.max(1, ...daily.map((d) => d.views));
   const ranges = [1, 7, 30, 90]
-    .map((d) => `<a href="/admin/?days=${d}" class="${d === days ? "on" : ""}">${d === 1 ? "오늘" : `${d}일`}</a>`)
+    .map((d) => `<a href="/admin/?days=${d}" class="${!range && d === days ? "on" : ""}">${d === 1 ? "오늘" : `${d}일`}</a>`)
     .join("");
+  const rangeForm = `<form class="range-form" method="get" action="/admin/"><input type="date" name="from" value="${from}"> ~ <input type="date" name="to" value="${to}"> <button>기간 조회</button></form>`;
 
   return shell(
     "접속 현황",
     `<div class="wrap">
 <div class="head"><div><h1>접속 현황</h1><p>${from} ~ ${to} (KST)</p></div><nav class="ranges">${ranges}<a href="/admin/trends/">트렌드</a><a href="/admin/keywords/">키워드 조회</a><a href="/admin/coupang/">쿠팡</a></nav></div>
+${rangeForm}
 
 <div class="cards">
 <div><b>${total.views.toLocaleString()}</b><span>페이지뷰</span></div>
@@ -338,6 +363,7 @@ async function dashboard(db: D1Database, days: number, notice: string): Promise<
 「방문」은 검사 화면이 열린 수, 「첫 응답」은 문항 하나라도 답한 수, 「완주」는 끝까지 풀고 결과를 받은 수입니다.
 방문과 첫 응답의 차이가 크면 첫인상 문제, 「첫 응답 → 완주」가 낮으면 길이 문제입니다. 고칠 곳이 서로 달라 나눠 셉니다.
 <br>「결과 조회」는 결과 화면 조회수입니다. 공유 링크로 들어온 사람과 새로고침이 섞여 있어 완주 수보다 큽니다. 비율에는 쓰지 않습니다.
+<br>「2단계」는 2단계 화면에 도착한 사람 수입니다. ${STEP2_SINCE} 부터는 사람당 한 번만 세고, 그 전 기간은 새로고침이 섞인 화면 조회수라 회색으로 표시합니다.
 <br>첫 응답은 ${ANSWERED_SINCE}, 완주는 ${COMPLETED_SINCE} 부터 쌓기 시작했습니다. 조회 기간이 그 전을 포함하면 비율은 「-」로 나옵니다.
 표본이 ${MIN_SAMPLE}건 미만이어도 비율 대신 「표본 부족」으로 적습니다.
 </p>${
@@ -354,7 +380,7 @@ async function dashboard(db: D1Database, days: number, notice: string): Promise<
                 if (whole < MIN_SAMPLE) return "표본 부족";
                 return Math.round((part / whole) * 100) + "%";
               };
-              return `<tr><td>${esc(s.slug)}</td><td>${s.intro}</td><td>${began || "-"}</td><td>${s.step2}</td><td>${s.result}</td><td>${finished || "-"}</td>
+              return `<tr><td>${esc(s.slug)}</td><td>${s.intro}</td><td>${began || "-"}</td><td>${from >= STEP2_SINCE ? (step2BySlug.get(s.slug) ?? "-") : `<span class="muted">${s.step2}</span>`}</td><td>${s.result}</td><td>${finished || "-"}</td>
 <td>${rate(began, s.intro, ANSWERED_SINCE)}</td><td>${rate(finished, began, COMPLETED_SINCE)}</td></tr>`;
             })
             .join("")}</tbody></table></div>`
@@ -1057,5 +1083,5 @@ export async function handleAdmin(request: Request, url: URL, db: D1Database | u
 
   const days = [1, 7, 30, 90].includes(Number(url.searchParams.get("days"))) ? Number(url.searchParams.get("days")) : 7;
   const changed = url.searchParams.get("changed");
-  return html(await dashboard(db, days, changed === "1" ? "ok" : changed === "0" ? "fail" : ""));
+  return html(await dashboard(db, days, changed === "1" ? "ok" : changed === "0" ? "fail" : "", parseRange(url)));
 }

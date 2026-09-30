@@ -1,0 +1,99 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { build } from "esbuild";
+import { fileURLToPath } from "node:url";
+
+// new URL(..).pathname 은 윈도우에서 "/D:/..." 를 내놓아 esbuild 가 못 읽습니다.
+const repoRoot = fileURLToPath(new URL("..", import.meta.url));
+
+/**
+ * 완주율 표를 만드는 기록이 사람당 한 번씩만 쌓이는지 봅니다.
+ *
+ * 2026-09-30 관리자 표에서 애착 테스트의 「2단계」(108)가 「첫 응답」(102)보다
+ * 컸습니다. 2단계를 화면 조회수로 세서 새로고침·뒤로가기가 섞였기 때문입니다.
+ * 지금은 완주와 같은 방식(표시 → 한 번 기록)으로 셉니다.
+ */
+const { outputFiles } = await build({
+  stdin: {
+    contents: `
+      export { markStep2Reached, recordStep2Once, markTestCompleted, recordCompletionOnce, remainingMinutes } from "./lib/test-events";
+      export { parseRange } from "./worker/admin";
+    `,
+    resolveDir: repoRoot,
+    loader: "ts",
+  },
+  bundle: true,
+  format: "esm",
+  platform: "neutral",
+  external: ["cloudflare:*"],
+  write: false,
+});
+const mod = await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString("base64")}`);
+
+// 브라우저 대역. sendBeacon 으로 나간 주소를 모읍니다.
+const sent = [];
+const store = new Map();
+globalThis.sessionStorage = {
+  getItem: (k) => (store.has(k) ? store.get(k) : null),
+  setItem: (k, v) => store.set(k, String(v)),
+  removeItem: (k) => store.delete(k),
+};
+Object.defineProperty(globalThis, "navigator", {
+  value: { sendBeacon: (url) => (sent.push(url), true) },
+  configurable: true,
+});
+
+const reset = () => {
+  sent.length = 0;
+  store.clear();
+};
+
+test("2단계는 1단계를 끝낸 사람만, 한 번만 기록된다 (새로고침해도 한 번)", () => {
+  reset();
+  mod.markStep2Reached("adult-attachment");
+  mod.recordStep2Once("adult-attachment");
+  mod.recordStep2Once("adult-attachment"); // 새로고침
+  assert.deepEqual(sent, ["/api/event?slug=adult-attachment&name=step2"]);
+});
+
+test("1단계를 거치지 않고 2단계 주소를 연 경우는 기록하지 않는다", () => {
+  reset();
+  mod.recordStep2Once("mbti");
+  assert.deepEqual(sent, []);
+});
+
+test("테스트마다 따로 센다", () => {
+  reset();
+  mod.markStep2Reached("mbti");
+  mod.recordStep2Once("egen-teto");
+  assert.deepEqual(sent, []);
+  mod.recordStep2Once("mbti");
+  assert.deepEqual(sent, ["/api/event?slug=mbti&name=step2"]);
+});
+
+test("완주도 같은 방식으로 한 번만 기록된다", () => {
+  reset();
+  mod.markTestCompleted("career");
+  mod.recordCompletionOnce("career");
+  mod.recordCompletionOnce("career");
+  assert.deepEqual(sent, ["/api/event?slug=career&name=completed"]);
+});
+
+test("남은 시간은 문항당 6초, 최소 1분", () => {
+  assert.equal(mod.remainingMinutes(20), 2);
+  assert.equal(mod.remainingMinutes(12), 1);
+  assert.equal(mod.remainingMinutes(1), 1);
+  assert.equal(mod.remainingMinutes(0), 1);
+});
+
+test("관리자 기간 지정: 올바른 범위만 받고, 미래 끝 날짜는 오늘로 자른다", () => {
+  const r = (q) => mod.parseRange(new URL(`https://x/admin/?${q}`));
+  assert.deepEqual(r("from=2026-09-10&to=2026-09-22"), { from: "2026-09-10", to: "2026-09-22" });
+  assert.equal(r("from=2026-09-22&to=2026-09-10"), null, "시작이 끝보다 늦음");
+  assert.equal(r("from=2026-9-1&to=2026-09-22"), null, "형식 틀림");
+  assert.equal(r("from=abc&to=2026-09-22"), null);
+  assert.equal(r("to=2026-09-22"), null, "시작 없음");
+  assert.equal(r(""), null);
+  const future = r("from=2026-09-10&to=2999-01-01");
+  assert.ok(future && future.to < "2999-01-01", "미래 날짜는 오늘로");
+});

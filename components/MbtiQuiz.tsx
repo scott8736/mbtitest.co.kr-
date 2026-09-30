@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import AdUnit from "./AdUnit";
 import Mascot, { moodForQuestion } from "./Mascot";
 import { questions, type Answer, type Axis } from "../lib/mbti-data";
-import { markTestCompleted, recordTestEvent } from "../lib/test-events";
+import { markStep2Reached, markTestCompleted, recordStep2Once, recordTestEvent, remainingMinutes } from "../lib/test-events";
 
 export const QUESTIONS_PER_STEP = 20;
 export const TOTAL_STEPS = Math.ceil(questions.length / QUESTIONS_PER_STEP);
@@ -32,7 +32,7 @@ function readProgress(): Progress | null {
 }
 
 /**
- * 40문항을 10문항씩 네 단계로 나눠 각 단계를 별도 주소에서 보여줍니다.
+ * 40문항을 20문항씩 두 단계로 나눠 각 단계를 별도 주소에서 보여줍니다.
  * 단계 사이 점수는 sessionStorage 에 쌓아 두고, 마지막 단계에서 유형을 계산합니다.
  */
 export default function MbtiQuiz({ step = 1 }: { step?: number }) {
@@ -56,6 +56,7 @@ export default function MbtiQuiz({ step = 1 }: { step?: number }) {
     }
     setScores(progress.scores);
     setReady(true);
+    if (step === 2) recordStep2Once("mbti");
   }, [step]);
 
   const answeredBefore = (step - 1) * QUESTIONS_PER_STEP;
@@ -78,6 +79,7 @@ export default function MbtiQuiz({ step = 1 }: { step?: number }) {
     const answered = answeredBefore + stepQuestions.length;
     if (step < TOTAL_STEPS) {
       sessionStorage.setItem(PROGRESS_KEY, JSON.stringify({ scores: next, answered }));
+      if (step === 1) markStep2Reached("mbti");
       location.assign(stepPath(step + 1));
       return;
     }
@@ -110,6 +112,11 @@ export default function MbtiQuiz({ step = 1 }: { step?: number }) {
       </div>
       <div className="progress"><i style={{ width: `${progressPercent}%` }} /></div>
       <p className="step-badge">{step}단계 / 총 {TOTAL_STEPS}단계</p>
+      {step > 1 && index === 0 && (
+        <p className="step-cheer">
+          절반 왔어요 · 남은 {questions.length - answeredBefore}문항, 약 {remainingMinutes(questions.length - answeredBefore)}분
+        </p>
+      )}
       <div className="question-card">
         <span className="question-kicker">둘 중 나와 더 가까운 문장은?</span>
         {/* 표정이 문항마다 바뀝니다. 같은 화면이 계속 나오면 넘어가지 않는 것

@@ -8,7 +8,39 @@
  * 응답 내용은 보내지 않습니다. "누가 답을 시작했다"는 사실만 셉니다.
  */
 
-export type TestEventName = "answered" | "completed";
+export type TestEventName = "answered" | "step2" | "completed";
+
+/**
+ * 2단계 도착. 완주와 같은 방식입니다 — 2단계 화면 조회수를 쓰면 새로고침과
+ * 뒤로가기가 섞여 "첫 응답보다 2단계가 많은" 표가 나옵니다(2026-09-30 관리자 표).
+ * 1단계를 끝낸 순간 표시를 남기고, 2단계 화면은 표시가 있을 때 한 번만 기록합니다.
+ */
+const STEP2_PENDING = (slug: string) => `test-step2-pending:${slug}`;
+
+/** 문항당 약 6초로 잡은 남은 시간(분). 2단계 격려 문구에만 씁니다 */
+export function remainingMinutes(remaining: number): number {
+  return Math.max(1, Math.round((remaining * 6) / 60));
+}
+
+/** 1단계 마지막 문항에 답하고 2단계로 넘어가기 직전에 호출합니다. */
+export function markStep2Reached(slug: string): void {
+  try {
+    sessionStorage.setItem(STEP2_PENDING(slug), "1");
+  } catch {
+    // 저장이 막힌 브라우저에서는 한 건 덜 세어질 뿐입니다.
+  }
+}
+
+/** 2단계 화면이 앞 단계 답을 불러온 뒤 호출합니다. */
+export function recordStep2Once(slug: string): void {
+  try {
+    if (sessionStorage.getItem(STEP2_PENDING(slug)) !== "1") return;
+    sessionStorage.removeItem(STEP2_PENDING(slug));
+    recordTestEvent(slug, "step2");
+  } catch {
+    // 위와 같습니다.
+  }
+}
 
 /**
  * 완주 표시를 담아 두는 자리.

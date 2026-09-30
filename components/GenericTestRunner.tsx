@@ -5,7 +5,7 @@ import type { GenericTest, ScoreMap } from "../lib/generic-tests";
 import { evaluateTest, type Picks } from "../lib/generic-eval";
 import { testCatalog } from "../lib/test-catalog";
 import AdUnit from "./AdUnit";
-import { markTestCompleted, recordCompletionOnce, recordTestEvent } from "../lib/test-events";
+import { markStep2Reached, markTestCompleted, recordCompletionOnce, recordStep2Once, recordTestEvent, remainingMinutes } from "../lib/test-events";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
 import CrossPromo from "./CrossPromo";
@@ -52,6 +52,7 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
       setGender(parsed.gender || "");
       setPicks(parsed.picks || []);
       setReady(true);
+      recordStep2Once(test.slug);
     } catch {
       sessionStorage.removeItem(PROGRESS_KEY(test.slug));
       location.replace(`/tests/${test.slug}/`);
@@ -113,6 +114,7 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
     }
     if (part === 1) {
       sessionStorage.setItem(PROGRESS_KEY(test.slug), JSON.stringify({ scores: next, gender, picks: nextPicks }));
+      markStep2Reached(test.slug);
       location.assign(`/tests/${test.slug}/step2/`);
       return;
     }
@@ -197,13 +199,15 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
             <h1>{test.heading || test.title}</h1>
             <p>{test.description}</p>
             <div className="generic-meta"><span>{test.questions.length}문항</span><span>{test.duration}</span><span>가입 없음</span></div>
+            <button className="primary-button" onClick={start}>무료 테스트 시작 <span>→</span></button>
+            {/* 시작 버튼 아래에 둡니다. 위에 있을 때 응답 시작률이 50% 로 다른 테스트(57~61%)보다
+                낮았습니다 — 두 버튼이 먼저 눌러야 하는 단계처럼 보였을 가능성이 큽니다(2026-09-30). */}
             {test.slug === "egen-teto" && (
               <div className="gender-choice" aria-label="결과명 선택">
-                <span>결과 표현 선택 · 선택하지 않아도 검사할 수 있어요</span>
+                <span>선택 사항 · 결과 이름을 에겐녀/에겐남으로 받고 싶다면 먼저 골라 주세요</span>
                 <div><button className={gender === "여성" ? "active" : ""} onClick={() => setGender("여성")}>에겐녀·테토녀</button><button className={gender === "남성" ? "active" : ""} onClick={() => setGender("남성")}>에겐남·테토남</button></div>
               </div>
             )}
-            <button className="primary-button" onClick={start}>무료 테스트 시작 <span>→</span></button>
           </section>
           {/* 시작 버튼 아래. 홈(MbtiHome)의 testIntro 와 같은 자리입니다.
               그전까지 이 화면은 푸터 광고 하나뿐이었습니다. 테스트 44개가 전부
@@ -236,6 +240,11 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
           </div>
           <div className="progress"><i style={{ width: `${((answeredBefore + index + 1) / test.questions.length) * 100}%` }} /></div>
           <p className="step-badge">{part}단계 / 총 2단계</p>
+          {part === 2 && index === 0 && (
+            <p className="step-cheer">
+              절반 왔어요 · 남은 {stepQuestions.length}문항, 약 {remainingMinutes(stepQuestions.length)}분
+            </p>
+          )}
           <div className="question-card">
             {/* 문항마다 표정이 바뀝니다. 같은 그림이 계속 나오면 "안 넘어가는 것
                 같은" 착시가 생겨 중간에 나갑니다. */}
