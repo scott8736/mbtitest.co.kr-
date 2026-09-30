@@ -22,7 +22,8 @@ const OG_DIR = join(repoRoot, "public", "images", "og", "r");
 const { outputFiles } = await build({
   stdin: {
     contents: `export { genericTests } from "./lib/generic-tests";
-               export { typeData } from "./lib/mbti-data";`,
+               export { typeData } from "./lib/mbti-data";
+               export { blogPosts } from "./lib/blog-posts";`,
     resolveDir: repoRoot,
     loader: "ts",
   },
@@ -31,7 +32,7 @@ const { outputFiles } = await build({
   platform: "neutral",
   write: false,
 });
-const { genericTests, typeData } = await import(
+const { genericTests, typeData, blogPosts } = await import(
   `data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString("base64")}`
 );
 
@@ -92,4 +93,16 @@ test("공유 이미지에 쓰는 결과 문구가 비어 있지 않다", () => {
     }
   }
   assert.deepEqual(empty, [], `카드에 쓸 문구가 빈 결과: ${empty.join(", ")}`);
+});
+
+test("모든 블로그 글에 대표 이미지가 있다", () => {
+  // 글 페이지의 <img>, og:image, 블로그 목록 카드가 모두 이 파일을 씁니다.
+  // 빠지면 글 화면에 깨진 그림이 뜨고 공유 썸네일도 사라집니다.
+  // 2026-09-30 전수 점검에서 enneagram-guide 가 이렇게 빠져 있었습니다.
+  const BLOG_DIR = join(repoRoot, "public", "images", "blog");
+  const missing = blogPosts
+    .map((post) => post.slug)
+    .filter((slug) => !existsSync(join(BLOG_DIR, `${slug}.png`)));
+  assert.deepEqual(missing, [], `대표 이미지가 없는 글: ${missing.join(", ")}
+  node scripts/make-blog-cards.mjs 로 만드세요.`);
 });

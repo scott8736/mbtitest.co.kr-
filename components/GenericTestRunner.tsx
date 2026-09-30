@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { GenericTest, ScoreMap } from "../lib/generic-tests";
+import { evaluateTest, type Picks } from "../lib/generic-eval";
 import { testCatalog } from "../lib/test-catalog";
 import AdUnit from "./AdUnit";
 import { markTestCompleted, recordCompletionOnce, recordTestEvent } from "../lib/test-events";
@@ -24,6 +25,8 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
   const [index, setIndex] = useState(0);
   const [ready, setReady] = useState(part === 1);
   const [scores, setScores] = useState<ScoreMap>({});
+  // 문항별로 고른 쪽. 동점일 때 결과를 가르는 데 씁니다 (lib/generic-eval.ts).
+  const [picks, setPicks] = useState<Picks>([]);
   const [resultKey, setResultKey] = useState(Object.keys(test.results)[0]);
   const [gender, setGender] = useState<"" | "여성" | "남성">("");
   const result = test.results[resultKey];
@@ -44,9 +47,10 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
     try {
       const saved = sessionStorage.getItem(PROGRESS_KEY(test.slug));
       if (!saved) throw new Error("no progress");
-      const parsed = JSON.parse(saved) as { scores: ScoreMap; gender: "" | "여성" | "남성" };
+      const parsed = JSON.parse(saved) as { scores: ScoreMap; gender: "" | "여성" | "남성"; picks?: Picks };
       setScores(parsed.scores || {});
       setGender(parsed.gender || "");
+      setPicks(parsed.picks || []);
       setReady(true);
     } catch {
       sessionStorage.removeItem(PROGRESS_KEY(test.slug));
@@ -84,12 +88,17 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
       return;
     }
     setScores({});
+    setPicks([]);
     setIndex(0);
     setScreen("test");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const answer = (add: ScoreMap) => {
+  const answer = (side: "a" | "b") => {
+    const question = stepQuestions[index];
+    const add = side === "a" ? question.aScores : question.bScores;
+    const nextPicks = [...picks];
+    nextPicks[answeredBefore + index] = side;
     // 첫 문항에 답한 순간. 화면을 열자마자 나간 사람과 여기까지 온 사람을
     // 가르는 지점이라 따로 셉니다.
     if (part === 1 && index === 0) recordTestEvent(test.slug, "answered");
@@ -98,15 +107,16 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
     Object.entries(add).forEach(([key, value]) => { next[key] = (next[key] || 0) + value; });
     if (index < stepQuestions.length - 1) {
       setScores(next);
+      setPicks(nextPicks);
       setIndex(index + 1);
       return;
     }
     if (part === 1) {
-      sessionStorage.setItem(PROGRESS_KEY(test.slug), JSON.stringify({ scores: next, gender }));
+      sessionStorage.setItem(PROGRESS_KEY(test.slug), JSON.stringify({ scores: next, gender, picks: nextPicks }));
       location.assign(`/tests/${test.slug}/step2/`);
       return;
     }
-    const nextResultKey = evaluateTest(test, next);
+    const nextResultKey = evaluateTest(test, next, nextPicks);
     setScores(next);
     setResultKey(nextResultKey);
     sessionStorage.removeItem(PROGRESS_KEY(test.slug));
@@ -233,9 +243,9 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
             <span className="question-kicker">나와 더 가까운 문장은?</span>
             <h2>{answeredBefore + index + 1}. 평소의 나를 떠올려<br />한 가지를 선택해 주세요.</h2>
             <div className="answers">
-              <button onClick={() => answer(stepQuestions[index].aScores)}><span>A</span><strong>{stepQuestions[index].a}</strong><small>이 문장에 더 가까워요</small></button>
+              <button onClick={() => answer("a")}><span>A</span><strong>{stepQuestions[index].a}</strong><small>이 문장에 더 가까워요</small></button>
               <em>또는</em>
-              <button onClick={() => answer(stepQuestions[index].bScores)}><span>B</span><strong>{stepQuestions[index].b}</strong><small>이 문장에 더 가까워요</small></button>
+              <button onClick={() => answer("b")}><span>B</span><strong>{stepQuestions[index].b}</strong><small>이 문장에 더 가까워요</small></button>
             </div>
           </div>
           {/* 광고는 질문 아래에 둡니다. 위에 있으면 모바일 첫 화면이 광고로
@@ -277,33 +287,6 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
       <SiteFooter />
     </main>
   );
-}
-
-function evaluateTest(test: GenericTest, scores: ScoreMap) {
-  if (test.evaluation === "egen-teto") {
-    const egen = scores.egen || 0;
-    const teto = scores.teto || 0;
-    return Math.abs(egen - teto) <= 3 ? "balance" : egen > teto ? "egen" : "teto";
-  }
-  if (test.evaluation === "attachment") {
-    const anxiety = (scores.anxiety || 0) + (scores.fear || 0);
-    const avoidance = (scores.avoidance || 0) + (scores.fear || 0);
-    if (anxiety >= 7 && avoidance >= 7) return "fearful";
-    if (anxiety >= 7) return "anxious";
-    if (avoidance >= 7) return "avoidant";
-    return "secure";
-  }
-  if (test.evaluation === "mental-age") {
-    const young = scores.young || 0;
-    if (young >= 12) return "teen";
-    if (young >= 9) return "twenties";
-    if (young >= 6) return "thirties";
-    if (young >= 3) return "forties";
-    return "wise";
-  }
-  return Object.keys(test.results).reduce((best, key) =>
-    (scores[key] || 0) > (scores[best] || 0) ? key : best,
-  Object.keys(test.results)[0]);
 }
 
 function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) {

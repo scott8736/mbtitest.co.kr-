@@ -18,6 +18,10 @@ import { markTestCompleted, recordCompletionOnce, recordTestEvent } from "../lib
  * 이유는 lib/iq-test.ts 에 적었습니다.
  */
 
+// 시작·완료 클릭에서만 부릅니다. 컴포넌트 안에서 직접 부르면 린트(react-compiler)가
+// 렌더 중 호출로 오인합니다.
+const now = () => Date.now();
+
 function formatDuration(ms: number): string {
   const sec = Math.max(1, Math.round(ms / 1000));
   const m = Math.floor(sec / 60);
@@ -54,7 +58,7 @@ export default function IqTestRunner() {
   const start = () => {
     setAnswers([]);
     setIndex(0);
-    startedAt.current = Date.now();
+    startedAt.current = now();
     setScreen("test");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -69,7 +73,7 @@ export default function IqTestRunner() {
       setIndex(index + 1);
       return;
     }
-    setElapsed(Date.now() - startedAt.current);
+    setElapsed(now() - startedAt.current);
     markTestCompleted(IQ_SLUG);
     recordCompletionOnce(IQ_SLUG);
     setScreen("result");

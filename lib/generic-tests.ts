@@ -53,7 +53,7 @@ export type GenericTest = GenericTestCopy & {
   dimensions: Array<{ key: string; label: string }>;
   questions: GenericQuestion[];
   results: Record<string, GenericResult>;
-  evaluation: "egen-teto" | "attachment" | "mental-age" | "max-score";
+  evaluation: "egen-teto" | "attachment" | "mental-age" | "burnout" | "max-score";
   related: string[];
 };
 
@@ -288,7 +288,7 @@ genericTests["self-esteem"] = {
 };
 
 genericTests["burnout"] = {
-  slug:"burnout",title:"번아웃·스트레스 테스트",eyebrow:"BURNOUT CHECK",description:"업무 피로, 감정 소진, 회복 여력을 통해 현재의 번아웃 신호를 점검합니다.",duration:"약 2분",disclaimer:"의학적 진단이 아닙니다. 심한 무기력·불면·우울이 지속되면 전문가와 상담하세요.",evaluation:"max-score",related:["self-esteem","work-style","mbti"],dimensions:[{key:"green",label:"회복 가능"},{key:"yellow",label:"주의"},{key:"red",label:"소진"}],
+  slug:"burnout",title:"번아웃·스트레스 테스트",eyebrow:"BURNOUT CHECK",description:"업무 피로, 감정 소진, 회복 여력을 통해 현재의 번아웃 신호를 점검합니다.",duration:"약 2분",disclaimer:"의학적 진단이 아닙니다. 심한 무기력·불면·우울이 지속되면 전문가와 상담하세요.",evaluation:"burnout",related:["self-esteem","work-style","mbti"],dimensions:[{key:"green",label:"회복 가능"},{key:"yellow",label:"주의"},{key:"red",label:"소진"}],
   questions:[multi("퇴근 후 비교적 잘 회복된다","퇴근 후에도 아무것도 할 힘이 없다","green","red"),multi("일의 우선순위를 조절할 수 있다","모든 일이 급하고 통제할 수 없게 느껴진다","green","red"),multi("주말에 쉬면 에너지가 돌아온다","쉬어도 피로가 거의 줄지 않는다","green","red"),multi("업무에서 보람을 느끼는 순간이 있다","일의 의미가 전혀 느껴지지 않는다","green","red"),multi("동료와 대화할 여유가 있다","사람을 상대하는 것 자체가 버겁다","green","red"),multi("실수 후 다시 집중할 수 있다","작은 실수에도 무너지고 자책한다","green","red"),multi("잠드는 데 큰 어려움이 없다","업무 생각 때문에 잠들기 어렵다","green","red"),multi("식사와 생활 리듬이 비교적 일정하다","식사나 수면 리듬이 크게 무너졌다","green","red"),multi("도움을 요청하거나 일을 나눌 수 있다","도움을 요청할 여유조차 없다고 느낀다","green","red"),multi("휴식할 때 죄책감이 크지 않다","쉬는 동안에도 불안과 죄책감이 든다","green","yellow"),multi("출근 생각이 들어도 감당할 수 있다","출근을 생각하면 몸과 마음이 강하게 거부한다","green","red"),multi("예민해져도 이유를 알고 조절한다","사소한 일에도 화가 나거나 무감각해진다","green","yellow"),multi("최근 웃거나 즐거운 순간이 있었다","최근 즐거움을 거의 느끼지 못했다","green","red"),multi("일과 나 자신을 구분할 수 있다","성과가 곧 나의 가치처럼 느껴진다","green","yellow"),multi("앞으로 나아질 방법이 떠오른다","아무리 해도 달라질 것 같지 않다","green","red")],
   results:{green:result("green","회복 가능 단계","피로가 있어도 회복 리듬이 살아 있는 상태","#4f9278",["회복력","생활 균형","자기 조절"],"현재 스트레스가 있더라도 휴식과 조절을 통해 에너지를 되찾을 여력이 있습니다."),yellow:result("yellow","번아웃 주의 단계","몸과 마음이 속도를 줄여달라고 보내는 신호","#d09a4e",["누적 피로","예민함","회복 필요"],"피로와 긴장이 쌓이기 시작했습니다. 업무량과 회복 시간을 의식적으로 조정할 필요가 있습니다."),red:result("red","소진 위험 단계","버티기보다 보호와 지원이 먼저 필요한 상태","#c65f68",["정서 소진","무기력","지원 필요"],"현재 소진 신호가 여러 영역에서 나타납니다. 혼자 견디기보다 업무 조정과 주변의 도움을 우선하세요.")}
 };
