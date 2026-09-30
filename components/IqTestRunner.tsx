@@ -8,6 +8,7 @@ import CrossPromo from "./CrossPromo";
 import ShareButtons from "./ShareButtons";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
+import TestResultPick from "./TestResultPick";
 import { markTestCompleted, recordCompletionOnce, recordTestEvent } from "../lib/test-events";
 
 /**
@@ -239,6 +240,8 @@ export default function IqTestRunner() {
             이 결과는 IQ가 아닙니다. 표준화된 지능검사가 아니라서 점수를 IQ로 환산하지 않았습니다.
             정식 IQ는 웩슬러 지능검사처럼 전문가가 실시하는 검사로 확인할 수 있습니다.
           </p>
+
+          <TestResultPick slug={IQ_SLUG} resultKey={String(band.min)} />
 
           <ShareButtons title={`IQ 테스트 20문제 중 ${correct}문제 맞혔어요. 몇 개 맞힐 수 있나요?`} url="https://mbtitest.co.kr/tests/iq/" />
 
