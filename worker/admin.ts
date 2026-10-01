@@ -690,8 +690,23 @@ function trendsPage(
   hasOpen: boolean,
   saved: boolean,
   fetchedAt: number,
+  hasHub = true,
 ): string {
   const sorted = [...rows].sort((a, b) => (b.change ?? -999) - (a.change ?? -999));
+
+  // HUB 키가 없으면 이 화면에서 바로 넣게 합니다. 키워드 조회 화면의 접힌 칸에만
+  // 두었더니 찾지 못해 401 이 계속 났습니다(2026-10-01).
+  const hubForm = hasHub
+    ? ""
+    : `<div class="box"><h2>데이터랩 키 등록 (API HUB)</h2>
+<p class="note">네이버 클라우드 API HUB 의 키 두 개를 넣으면 데이터랩을 HUB 로 조회합니다.
+개발자센터 앱에 데이터랩 권한이 없어도 됩니다. 저장하면 바로 다시 조회합니다.</p>
+<form method="post" action="/admin/trends/hub" autocomplete="off">
+<div class="fields">
+<label><span>X-NCP-APIGW-API-KEY-ID</span><input name="hub_key_id" required autocomplete="off"></label>
+<label><span>X-NCP-APIGW-API-KEY</span><input name="hub_key" type="password" required autocomplete="new-password"></label>
+</div>
+<button type="submit" style="margin-top:12px">저장하고 다시 조회</button></form></div>`;
 
   const list = sorted.length
     ? `<div class="scroll"><table><thead><tr>
@@ -718,6 +733,7 @@ function trendsPage(
 
 ${saved ? `<p class="ok">저장했습니다.</p>` : ""}
 ${error ? `<div class="box"><p class="err" style="margin:0">${esc(error)}</p></div>` : ""}
+${hubForm}
 
 ${
       hasOpen
@@ -925,6 +941,17 @@ export async function handleAdmin(request: Request, url: URL, db: D1Database | u
       return redirect("/admin/coupang/?saved=1");
     }
 
+    if (path === "/admin/trends/hub") {
+      if (!(await isSignedIn(request, db))) return redirect("/admin/");
+      const keyId = String(form.get("hub_key_id") ?? "").trim();
+      const key = String(form.get("hub_key") ?? "").trim();
+      if (keyId && key) {
+        await writeSetting(db, "naver_hub_key_id", keyId);
+        await writeSetting(db, "naver_hub_key", key);
+      }
+      return redirect("/admin/trends/?refresh=1&saved=1");
+    }
+
     if (path === "/admin/trends/save") {
       if (!(await isSignedIn(request, db))) return redirect("/admin/");
       const list = String(form.get("keywords") ?? "")
@@ -1063,7 +1090,7 @@ export async function handleAdmin(request: Request, url: URL, db: D1Database | u
         }
       }
     }
-    return html(trendsPage(rows, keywords, error, hasOpen, url.searchParams.get("saved") === "1", fetchedAt));
+    return html(trendsPage(rows, keywords, error, hasOpen, url.searchParams.get("saved") === "1", fetchedAt, Boolean(creds.hub.keyId && creds.hub.key)));
   }
 
   if (path === "/admin/keywords") {
