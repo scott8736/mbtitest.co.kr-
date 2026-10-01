@@ -15,6 +15,7 @@ import {
   fetchDocumentCount,
   fetchKeywordStats,
   fetchTrend,
+  hasTrendKeys,
   loadCreds,
   readSetting,
   writeSetting,
@@ -231,6 +232,9 @@ const ANSWERED_SINCE = "2026-09-07";
 const COMPLETED_SINCE = "2026-09-10";
 /** 2단계 도착을 페이지뷰가 아니라 이벤트(사람당 한 번)로 세기 시작한 날 */
 const STEP2_SINCE = "2026-10-01";
+/** 결과 화면 쿠팡 카드 클릭을 직접 세기 시작한 날. 쿠팡 리포트에 결과 카드 채널(mbtitest_result_*)이
+ *  30일간 한 건도 없어서, 안 누른 건지 눌렀는데 채널이 안 붙은 건지 가르려고 넣었습니다. */
+const PICK_SINCE = "2026-10-01";
 
 /** 이보다 표본이 작으면 비율을 내지 않습니다. 몇 건짜리 비율은 뜻이 없습니다. */
 const MIN_SAMPLE = 20;
@@ -313,13 +317,14 @@ async function dashboard(
   // 결과 주소는 공유되고 새로고침되어 조회수가 완주 수보다 큽니다.
   const events = await q<{ slug: string; name: string; count: number }>(
     `SELECT slug, name, COUNT(*) AS count FROM test_events
-      WHERE day BETWEEN ? AND ? AND name IN ('answered', 'step2', 'completed')
+      WHERE day BETWEEN ? AND ? AND name IN ('answered', 'step2', 'completed', 'pick_click')
       GROUP BY slug, name`, from, to);
   const countsFor = (name: string) =>
     new Map(events.filter((row) => row.name === name).map((row) => [row.slug, row.count]));
   const answeredBySlug = countsFor("answered");
   const completedBySlug = countsFor("completed");
   const step2BySlug = countsFor("step2");
+  const pickBySlug = countsFor("pick_click");
 
   const peak = Math.max(1, ...daily.map((d) => d.views));
   const ranges = [1, 7, 30, 90]
@@ -363,13 +368,14 @@ ${rangeForm}
 「방문」은 검사 화면이 열린 수, 「첫 응답」은 문항 하나라도 답한 수, 「완주」는 끝까지 풀고 결과를 받은 수입니다.
 방문과 첫 응답의 차이가 크면 첫인상 문제, 「첫 응답 → 완주」가 낮으면 길이 문제입니다. 고칠 곳이 서로 달라 나눠 셉니다.
 <br>「결과 조회」는 결과 화면 조회수입니다. 공유 링크로 들어온 사람과 새로고침이 섞여 있어 완주 수보다 큽니다. 비율에는 쓰지 않습니다.
+<br>「쿠팡 클릭」은 결과 화면의 추천 카드를 누른 수입니다(${PICK_SINCE} 부터). 쿠팡 화면의 채널별 클릭과 비교해, 여기는 있는데 쿠팡에 없으면 채널(subId)이 안 붙고 있다는 뜻입니다.
 <br>「2단계」는 2단계 화면에 도착한 사람 수입니다. ${STEP2_SINCE} 부터는 사람당 한 번만 세고, 그 전 기간은 새로고침이 섞인 화면 조회수라 회색으로 표시합니다.
 <br>첫 응답은 ${ANSWERED_SINCE}, 완주는 ${COMPLETED_SINCE} 부터 쌓기 시작했습니다. 조회 기간이 그 전을 포함하면 비율은 「-」로 나옵니다.
 표본이 ${MIN_SAMPLE}건 미만이어도 비율 대신 「표본 부족」으로 적습니다.
 </p>${
       steps.length === 0
         ? `<p class="empty">아직 기록이 없습니다.</p>`
-        : `<div class="scroll"><table><thead><tr><th>테스트</th><th>방문</th><th>첫 응답</th><th>2단계</th><th>결과 조회</th><th>완주</th><th>응답 시작률</th><th>완주율</th></tr></thead><tbody>${steps
+        : `<div class="scroll"><table><thead><tr><th>테스트</th><th>방문</th><th>첫 응답</th><th>2단계</th><th>결과 조회</th><th>완주</th><th>응답 시작률</th><th>완주율</th><th>쿠팡 클릭</th></tr></thead><tbody>${steps
             .map((s) => {
               const began = answeredBySlug.get(s.slug) ?? 0;
               const finished = completedBySlug.get(s.slug) ?? 0;
@@ -381,7 +387,7 @@ ${rangeForm}
                 return Math.round((part / whole) * 100) + "%";
               };
               return `<tr><td>${esc(s.slug)}</td><td>${s.intro}</td><td>${began || "-"}</td><td>${from >= STEP2_SINCE ? (step2BySlug.get(s.slug) ?? "-") : `<span class="muted">${s.step2}</span>`}</td><td>${s.result}</td><td>${finished || "-"}</td>
-<td>${rate(began, s.intro, ANSWERED_SINCE)}</td><td>${rate(finished, began, COMPLETED_SINCE)}</td></tr>`;
+<td>${rate(began, s.intro, ANSWERED_SINCE)}</td><td>${rate(finished, began, COMPLETED_SINCE)}</td><td>${pickBySlug.get(s.slug) ?? (from >= PICK_SINCE ? 0 : "-")}</td></tr>`;
             })
             .join("")}</tbody></table></div>`
     }</div>
@@ -772,7 +778,10 @@ function keywordsPage(
   const openKeys = `<div class="fields">
 ${field("client_id", "Client ID", creds.open.clientId ? `등록됨 · ${MASK(creds.open.clientId)}` : "")}
 ${field("client_secret", "Client Secret", creds.open.clientSecret ? "등록됨" : "", { secret: true })}
-</div>`;
+${field("hub_key_id", "API HUB Key ID (데이터랩용)", creds.hub.keyId ? `등록됨 · ${MASK(creds.hub.keyId)}` : "")}
+${field("hub_key", "API HUB Key (데이터랩용)", creds.hub.key ? "등록됨" : "", { secret: true })}
+</div>
+<p class="note">트렌드 화면(데이터랩)은 API HUB 키가 있으면 그쪽으로 부릅니다. 개발자센터 앱에 데이터랩을 추가하지 않았으면 401(024)이 나기 때문입니다.</p>`;
 
   // 검색광고 키 등록 화면. 어디서 무엇을 복사해 오는지까지 적어 둡니다.
   const setup = `<div class="box">
@@ -935,6 +944,8 @@ export async function handleAdmin(request: Request, url: URL, db: D1Database | u
         ["naver_ad_customer_id", String(form.get("ad_customer_id") ?? "")],
         ["naver_client_id", String(form.get("client_id") ?? "")],
         ["naver_client_secret", String(form.get("client_secret") ?? "")],
+        ["naver_hub_key_id", String(form.get("hub_key_id") ?? "")],
+        ["naver_hub_key", String(form.get("hub_key") ?? "")],
       ];
       // CUSTOMER_ID 는 숫자입니다. 브라우저 자동완성이 이메일을 넣어두는 일이
       // 잦아서, 형식이 다르면 저장하지 않고 이유를 알려줍니다.
@@ -1021,7 +1032,7 @@ export async function handleAdmin(request: Request, url: URL, db: D1Database | u
     const creds = await loadCreds(db);
     const stored = await readSetting(db, "trend_keywords");
     const keywords = stored ? stored.split("\n").filter(Boolean) : DEFAULT_TREND_KEYWORDS;
-    const hasOpen = Boolean(creds.open.clientId && creds.open.clientSecret);
+    const hasOpen = hasTrendKeys(creds.open, creds.hub);
 
     let rows: TrendRow[] = [];
     let error = "";
@@ -1038,7 +1049,7 @@ export async function handleAdmin(request: Request, url: URL, db: D1Database | u
         fetchedAt = cached.at;
       } else {
         try {
-          rows = await fetchTrend(creds.open, keywords);
+          rows = await fetchTrend(creds.open, creds.hub, keywords);
           fetchedAt = Date.now();
           await writeSetting(db, "trend_cache", JSON.stringify({ at: fetchedAt, keywords: keywords.join("\n"), rows }));
         } catch (e) {

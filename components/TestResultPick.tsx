@@ -1,4 +1,7 @@
+"use client";
+
 import { resolveTestPick } from "../lib/pick-fallback";
+import { recordTestEvent } from "../lib/test-events";
 
 /**
  * MBTI 외 테스트 결과 화면에 다는 추천 카드. MbtiResultPick 과 같은 스타일이지만
@@ -18,7 +21,7 @@ export default function TestResultPick({ slug, resultKey }: { slug: string; resu
   return (
     <aside className="mbti-pick">
       <span className="mbti-pick-eyebrow">{pick.specific ? "이 결과에 추천" : "함께 보면 좋은 추천"}</span>
-      <a href={pick.coupangUrl} target="_blank" rel="nofollow sponsored noreferrer noopener">
+      <a href={pick.coupangUrl} target="_blank" rel="nofollow sponsored noreferrer noopener" onClick={() => recordTestEvent(slug, "pick_click")}>
         {pick.image ? <img src={pick.image} alt="" loading="lazy" decoding="async" /> : null}
         <span>
           <strong>{pick.label}</strong>

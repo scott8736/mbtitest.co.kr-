@@ -1,4 +1,7 @@
+"use client";
+
 import { mbtiPicks } from "../lib/mbti-picks";
+import { recordTestEvent } from "../lib/test-events";
 
 /**
  * 결과 유형에 맞는 쿠팡 검색 링크 카드 한 장.
@@ -15,7 +18,7 @@ export default function MbtiResultPick({ code }: { code: string }) {
   return (
     <aside className="mbti-pick">
       <span className="mbti-pick-eyebrow">{code} 유형에게 추천</span>
-      <a href={pick.coupangUrl} target="_blank" rel="nofollow sponsored noreferrer noopener">
+      <a href={pick.coupangUrl} target="_blank" rel="nofollow sponsored noreferrer noopener" onClick={() => recordTestEvent("mbti", "pick_click")}>
         {pick.image ? <img src={pick.image} alt="" loading="lazy" decoding="async" /> : null}
         <span>
           <strong>{pick.label}</strong>

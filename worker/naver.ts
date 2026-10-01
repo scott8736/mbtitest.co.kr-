@@ -9,6 +9,12 @@
 
 export type SearchAdCreds = { apiKey: string; secretKey: string; customerId: string };
 export type OpenApiCreds = { clientId: string; clientSecret: string };
+/**
+ * 네이버 API HUB(클라우드 플랫폼) 키. 데이터랩은 이쪽으로 부릅니다.
+ * 개발자센터 앱에 데이터랩을 추가하지 않으면 401 "Scope Status Invalid"(024)가
+ * 나는데, 2026-10-01 /admin/trends 가 바로 그 상태였습니다.
+ */
+export type HubCreds = { keyId: string; key: string };
 
 export type KeywordRow = {
   keyword: string;
@@ -37,15 +43,44 @@ export async function writeSetting(db: D1Database, key: string, value: string): 
     .run();
 }
 
-export async function loadCreds(db: D1Database): Promise<{ ad: SearchAdCreds; open: OpenApiCreds }> {
-  const [apiKey, secretKey, customerId, clientId, clientSecret] = await Promise.all([
+export async function loadCreds(
+  db: D1Database,
+): Promise<{ ad: SearchAdCreds; open: OpenApiCreds; hub: HubCreds }> {
+  const [apiKey, secretKey, customerId, clientId, clientSecret, hubKeyId, hubKey] = await Promise.all([
     readSetting(db, "naver_ad_api_key"),
     readSetting(db, "naver_ad_secret_key"),
     readSetting(db, "naver_ad_customer_id"),
     readSetting(db, "naver_client_id"),
     readSetting(db, "naver_client_secret"),
+    readSetting(db, "naver_hub_key_id"),
+    readSetting(db, "naver_hub_key"),
   ]);
-  return { ad: { apiKey, secretKey, customerId }, open: { clientId, clientSecret } };
+  return {
+    ad: { apiKey, secretKey, customerId },
+    open: { clientId, clientSecret },
+    hub: { keyId: hubKeyId, key: hubKey },
+  };
+}
+
+/** 데이터랩을 부를 주소와 헤더. HUB 키가 있으면 HUB, 없으면 개발자센터입니다 */
+function trendEndpoint(open: OpenApiCreds, hub: HubCreds): { url: string; headers: Record<string, string> } | null {
+  if (hub.keyId && hub.key) {
+    return {
+      url: "https://naverapihub.apigw.ntruss.com/search-trend/v1/search",
+      headers: { "X-NCP-APIGW-API-KEY-ID": hub.keyId, "X-NCP-APIGW-API-KEY": hub.key, "Content-Type": "application/json" },
+    };
+  }
+  if (open.clientId && open.clientSecret) {
+    return {
+      url: "https://openapi.naver.com/v1/datalab/search",
+      headers: { "X-Naver-Client-Id": open.clientId, "X-Naver-Client-Secret": open.clientSecret, "Content-Type": "application/json" },
+    };
+  }
+  return null;
+}
+
+export function hasTrendKeys(open: OpenApiCreds, hub: HubCreds): boolean {
+  return trendEndpoint(open, hub) !== null;
 }
 
 /** 검색광고 API 는 timestamp.method.path 를 비밀키로 HMAC-SHA256 서명해야 합니다. */
@@ -148,7 +183,14 @@ const mean = (values: number[]) => (values.length ? values.reduce((a, b) => a + 
  * 상승률만 씁니다. 이 값은 한 키워드 안에서 계산되므로 호출이 나뉘어도
  * 그대로 비교할 수 있습니다.
  */
-export async function fetchTrend(creds: OpenApiCreds, keywords: string[], days = 30): Promise<TrendRow[]> {
+export async function fetchTrend(
+  open: OpenApiCreds,
+  hub: HubCreds,
+  keywords: string[],
+  days = 30,
+): Promise<TrendRow[]> {
+  const endpoint = trendEndpoint(open, hub);
+  if (!endpoint) throw new Error("데이터랩 키가 없습니다.");
   const endDate = yyyymmdd(new Date(Date.now() - 86400000));
   const startDate = yyyymmdd(new Date(Date.now() - days * 86400000));
 
@@ -157,13 +199,9 @@ export async function fetchTrend(creds: OpenApiCreds, keywords: string[], days =
 
   const responses = await Promise.all(
     batches.map(async (batch) => {
-      const response = await fetch("https://openapi.naver.com/v1/datalab/search", {
+      const response = await fetch(endpoint.url, {
         method: "POST",
-        headers: {
-          "X-Naver-Client-Id": creds.clientId,
-          "X-Naver-Client-Secret": creds.clientSecret,
-          "Content-Type": "application/json",
-        },
+        headers: endpoint.headers,
         body: JSON.stringify({
           startDate,
           endDate,
@@ -171,7 +209,14 @@ export async function fetchTrend(creds: OpenApiCreds, keywords: string[], days =
           keywordGroups: batch.map((keyword) => ({ groupName: keyword, keywords: [keyword] })),
         }),
       });
-      if (!response.ok) throw new Error(`데이터랩 API ${response.status}: ${(await response.text()).slice(0, 200)}`);
+      if (!response.ok) {
+        const body = (await response.text()).slice(0, 200);
+        // 개발자센터 앱에 데이터랩 권한이 없을 때의 오류. 고칠 방법을 같이 보여줍니다.
+        const hint = body.includes('"024"')
+          ? " — 키워드 조회 화면에 네이버 API HUB 키(X-NCP-APIGW-API-KEY-ID / KEY)를 넣으면 HUB 로 조회합니다."
+          : "";
+        throw new Error(`데이터랩 API ${response.status}: ${body}${hint}`);
+      }
       return (await response.json()) as {
         results?: Array<{ title: string; data?: Array<{ period: string; ratio: number }> }>;
       };

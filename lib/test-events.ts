@@ -8,7 +8,8 @@
  * 응답 내용은 보내지 않습니다. "누가 답을 시작했다"는 사실만 셉니다.
  */
 
-export type TestEventName = "answered" | "step2" | "completed";
+/** pick_click: 결과 화면의 쿠팡 추천 카드를 누름. 쿠팡 리포트의 채널별 클릭과 대조하려고 셉니다 */
+export type TestEventName = "answered" | "step2" | "completed" | "pick_click";
 
 /**
  * 2단계 도착. 완주와 같은 방식입니다 — 2단계 화면 조회수를 쓰면 새로고침과
