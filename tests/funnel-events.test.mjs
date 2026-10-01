@@ -17,7 +17,7 @@ const { outputFiles } = await build({
   stdin: {
     contents: `
       export { markStep2Reached, recordStep2Once, markTestCompleted, recordCompletionOnce, remainingMinutes } from "./lib/test-events";
-      export { parseRange } from "./worker/admin";
+      export { parseRange, cleanKey } from "./worker/admin";
     `,
     resolveDir: repoRoot,
     loader: "ts",
@@ -96,4 +96,16 @@ test("관리자 기간 지정: 올바른 범위만 받고, 미래 끝 날짜는 
   assert.equal(r(""), null);
   const future = r("from=2026-09-10&to=2999-01-01");
   assert.ok(future && future.to < "2999-01-01", "미래 날짜는 오늘로");
+});
+
+test("붙여 넣은 API 키에서 이름=·따옴표·공백·줄바꿈을 걷어낸다", () => {
+  // 2026-10-01 트렌드 화면이 HUB 로 넘어간 뒤 "Authentication information are missing" 이 났다.
+  const k = "abcDEF1234";
+  assert.equal(mod.cleanKey(k), k);
+  assert.equal(mod.cleanKey(`  ${k}
+`), k);
+  assert.equal(mod.cleanKey(`NCP_APIGW_KEY_ID=${k}`), k);
+  assert.equal(mod.cleanKey(`NCP_APIGW_KEY = "${k}"`), k);
+  assert.equal(mod.cleanKey(`'${k}'`), k);
+  assert.equal(mod.cleanKey("abc==def"), "abc==def", "값 안의 = 는 건드리지 않는다");
 });

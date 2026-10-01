@@ -239,6 +239,17 @@ const PICK_SINCE = "2026-10-01";
 /** 이보다 표본이 작으면 비율을 내지 않습니다. 몇 건짜리 비율은 뜻이 없습니다. */
 const MIN_SAMPLE = 20;
 
+/**
+ * 붙여 넣은 API 키를 정리합니다. naver.env 에서 `NCP_APIGW_KEY=값` 줄을 통째로
+ * 복사하거나 따옴표·공백·줄바꿈이 섞여 들어오는 일이 많습니다.
+ */
+export function cleanKey(raw: string): string {
+  let value = raw.trim();
+  const eq = value.lastIndexOf("=");
+  if (eq >= 0 && /^[A-Za-z_][A-Za-z0-9_-]*\s*$/.test(value.slice(0, eq))) value = value.slice(eq + 1);
+  return value.replace(/^["'\s]+|["'\s]+$/g, "").replace(/\s+/g, "");
+}
+
 /** ?from=YYYY-MM-DD&to=YYYY-MM-DD. 잘못된 값이면 null 이라 최근 N일로 돌아갑니다 */
 export function parseRange(url: URL): { from: string; to: string } | null {
   const from = url.searchParams.get("from") ?? "";
@@ -690,21 +701,26 @@ function trendsPage(
   hasOpen: boolean,
   saved: boolean,
   fetchedAt: number,
-  hasHub = true,
+  hub: { idLen: number; keyLen: number } = { idLen: 0, keyLen: 0 },
 ): string {
   const sorted = [...rows].sort((a, b) => (b.change ?? -999) - (a.change ?? -999));
 
-  // HUB 키가 없으면 이 화면에서 바로 넣게 합니다. 키워드 조회 화면의 접힌 칸에만
-  // 두었더니 찾지 못해 401 이 계속 났습니다(2026-10-01).
-  const hubForm = hasHub
-    ? ""
-    : `<div class="box"><h2>데이터랩 키 등록 (API HUB)</h2>
+  // HUB 키가 없거나 조회가 실패하면 이 화면에서 바로 넣게 합니다. 키워드 조회 화면의
+  // 접힌 칸에만 두었더니 찾지 못해 401 이 계속 났습니다(2026-10-01).
+  // 값은 보여주지 않고 글자 수만 보여줍니다 — 정상은 ID 10자, KEY 40자입니다.
+  // KEY 칸을 password 로 두면 브라우저가 관리자 비밀번호를 채워 넣을 수 있어 text 로 둡니다.
+  const hasHub = hub.idLen > 0 && hub.keyLen > 0;
+  const hubForm =
+    hasHub && !error
+      ? ""
+      : `<div class="box"><h2>데이터랩 키 등록 (API HUB)</h2>
 <p class="note">네이버 클라우드 API HUB 의 키 두 개를 넣으면 데이터랩을 HUB 로 조회합니다.
-개발자센터 앱에 데이터랩 권한이 없어도 됩니다. 저장하면 바로 다시 조회합니다.</p>
+개발자센터 앱에 데이터랩 권한이 없어도 됩니다. 저장하면 바로 다시 조회합니다.
+<br>지금 저장된 값: ID ${hub.idLen}자 · KEY ${hub.keyLen}자 (정상은 ID 10자 · KEY 40자)</p>
 <form method="post" action="/admin/trends/hub" autocomplete="off">
 <div class="fields">
-<label><span>X-NCP-APIGW-API-KEY-ID</span><input name="hub_key_id" required autocomplete="off"></label>
-<label><span>X-NCP-APIGW-API-KEY</span><input name="hub_key" type="password" required autocomplete="new-password"></label>
+<label><span>X-NCP-APIGW-API-KEY-ID</span><input name="hub_key_id" required autocomplete="off" spellcheck="false"></label>
+<label><span>X-NCP-APIGW-API-KEY</span><input name="hub_key" required autocomplete="off" spellcheck="false"></label>
 </div>
 <button type="submit" style="margin-top:12px">저장하고 다시 조회</button></form></div>`;
 
@@ -943,8 +959,8 @@ export async function handleAdmin(request: Request, url: URL, db: D1Database | u
 
     if (path === "/admin/trends/hub") {
       if (!(await isSignedIn(request, db))) return redirect("/admin/");
-      const keyId = String(form.get("hub_key_id") ?? "").trim();
-      const key = String(form.get("hub_key") ?? "").trim();
+      const keyId = cleanKey(String(form.get("hub_key_id") ?? ""));
+      const key = cleanKey(String(form.get("hub_key") ?? ""));
       if (keyId && key) {
         await writeSetting(db, "naver_hub_key_id", keyId);
         await writeSetting(db, "naver_hub_key", key);
@@ -971,8 +987,8 @@ export async function handleAdmin(request: Request, url: URL, db: D1Database | u
         ["naver_ad_customer_id", String(form.get("ad_customer_id") ?? "")],
         ["naver_client_id", String(form.get("client_id") ?? "")],
         ["naver_client_secret", String(form.get("client_secret") ?? "")],
-        ["naver_hub_key_id", String(form.get("hub_key_id") ?? "")],
-        ["naver_hub_key", String(form.get("hub_key") ?? "")],
+        ["naver_hub_key_id", cleanKey(String(form.get("hub_key_id") ?? ""))],
+        ["naver_hub_key", cleanKey(String(form.get("hub_key") ?? ""))],
       ];
       // CUSTOMER_ID 는 숫자입니다. 브라우저 자동완성이 이메일을 넣어두는 일이
       // 잦아서, 형식이 다르면 저장하지 않고 이유를 알려줍니다.
@@ -1090,7 +1106,7 @@ export async function handleAdmin(request: Request, url: URL, db: D1Database | u
         }
       }
     }
-    return html(trendsPage(rows, keywords, error, hasOpen, url.searchParams.get("saved") === "1", fetchedAt, Boolean(creds.hub.keyId && creds.hub.key)));
+    return html(trendsPage(rows, keywords, error, hasOpen, url.searchParams.get("saved") === "1", fetchedAt, { idLen: creds.hub.keyId.length, keyLen: creds.hub.key.length }));
   }
 
   if (path === "/admin/keywords") {
