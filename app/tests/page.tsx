@@ -3,6 +3,7 @@ import AdUnit from "../../components/AdUnit";
 import TestDirectory from "../../components/TestDirectory";
 import SiteFooter from "../../components/SiteFooter";
 import SiteHeader from "../../components/SiteHeader";
+import { testCatalog } from "../../lib/test-catalog";
 
 /**
  * 이 페이지는 "성향테스트" 라는 일반 검색어를 받는 자리입니다.
@@ -42,7 +43,7 @@ export default function TestsPage() {
       <section className="directory-hero">
         <span className="eyebrow">무료 성향 테스트</span>
         <h1>성향 테스트<br />모음</h1>
-        <p>성향 테스트는 성격의 좋고 나쁨을 가리는 검사가 아니라, 같은 상황에서 사람마다 다르게 나오는 반응 방식을 확인하는 도구입니다.<br />연애·소비·업무·관계 성향부터 MBTI와 마음건강 자가진단까지, 회원가입 없이 바로 할 수 있습니다.</p>
+        <p>성향 테스트는 성격의 좋고 나쁨을 가리는 검사가 아니라, 같은 상황에서 사람마다 다르게 나오는 반응 방식을 확인하는 도구입니다.<br />연애·소비·업무·관계 성향부터 MBTI와 마음건강 자가진단까지 {testCatalog.length}가지가 있고, 대부분 2~3분이면 끝납니다. 모두 회원가입 없이 무료입니다.</p>
       </section>
       <section className="directory-section" aria-label="심리테스트 목록">
         <TestDirectory />

@@ -20,6 +20,11 @@ export const metadata: Metadata = {
   alternates: { canonical: "/check/" },
 };
 
+// 첫 문단의 개수는 데이터에서 읽습니다. 손으로 "8가지"라고 적어 둔 사이 12가지로 늘었습니다(2026-10-02).
+const counts = screeners.map((screener) => screener.questions.length);
+const qMin = Math.min(...counts);
+const qMax = Math.max(...counts);
+
 export default function CheckIndexPage() {
   return (
     <main className="generic-test screener">
@@ -29,8 +34,8 @@ export default function CheckIndexPage() {
         <span className="eyebrow">SELF CHECK</span>
         <h1>심리 자가진단 모음</h1>
         <p>
-          지금 내 상태를 점수로 확인해 보는 선별 검사 8가지입니다. 회원가입 없이 2분이면
-          끝나고, 응답은 어디에도 저장되지 않습니다.
+          지금 내 상태를 점수로 확인해 보는 선별 검사 {screeners.length}가지입니다. 검사마다{" "}
+          {qMin}~{qMax}문항이라 회원가입 없이 2분이면 끝나고, 응답은 어디에도 저장되지 않습니다.
         </p>
         <p className="test-disclaimer">
           모두 <b>진단이 아니라 선별 도구</b>입니다. 결과가 어떤 질환의 진단을 대신하지

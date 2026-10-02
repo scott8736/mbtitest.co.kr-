@@ -10,6 +10,7 @@ import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
 import CrossPromo from "./CrossPromo";
 import TestGuide from "./TestGuide";
+import { leadFacts } from "../lib/test-lead";
 import TestResultPick from "./TestResultPick";
 import Mascot, { moodForQuestion } from "./Mascot";
 
@@ -197,7 +198,7 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
             <Mascot className="intro-mascot" mood="hello" size={120} />
             <span className="eyebrow">{test.eyebrow}</span>
             <h1>{test.heading || test.title}</h1>
-            <p>{test.description}</p>
+            <p>{test.description} {leadFacts(test.description, test.questions.length, test.duration, Object.keys(test.results).length)}</p>
             <div className="generic-meta"><span>{test.questions.length}문항</span><span>{test.duration}</span><span>가입 없음</span></div>
             <button className="primary-button" onClick={start}>무료 테스트 시작 <span>→</span></button>
             {/* 시작 버튼 아래에 둡니다. 위에 있을 때 응답 시작률이 50% 로 다른 테스트(57~61%)보다

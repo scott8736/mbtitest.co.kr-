@@ -7,6 +7,7 @@ import { HELPLINES, bandFor, maxScore, screenerBySlug } from "../lib/screeners";
 import AdUnit from "./AdUnit";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
+import { leadFacts } from "../lib/test-lead";
 import { markTestCompleted, recordCompletionOnce, recordTestEvent } from "../lib/test-events";
 
 /**
@@ -109,7 +110,7 @@ export default function ScreenerRunner({ screener }: { screener: Screener }) {
           <section className="generic-intro">
             <span className="eyebrow">{screener.eyebrow}</span>
             <h1>{screener.heading}</h1>
-            <p>{screener.description}</p>
+            <p>{screener.description} {leadFacts(screener.description, total, screener.duration)} 응답은 어디에도 저장되지 않습니다.</p>
             <div className="generic-meta">
               <span>{total}문항</span>
               <span>{screener.duration}</span>
