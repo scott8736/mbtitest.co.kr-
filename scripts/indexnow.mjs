@@ -19,8 +19,13 @@ import { fileURLToPath } from "node:url";
 
 const HOST = "mbtitest.co.kr";
 const repo = fileURLToPath(new URL("..", import.meta.url));
-const SENT = fileURLToPath(new URL("../../indexnow-sent.txt", import.meta.url));
-const ENDPOINTS = ["https://api.indexnow.org/indexnow", "https://searchadvisor.naver.com/indexnow"];
+// 보낸 기록은 검색엔진마다 따로 둡니다. 한쪽이 실패해도 다른 쪽에 중복으로 가지 않습니다.
+const ENDPOINTS = [
+  { name: "bing", url: "https://api.indexnow.org/indexnow" },
+  { name: "naver", url: "https://searchadvisor.naver.com/indexnow" },
+];
+const sentFile = (name) => fileURLToPath(new URL(`../../indexnow-sent-${name}.txt`, import.meta.url));
+const readSent = (name) => new Set(existsSync(sentFile(name)) ? readFileSync(sentFile(name), "utf8").split(/\r?\n/).filter(Boolean) : []);
 
 const keyFile = readdirSync(`${repo}public`).find((name) => /^[0-9a-f]{32}\.txt$/.test(name));
 if (!keyFile) throw new Error("public/ 에 IndexNow 키 파일이 없습니다.");
@@ -30,45 +35,38 @@ const args = process.argv.slice(2);
 const dry = args.includes("--dry");
 const explicit = args.filter((arg) => arg.startsWith("https://"));
 
-const sent = new Set(existsSync(SENT) ? readFileSync(SENT, "utf8").split(/\r?\n/).filter(Boolean) : []);
-let urls = explicit;
+let all = explicit;
 if (!explicit.length) {
   const xml = await (await fetch(`https://${HOST}/sitemap.xml`, { headers: { "User-Agent": "mbtitest indexnow bot" } })).text();
-  urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]).filter((url) => !sent.has(url));
+  all = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
 }
 
-console.log(`보낼 주소 ${urls.length}개 (이미 보낸 것 ${sent.size}개)`);
-if (dry || !urls.length) {
-  for (const url of urls.slice(0, 20)) console.log("  " + url);
-} else {
-  await submit(urls);
-}
-
-async function submit(urls) {
-  // 키 파일이 배포돼 있어야 검색엔진이 받아 줍니다.
+// 키 파일이 배포돼 있어야 검색엔진이 받아 줍니다.
+if (!dry) {
   const live = await fetch(`https://${HOST}/${keyFile}`);
   if (!live.ok || (await live.text()).trim() !== key) throw new Error(`키 파일이 아직 배포되지 않았습니다: /${keyFile}`);
+}
 
+for (const endpoint of ENDPOINTS) {
+  const sent = readSent(endpoint.name);
+  const urls = explicit.length ? explicit : all.filter((url) => !sent.has(url));
+  console.log(`[${endpoint.name}] 보낼 주소 ${urls.length}개 (이미 보낸 것 ${sent.size}개)`);
+  if (dry || !urls.length) continue;
   let ok = true;
   for (let i = 0; i < urls.length; i += 10000) {
-    const urlList = urls.slice(i, i + 10000);
-    for (const endpoint of ENDPOINTS) {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json; charset=utf-8" },
-        body: JSON.stringify({ host: HOST, key, keyLocation: `https://${HOST}/${keyFile}`, urlList }),
-      });
-      // 200 받음, 202 받았고 키 확인 대기. 그 밖은 실패입니다.
-      const good = response.status === 200 || response.status === 202;
-      ok &&= good;
-      console.log(`${endpoint} → ${response.status}${good ? "" : " " + (await response.text()).slice(0, 200)}`);
-    }
+    const response = await fetch(endpoint.url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json; charset=utf-8" },
+      body: JSON.stringify({ host: HOST, key, keyLocation: `https://${HOST}/${keyFile}`, urlList: urls.slice(i, i + 10000) }),
+    });
+    // 200 받음, 202 받았고 키 확인 대기. 그 밖은 실패입니다.
+    const good = response.status === 200 || response.status === 202;
+    ok &&= good;
+    console.log(`  → ${response.status}${good ? "" : " " + (await response.text()).slice(0, 200)}`);
   }
-
   if (ok) {
     for (const url of urls) sent.add(url);
-    writeFileSync(SENT, [...sent].join("\n") + "\n");
-    console.log(`기록 ${sent.size}개`);
+    writeFileSync(sentFile(endpoint.name), [...sent].join("\n") + "\n");
   } else {
     process.exitCode = 1;
   }
