@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import AdUnit from "./AdUnit";
 import Mascot from "./Mascot";
 import MbtiResultPick from "./MbtiResultPick";
+import ReportTeaser from "./ReportTeaser";
 import { questions, typeData, typeDetails, type Axis } from "../lib/mbti-data";
 import { recordCompletionOnce } from "../lib/test-events";
 
@@ -107,6 +108,7 @@ export default function MbtiResult() {
         <article><span>WORK</span><h2>일과 협업 스타일</h2><p>{typeDetails[result].work}</p></article>
         <article><span>RECOVERY</span><h2>스트레스 신호와 회복</h2><p>{typeDetails[result].stress}</p></article>
       </div>
+      <ReportTeaser code={result} />
       <AdUnit key={`result-middle-${result}`} position="resultMiddle" label="MBTI 결과 본문 광고" />
       <div className="growth-plan mbti-growth"><span>GROWTH POINT</span><h2>나를 더 편안하게 만드는 실천</h2>{typeDetails[result].growth.map((x, i) => <p key={x}><b>{String(i + 1).padStart(2, "0")}</b>{x}</p>)}</div>
       <MbtiResultPick code={result} />

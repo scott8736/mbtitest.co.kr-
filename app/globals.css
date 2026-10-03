@@ -606,6 +606,34 @@ main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% -
 .mbti-pick a small { display:block; margin-top:6px; color:#626b78; font-size:14px; line-height:1.7; }
 .mbti-pick a i { display:block; margin-top:12px; color:var(--violet); font-size:13px; font-style:normal; font-weight:750; }
 .mbti-related { margin-top:90px; }
+/* 유료 정밀 리포트 수요 측정 카드. 결과 색을 그대로 받아 유형마다 달라 보인다. */
+.report-teaser { word-break:keep-all; max-width:1050px; margin:18px auto 0; padding:34px 30px 30px; border:1.5px solid color-mix(in srgb,var(--result-color) 35%,#e5dff0); border-radius:26px; background:linear-gradient(160deg,color-mix(in srgb,var(--result-color) 12%,white),#fff 55%); box-shadow:0 18px 40px color-mix(in srgb,var(--result-color) 14%,transparent); text-align:left; }
+.report-teaser-eyebrow { color:var(--result-color); font-size:10px; font-weight:900; letter-spacing:.14em; }
+.report-teaser h2 { margin:14px 0 10px; font-size:26px; line-height:1.35; }
+.report-teaser-lead { margin:0; color:#626b78; line-height:1.75; }
+.report-teaser-chapters { margin:22px 0 0; padding:0; list-style:none; display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.report-teaser-chapters li { display:flex; align-items:center; gap:10px; padding:12px 14px; border-radius:14px; background:rgba(255,255,255,.85); border:1px solid #ece8f3; font-size:14px; }
+.report-teaser-chapters b { flex-shrink:0; color:var(--result-color); font-size:12px; font-weight:900; }
+.report-teaser-chapters span { flex:1; color:var(--ink); font-weight:650; }
+.report-teaser-chapters i { font-style:normal; font-size:12px; opacity:.55; }
+.report-teaser-buy { margin-top:24px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; }
+.report-teaser-price { margin:0; display:flex; flex-direction:column; gap:4px; }
+.report-teaser-price s { color:#9aa1ad; font-size:14px; }
+.report-teaser-price strong { color:var(--ink); font-size:24px; font-weight:900; }
+.report-teaser .primary-button { min-width:260px; height:64px; font-size:18px; background:var(--result-color); box-shadow:0 12px 28px color-mix(in srgb,var(--result-color) 30%,transparent); }
+.report-teaser-soon { margin-top:24px; padding:22px; border-radius:18px; background:white; border:1px dashed color-mix(in srgb,var(--result-color) 45%,#ddd); text-align:center; }
+.report-teaser-soon strong { font-size:20px; }
+.report-teaser-soon p { margin:10px 0 16px; color:#626b78; line-height:1.7; }
+.report-teaser-soon small { color:#9aa1ad; }
+.report-teaser-soon a { display:inline-block; padding:12px 20px; border-radius:999px; background:#111; color:white; font-weight:750; text-decoration:none; }
+@media (max-width:760px) {
+  .report-teaser { padding:28px 18px 22px; }
+  .report-teaser h2 { font-size:22px; }
+  .report-teaser-chapters { grid-template-columns:1fr 1fr; }
+  .report-teaser-chapters li { padding:10px 11px; font-size:13px; gap:7px; }
+  .report-teaser-buy { flex-direction:column; align-items:stretch; }
+  .report-teaser .primary-button { min-width:0; width:100%; }
+}
 
 @media (max-width:760px) {
   .generic-intro { min-height:590px; padding:80px 20px; }

@@ -235,6 +235,9 @@ const STEP2_SINCE = "2026-10-01";
 /** 결과 화면 쿠팡 카드 클릭을 직접 세기 시작한 날. 쿠팡 리포트에 결과 카드 채널(mbtitest_result_*)이
  *  30일간 한 건도 없어서, 안 누른 건지 눌렀는데 채널이 안 붙은 건지 가르려고 넣었습니다. */
 const PICK_SINCE = "2026-10-01";
+/** 유료 정밀 리포트 수요 측정 카드를 결과 화면에 붙인 다음 날. 10-03 은 붙이기 전 완주가
+ *  섞여 있어 관심률이 낮게 나오므로 하루 뒤부터 비율을 냅니다. */
+const REPORT_SINCE = "2026-10-04";
 
 /** 이보다 표본이 작으면 비율을 내지 않습니다. 몇 건짜리 비율은 뜻이 없습니다. */
 const MIN_SAMPLE = 20;
@@ -328,7 +331,7 @@ async function dashboard(
   // 결과 주소는 공유되고 새로고침되어 조회수가 완주 수보다 큽니다.
   const events = await q<{ slug: string; name: string; count: number }>(
     `SELECT slug, name, COUNT(*) AS count FROM test_events
-      WHERE day BETWEEN ? AND ? AND name IN ('answered', 'step2', 'completed', 'pick_click')
+      WHERE day BETWEEN ? AND ? AND name IN ('answered', 'step2', 'completed', 'pick_click', 'report_seen', 'report_click', 'report_follow')
       GROUP BY slug, name`, from, to);
   const countsFor = (name: string) =>
     new Map(events.filter((row) => row.name === name).map((row) => [row.slug, row.count]));
@@ -336,6 +339,16 @@ async function dashboard(
   const completedBySlug = countsFor("completed");
   const step2BySlug = countsFor("step2");
   const pickBySlug = countsFor("pick_click");
+  const reportSeen = countsFor("report_seen").get("mbti") ?? 0;
+  const reportClick = countsFor("report_click").get("mbti") ?? 0;
+  const reportFollow = countsFor("report_follow").get("mbti") ?? 0;
+  const reportCompleted = completedBySlug.get("mbti") ?? 0;
+  // 분모가 같은 기간을 세어 왔을 때만, 표본이 충분할 때만 비율을 냅니다.
+  const reportRate = (part: number, whole: number) => {
+    if (from < REPORT_SINCE) return "-";
+    if (whole < MIN_SAMPLE) return "표본 부족";
+    return ((part / whole) * 100).toFixed(1) + "%";
+  };
 
   const peak = Math.max(1, ...daily.map((d) => d.views));
   const ranges = [1, 7, 30, 90]
@@ -402,6 +415,18 @@ ${rangeForm}
             })
             .join("")}</tbody></table></div>`
     }</div>
+
+<div class="box"><h2>유료 리포트 수요 측정 (MBTI)</h2>
+<p class="note">
+MBTI 결과 화면의 「정밀 리포트」 카드입니다. 상품은 아직 없고, 목차와 가격(출시가 6,900원)을 보여 주고 몇 명이 받으려 하는지 셉니다.
+「노출」은 카드가 화면에 절반 이상 들어온 사람, 「클릭」은 「내 리포트 받기」를 누른 사람, 「팔로우」는 그다음 스레드 링크를 누른 사람입니다. 모두 탭당 한 번만 셉니다.
+<b>관심률 = 클릭 ÷ 완주</b> 가 합격 판단에 쓰는 숫자입니다. 노출률이 낮으면 카드까지 내려오지 않는다는 뜻이라 자리를 옮길 문제이고, 노출 대비 클릭이 낮으면 상품 매력 문제입니다.
+비율은 ${REPORT_SINCE} 부터 냅니다.
+</p>
+<div class="scroll"><table><thead><tr><th>완주</th><th>노출</th><th>클릭</th><th>팔로우</th><th>노출률</th><th>관심률</th><th>노출 대비 클릭</th></tr></thead><tbody>
+<tr><td>${reportCompleted || "-"}</td><td>${reportSeen}</td><td>${reportClick}</td><td>${reportFollow}</td><td>${reportRate(reportSeen, reportCompleted)}</td><td><b>${reportRate(reportClick, reportCompleted)}</b></td><td>${reportRate(reportClick, reportSeen)}</td></tr>
+</tbody></table></div>
+</div>
 
 <div class="grid">
 <div class="box"><h2>국가</h2>${bars(countries, total.views)}</div>

@@ -8,8 +8,20 @@
  * 응답 내용은 보내지 않습니다. "누가 답을 시작했다"는 사실만 셉니다.
  */
 
-/** pick_click: 결과 화면의 쿠팡 추천 카드를 누름. 쿠팡 리포트의 채널별 클릭과 대조하려고 셉니다 */
-export type TestEventName = "answered" | "step2" | "completed" | "pick_click";
+/**
+ * pick_click: 결과 화면의 쿠팡 추천 카드를 누름. 쿠팡 리포트의 채널별 클릭과 대조하려고 셉니다
+ * report_*: 유료 정밀 리포트 수요 측정(2026-10-03~). 아직 상품이 없고, 결과 화면에
+ *   목차와 가격만 보여 줘 몇 명이 사려고 하는지 봅니다. seen 은 카드가 화면에 들어온 수,
+ *   click 은 「내 리포트 받기」, follow 는 그다음 스레드 팔로우 링크입니다.
+ */
+export type TestEventName =
+  | "answered"
+  | "step2"
+  | "completed"
+  | "pick_click"
+  | "report_seen"
+  | "report_click"
+  | "report_follow";
 
 /**
  * 2단계 도착. 완주와 같은 방식입니다 — 2단계 화면 조회수를 쓰면 새로고침과
@@ -76,6 +88,21 @@ export function recordCompletionOnce(slug: string): void {
   } catch {
     // 위와 같습니다.
   }
+}
+
+/**
+ * 같은 탭에서 한 번만 기록합니다. 리포트 카드는 스크롤을 오르내리거나 버튼을
+ * 여러 번 누르면 같은 사람이 여러 건으로 잡혀 관심률이 부풀려집니다.
+ */
+export function recordTestEventOnce(slug: string, name: TestEventName): void {
+  try {
+    const key = `test-event-once:${slug}:${name}`;
+    if (sessionStorage.getItem(key) === "1") return;
+    sessionStorage.setItem(key, "1");
+  } catch {
+    // 저장이 막힌 브라우저에서는 중복이 섞일 수 있지만 기록은 합니다.
+  }
+  recordTestEvent(slug, name);
 }
 
 export function recordTestEvent(slug: string, name: TestEventName): void {

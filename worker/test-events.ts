@@ -23,7 +23,15 @@ interface EventCtx {
 const KNOWN_SLUGS = new Set(testCatalog.map((item) => item.slug));
 
 /** 받는 이벤트 이름. 여기 없는 이름은 버립니다. */
-const KNOWN_NAMES = new Set(["answered", "step2", "completed", "pick_click"]);
+const KNOWN_NAMES = new Set([
+  "answered",
+  "step2",
+  "completed",
+  "pick_click",
+  "report_seen",
+  "report_click",
+  "report_follow",
+]);
 
 /**
  * `/api/event` POST 요청이면 처리하고 204 를 돌려줍니다. 아니면 null 이라

@@ -16,7 +16,7 @@ const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const { outputFiles } = await build({
   stdin: {
     contents: `
-      export { markStep2Reached, recordStep2Once, markTestCompleted, recordCompletionOnce, remainingMinutes } from "./lib/test-events";
+      export { markStep2Reached, recordStep2Once, markTestCompleted, recordCompletionOnce, remainingMinutes, recordTestEventOnce } from "./lib/test-events";
       export { parseRange, cleanKey } from "./worker/admin";
     `,
     resolveDir: repoRoot,
@@ -108,4 +108,18 @@ test("붙여 넣은 API 키에서 이름=·따옴표·공백·줄바꿈을 걷�
   assert.equal(mod.cleanKey(`NCP_APIGW_KEY = "${k}"`), k);
   assert.equal(mod.cleanKey(`'${k}'`), k);
   assert.equal(mod.cleanKey("abc==def"), "abc==def", "값 안의 = 는 건드리지 않는다");
+});
+
+test("리포트 수요 측정은 탭당 한 번만 센다 (스크롤·연타로 관심률이 부풀지 않게)", () => {
+  reset();
+  mod.recordTestEventOnce("mbti", "report_seen");
+  mod.recordTestEventOnce("mbti", "report_seen");
+  mod.recordTestEventOnce("mbti", "report_click");
+  mod.recordTestEventOnce("mbti", "report_click");
+  mod.recordTestEventOnce("mbti", "report_follow");
+  assert.deepEqual(sent, [
+    "/api/event?slug=mbti&name=report_seen",
+    "/api/event?slug=mbti&name=report_click",
+    "/api/event?slug=mbti&name=report_follow",
+  ]);
 });
