@@ -15,6 +15,7 @@
  *   click 은 「내 리포트 받기」, follow 는 그다음 스레드 팔로우 링크입니다.
  */
 export type TestEventName =
+  | "visited"
   | "answered"
   | "step2"
   | "completed"
@@ -94,15 +95,36 @@ export function recordCompletionOnce(slug: string): void {
  * 같은 탭에서 한 번만 기록합니다. 리포트 카드는 스크롤을 오르내리거나 버튼을
  * 여러 번 누르면 같은 사람이 여러 건으로 잡혀 관심률이 부풀려집니다.
  */
+const ONCE_KEY = (slug: string, name: TestEventName) => `test-event-once:${slug}:${name}`;
+
 export function recordTestEventOnce(slug: string, name: TestEventName): void {
   try {
-    const key = `test-event-once:${slug}:${name}`;
+    const key = ONCE_KEY(slug, name);
     if (sessionStorage.getItem(key) === "1") return;
     sessionStorage.setItem(key, "1");
   } catch {
     // 저장이 막힌 브라우저에서는 중복이 섞일 수 있지만 기록은 합니다.
   }
   recordTestEvent(slug, name);
+}
+
+/**
+ * 검사 화면 방문. 관리자 표의 「방문」은 페이지뷰라 새로고침·뒤로가기·재방문이 섞여
+ * 응답 시작률이 실제보다 낮게 나옵니다(2026-10-03 MBTI 61%). 답하기 전까지는 같은
+ * 탭에서 한 번만 세고, 첫 답을 하면 표시를 지워 다시 검사하는 사람은 새로 셉니다.
+ */
+export function recordVisitOnce(slug: string): void {
+  recordTestEventOnce(slug, "visited");
+}
+
+/** 첫 문항에 답함. 방문 표시를 지워 같은 탭에서 다시 검사할 때 방문이 새로 세어지게 합니다. */
+export function recordAnswered(slug: string): void {
+  recordTestEvent(slug, "answered");
+  try {
+    sessionStorage.removeItem(ONCE_KEY(slug, "visited"));
+  } catch {
+    // 저장이 막힌 브라우저에서는 방문이 한 번만 세어질 뿐입니다.
+  }
 }
 
 export function recordTestEvent(slug: string, name: TestEventName): void {

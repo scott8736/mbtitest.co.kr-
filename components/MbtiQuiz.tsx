@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import AdUnit from "./AdUnit";
 import Mascot, { moodForQuestion } from "./Mascot";
 import { questions, type Answer, type Axis } from "../lib/mbti-data";
-import { markStep2Reached, markTestCompleted, recordStep2Once, recordTestEvent, remainingMinutes } from "../lib/test-events";
+import { markStep2Reached, markTestCompleted, recordAnswered, recordStep2Once, recordVisitOnce, remainingMinutes } from "../lib/test-events";
 
 export const QUESTIONS_PER_STEP = 20;
 export const TOTAL_STEPS = Math.ceil(questions.length / QUESTIONS_PER_STEP);
@@ -46,6 +46,7 @@ export default function MbtiQuiz({ step = 1 }: { step?: number }) {
       // 1단계는 언제나 처음부터 시작합니다.
       sessionStorage.removeItem(PROGRESS_KEY);
       sessionStorage.removeItem(RESULT_KEY);
+      recordVisitOnce("mbti");
       return;
     }
     // 앞 단계를 건너뛰고 들어온 경우에는 처음으로 돌려보냅니다.
@@ -65,7 +66,7 @@ export default function MbtiQuiz({ step = 1 }: { step?: number }) {
   const answer = (value: Answer) => {
     // 첫 문항에 답한 순간을 한 번만 남깁니다. 1단계는 열 때마다 처음부터
     // 시작하므로 여기가 곧 "검사를 실제로 시작했다"는 뜻입니다.
-    if (step === 1 && index === 0) recordTestEvent("mbti", "answered");
+    if (step === 1 && index === 0) recordAnswered("mbti");
 
     const axis = stepQuestions[index].axis;
     const next = { ...scores, [axis]: scores[axis] + value };
@@ -105,7 +106,7 @@ export default function MbtiQuiz({ step = 1 }: { step?: number }) {
   }
 
   return (
-    <section className="test-shell">
+    <section className="test-shell mbti-quiz">
       <div className="test-top">
         <button type="button" onClick={leave}>← 나가기</button>
         <span>{answeredBefore + index + 1} / {questions.length}</span>

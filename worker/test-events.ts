@@ -24,6 +24,7 @@ const KNOWN_SLUGS = new Set(testCatalog.map((item) => item.slug));
 
 /** 받는 이벤트 이름. 여기 없는 이름은 버립니다. */
 const KNOWN_NAMES = new Set([
+  "visited",
   "answered",
   "step2",
   "completed",

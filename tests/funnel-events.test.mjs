@@ -16,7 +16,7 @@ const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const { outputFiles } = await build({
   stdin: {
     contents: `
-      export { markStep2Reached, recordStep2Once, markTestCompleted, recordCompletionOnce, remainingMinutes, recordTestEventOnce } from "./lib/test-events";
+      export { markStep2Reached, recordStep2Once, markTestCompleted, recordCompletionOnce, remainingMinutes, recordTestEventOnce, recordVisitOnce, recordAnswered } from "./lib/test-events";
       export { parseRange, cleanKey } from "./worker/admin";
     `,
     resolveDir: repoRoot,
@@ -121,5 +121,18 @@ test("리포트 수요 측정은 탭당 한 번만 센다 (스크롤·연타로 
     "/api/event?slug=mbti&name=report_seen",
     "/api/event?slug=mbti&name=report_click",
     "/api/event?slug=mbti&name=report_follow",
+  ]);
+});
+
+test("방문은 답하기 전까지 한 번만, 답한 뒤 다시 검사하면 새로 센다", () => {
+  reset();
+  mod.recordVisitOnce("mbti");
+  mod.recordVisitOnce("mbti"); // 새로고침
+  mod.recordAnswered("mbti");
+  mod.recordVisitOnce("mbti"); // 같은 탭에서 다시 검사
+  assert.deepEqual(sent, [
+    "/api/event?slug=mbti&name=visited",
+    "/api/event?slug=mbti&name=answered",
+    "/api/event?slug=mbti&name=visited",
   ]);
 });

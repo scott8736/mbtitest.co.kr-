@@ -1283,3 +1283,18 @@ main:not(.screener) .result-card-image {
 /* 블로그 글 대표 이미지. 제목 바로 아래, 본문 폭에 맞춘다 */
 .blog-article-cover { display:block; width:100%; max-width:900px; height:auto; margin:0 auto 34px; border-radius:18px; border:1px solid var(--line); box-shadow:0 16px 38px rgba(34,40,70,.14); }
 @media (max-width:620px) { .blog-article-cover { border-radius:13px; margin-bottom:24px; } }
+
+/* MBTI 검사 휴대폰 첫 화면 (2026-10-03). 390×844 에서 B 답이 845px 로 화면 밖에 있었다.
+   고를 것이 둘이라는 게 첫 화면에서 보여야 해서, 안내 문구·캐릭터·여백을 줄여 A·B 를 다 올린다.
+   안내 문구는 위 말풍선("둘 중 나와 더 가까운 문장은?")과 뜻이 겹쳐 작게 둔다. */
+@media (max-width:760px) {
+  .mbti-quiz { padding-top:16px; }
+  .mbti-quiz .step-badge { margin-top:8px; }
+  .mbti-quiz .question-card { margin-top:16px; padding:18px 14px 20px; }
+  .mbti-quiz .question-mascot { width:60px; height:60px; margin-top:8px; }
+  .mbti-quiz .question-card h2 { margin:6px 0 16px; font-size:17px; line-height:1.45; letter-spacing:-.02em; }
+  .mbti-quiz .answers { gap:8px; }
+  .mbti-quiz .answers button { min-height:0; padding:16px 14px; }
+  .mbti-quiz .answers button>span { width:28px; height:28px; margin-bottom:8px; }
+  .mbti-quiz .answers small { margin-top:6px; }
+}

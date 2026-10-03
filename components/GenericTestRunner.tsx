@@ -5,7 +5,7 @@ import type { GenericTest, ScoreMap } from "../lib/generic-tests";
 import { evaluateTest, type Picks } from "../lib/generic-eval";
 import { testCatalog } from "../lib/test-catalog";
 import AdUnit from "./AdUnit";
-import { markStep2Reached, markTestCompleted, recordCompletionOnce, recordStep2Once, recordTestEvent, remainingMinutes } from "../lib/test-events";
+import { markStep2Reached, markTestCompleted, recordAnswered, recordCompletionOnce, recordStep2Once, recordVisitOnce, remainingMinutes } from "../lib/test-events";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
 import CrossPromo from "./CrossPromo";
@@ -41,6 +41,11 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
     () => test.related.map((slug) => testCatalog.find((item) => item.slug === slug && item.status === "published")).filter(Boolean),
     [test.related],
   );
+
+  // 소개 화면 방문. 결과 화면과 2단계는 세지 않습니다.
+  useEffect(() => {
+    if (part === 1 && !resultOnly) recordVisitOnce(test.slug);
+  }, [part, resultOnly, test.slug]);
 
   // 2단계로 들어오면 1단계에서 쌓은 점수를 이어받습니다. 없으면 처음으로 돌려보냅니다.
   useEffect(() => {
@@ -103,7 +108,7 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
     nextPicks[answeredBefore + index] = side;
     // 첫 문항에 답한 순간. 화면을 열자마자 나간 사람과 여기까지 온 사람을
     // 가르는 지점이라 따로 셉니다.
-    if (part === 1 && index === 0) recordTestEvent(test.slug, "answered");
+    if (part === 1 && index === 0) recordAnswered(test.slug);
 
     const next = { ...scores };
     Object.entries(add).forEach(([key, value]) => { next[key] = (next[key] || 0) + value; });

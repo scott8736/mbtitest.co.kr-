@@ -238,6 +238,9 @@ const PICK_SINCE = "2026-10-01";
 /** 유료 정밀 리포트 수요 측정 카드를 결과 화면에 붙인 다음 날. 10-03 은 붙이기 전 완주가
  *  섞여 있어 관심률이 낮게 나오므로 하루 뒤부터 비율을 냅니다. */
 const REPORT_SINCE = "2026-10-04";
+/** 검사 화면 방문을 사람당 한 번(답하기 전까지 탭당 한 번) 세기 시작한 다음 날.
+ *  「방문」(페이지뷰)은 새로고침·재방문이 섞여 응답 시작률이 낮게 나온다. */
+const VISIT_SINCE = "2026-10-04";
 
 /** 이보다 표본이 작으면 비율을 내지 않습니다. 몇 건짜리 비율은 뜻이 없습니다. */
 const MIN_SAMPLE = 20;
@@ -331,11 +334,12 @@ async function dashboard(
   // 결과 주소는 공유되고 새로고침되어 조회수가 완주 수보다 큽니다.
   const events = await q<{ slug: string; name: string; count: number }>(
     `SELECT slug, name, COUNT(*) AS count FROM test_events
-      WHERE day BETWEEN ? AND ? AND name IN ('answered', 'step2', 'completed', 'pick_click', 'report_seen', 'report_click', 'report_follow')
+      WHERE day BETWEEN ? AND ? AND name IN ('visited', 'answered', 'step2', 'completed', 'pick_click', 'report_seen', 'report_click', 'report_follow')
       GROUP BY slug, name`, from, to);
   const countsFor = (name: string) =>
     new Map(events.filter((row) => row.name === name).map((row) => [row.slug, row.count]));
   const answeredBySlug = countsFor("answered");
+  const visitedBySlug = countsFor("visited");
   const completedBySlug = countsFor("completed");
   const step2BySlug = countsFor("step2");
   const pickBySlug = countsFor("pick_click");
@@ -393,13 +397,14 @@ ${rangeForm}
 방문과 첫 응답의 차이가 크면 첫인상 문제, 「첫 응답 → 완주」가 낮으면 길이 문제입니다. 고칠 곳이 서로 달라 나눠 셉니다.
 <br>「결과 조회」는 결과 화면 조회수입니다. 공유 링크로 들어온 사람과 새로고침이 섞여 있어 완주 수보다 큽니다. 비율에는 쓰지 않습니다.
 <br>「쿠팡 클릭」은 결과 화면의 추천 카드를 누른 수입니다(${PICK_SINCE} 부터). 쿠팡 화면의 채널별 클릭과 비교해, 여기는 있는데 쿠팡에 없으면 채널(subId)이 안 붙고 있다는 뜻입니다.
+<br>「고유 방문」은 검사 화면을 연 사람 수입니다. 답하기 전까지는 새로고침해도 한 번만 세고, 다시 검사하면 새로 셉니다. 「실제 시작률」 = 첫 응답 ÷ 고유 방문으로, 페이지뷰로 나눈 「응답 시작률」보다 정확합니다(${VISIT_SINCE} 부터, MBTI·일반 테스트만).
 <br>「2단계」는 2단계 화면에 도착한 사람 수입니다. ${STEP2_SINCE} 부터는 사람당 한 번만 세고, 그 전 기간은 새로고침이 섞인 화면 조회수라 회색으로 표시합니다.
 <br>첫 응답은 ${ANSWERED_SINCE}, 완주는 ${COMPLETED_SINCE} 부터 쌓기 시작했습니다. 조회 기간이 그 전을 포함하면 비율은 「-」로 나옵니다.
 표본이 ${MIN_SAMPLE}건 미만이어도 비율 대신 「표본 부족」으로 적습니다.
 </p>${
       steps.length === 0
         ? `<p class="empty">아직 기록이 없습니다.</p>`
-        : `<div class="scroll"><table><thead><tr><th>테스트</th><th>방문</th><th>첫 응답</th><th>2단계</th><th>결과 조회</th><th>완주</th><th>응답 시작률</th><th>완주율</th><th>쿠팡 클릭</th></tr></thead><tbody>${steps
+        : `<div class="scroll"><table><thead><tr><th>테스트</th><th>방문</th><th>고유 방문</th><th>첫 응답</th><th>2단계</th><th>결과 조회</th><th>완주</th><th>응답 시작률</th><th>실제 시작률</th><th>완주율</th><th>쿠팡 클릭</th></tr></thead><tbody>${steps
             .map((s) => {
               const began = answeredBySlug.get(s.slug) ?? 0;
               const finished = completedBySlug.get(s.slug) ?? 0;
@@ -410,8 +415,8 @@ ${rangeForm}
                 if (whole < MIN_SAMPLE) return "표본 부족";
                 return Math.round((part / whole) * 100) + "%";
               };
-              return `<tr><td>${esc(s.slug)}</td><td>${s.intro}</td><td>${began || "-"}</td><td>${from >= STEP2_SINCE ? (step2BySlug.get(s.slug) ?? "-") : `<span class="muted">${s.step2}</span>`}</td><td>${s.result}</td><td>${finished || "-"}</td>
-<td>${rate(began, s.intro, ANSWERED_SINCE)}</td><td>${rate(finished, began, COMPLETED_SINCE)}</td><td>${pickBySlug.get(s.slug) ?? (from >= PICK_SINCE ? 0 : "-")}</td></tr>`;
+              return `<tr><td>${esc(s.slug)}</td><td>${s.intro}</td><td>${visitedBySlug.get(s.slug) ?? "-"}</td><td>${began || "-"}</td><td>${from >= STEP2_SINCE ? (step2BySlug.get(s.slug) ?? "-") : `<span class="muted">${s.step2}</span>`}</td><td>${s.result}</td><td>${finished || "-"}</td>
+<td>${rate(began, s.intro, ANSWERED_SINCE)}</td><td>${rate(began, visitedBySlug.get(s.slug) ?? 0, VISIT_SINCE)}</td><td>${rate(finished, began, COMPLETED_SINCE)}</td><td>${pickBySlug.get(s.slug) ?? (from >= PICK_SINCE ? 0 : "-")}</td></tr>`;
             })
             .join("")}</tbody></table></div>`
     }</div>
