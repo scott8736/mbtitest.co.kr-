@@ -386,7 +386,7 @@ async function dashboard(
   const tarotShareClickTotal = sumClicks("tarot-");
   // 운세·사주·궁합은 완주 기록이 없어 비율을 내지 않습니다(분모 없음).
   const shareWhole = (key: string) =>
-    key.startsWith("mori-") ? mbtiCompleted : key.startsWith("tarot-") ? tarotCompleted : key.startsWith("fortune-") ? -1 : otherCompleted;
+    key.startsWith("mori-") ? mbtiCompleted : key.startsWith("tarot-") ? tarotCompleted : key.startsWith("fortune-") || key.startsWith("type-") ? -1 : otherCompleted;
   const shareRateFor = (part: number, key: string) => (shareWhole(key) < 0 ? "-" : shareRate(part, shareWhole(key)));
   const perShare = (starts: number, clicks: number) => (from < SHARE_SINCE || clicks < MIN_SAMPLE ? "-" : (starts / clicks).toFixed(2));
   const shareRate = (part: number, whole: number) => {

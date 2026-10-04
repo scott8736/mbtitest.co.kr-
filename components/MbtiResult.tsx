@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import AdUnit from "./AdUnit";
 import { MoriPortrait, MoriShare } from "./MoriCard";
+import MoriVideoShare from "./MoriVideoShare";
 import MbtiResultPick from "./MbtiResultPick";
 import ReportTeaser from "./ReportTeaser";
 import SajuLabBanner from "./SajuLabBanner";
@@ -68,6 +69,7 @@ export default function MbtiResult() {
       <p className="result-tagline">{resultInfo.tagline}</p>
       <p className="result-description">{resultInfo.description}</p>
       <MoriShare code={result} name={resultInfo.name} tagline={resultInfo.tagline} percents={percentages} best={MORI_BEST[result]} />
+      <MoriVideoShare code={result} channel="mori-video" />
       <div className="result-grid">
         <article className="axis-card">
           <h2>나의 성향 지표</h2>

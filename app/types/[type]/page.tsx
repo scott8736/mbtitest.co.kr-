@@ -5,6 +5,7 @@ import ContentHeader from "../../../components/ContentHeader";
 import CrossPromo from "../../../components/CrossPromo";
 import MbtiResultPick from "../../../components/MbtiResultPick";
 import MoriLoopVideo from "../../../components/MoriLoopVideo";
+import MoriVideoShare from "../../../components/MoriVideoShare";
 import ShareButtons from "../../../components/ShareButtons";
 import { moriImage, moriOgImage } from "../../../lib/mori";
 import SiteFooter from "../../../components/SiteFooter";
@@ -55,6 +56,7 @@ export default async function TypePage({params}:{params:Promise<{type:string}>})
     <article className={styles.body}>
       <section className={styles.answer}><strong>{p.code}는 어떤 성격인가요?</strong><p>{p.summary}</p></section>
       <ShareButtons title={`${p.code} 모리 · ${p.name} — 특징·연애·궁합`} url={`https://mbtitest.co.kr/types/${code}/`} label={`${p.code} 친구에게 공유하기`} />
+      <MoriVideoShare code={p.code} channel="type-video" label={`${p.code} 모리 15초 영상`} />
       <AdUnit position="articleTop" label={`${p.code} 유형 상단 광고`} />
       <nav className={styles.toc} aria-label="페이지 목차"><a href="#core">핵심 성향</a><a href="#strengths">강점과 주의점</a><a href="#love">연애와 호감 신호</a><a href="#work">직업·업무</a><a href="#stress">스트레스</a><a href="#communication">소통 방법</a><a href="#compatibility">유형별 궁합</a><a href="#faq">자주 묻는 질문</a></nav>
       <section id="core" className={styles.section}><h2>{p.code} 핵심 성향과 사고방식</h2><p>{p.core}</p><h3>{p.code}를 이해하는 핵심</h3><p>{p.misconception}</p></section>
