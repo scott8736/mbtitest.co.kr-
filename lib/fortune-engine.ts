@@ -39,30 +39,27 @@ export type Pillar = { stemIdx: number; branchIdx: number };
 
 // ── 기둥 계산 ──────────────────────────────────────────────
 
+import { dayGanzhiIdx, monthStemIdx, sajuYearMonth } from "./solar-terms.ts";
+
 export function calcYearPillar(year: number): Pillar {
   return { stemIdx: (((year - 4) % 10) + 10) % 10, branchIdx: (((year - 4) % 12) + 12) % 12 };
 }
 
-export function calcMonthPillar(yearStemIdx: number, month: number): Pillar {
-  const branchIdx = (month + 1) % 12;
-  const base = [2, 4, 6, 8, 0][yearStemIdx % 5];
-  return { stemIdx: (base + (month - 1)) % 10, branchIdx };
+/**
+ * 사주 년주·월주는 입춘·절입 시각으로 나눕니다(2026-10-04). 예전 calcMonthPillar 는 양력 달을 그대로 써서
+ * 대부분의 생일에서 월주가 한 달 밀렸고, 년주도 1월~입춘 전 출생이 전 해로 넘어가지 않았습니다.
+ * 시각을 모르면 정오, 시를 고르면 그 시진의 가운데 시각으로 봅니다.
+ */
+export function calcYearMonthPillars(year: number, month: number, day: number, timeSlot = 0): { year: Pillar; month: Pillar } {
+  const hour = timeSlot > 0 ? ((timeSlot - 1) * 2) % 24 : 12;
+  const { sajuYear, monthBranchIdx } = sajuYearMonth(year, month, day, hour, 0);
+  const yearPillar = calcYearPillar(sajuYear);
+  return { year: yearPillar, month: { stemIdx: monthStemIdx(yearPillar.stemIdx, monthBranchIdx), branchIdx: monthBranchIdx } };
 }
 
 /** 율리우스 적일로 일주를 구합니다. 60갑자가 끊기지 않는 유일한 방법입니다. */
 export function calcDayPillar(year: number, month: number, day: number): Pillar {
-  const a = Math.floor((14 - month) / 12);
-  const y = year + 4800 - a;
-  const m = month + 12 * a - 3;
-  const jdn =
-    day +
-    Math.floor((153 * m + 2) / 5) +
-    365 * y +
-    Math.floor(y / 4) -
-    Math.floor(y / 100) +
-    Math.floor(y / 400) -
-    32045;
-  const ganzhi = (jdn + 49) % 60;
+  const ganzhi = dayGanzhiIdx(year, month, day);
   return { stemIdx: ganzhi % 10, branchIdx: ganzhi % 12 };
 }
 
@@ -198,10 +195,8 @@ export const zodiacNames = [
  * 월·일을 넘기면 그 기준을 적용합니다.
  */
 export function zodiacIndexFromYear(year: number, month?: number, day?: number): number {
-  let effectiveYear = year;
-  if (month !== undefined && (month < 2 || (month === 2 && (day ?? 4) < 4))) {
-    effectiveYear -= 1;
-  }
+  // 입춘 시각표로 나눕니다(정오 기준). 날짜를 안 주면 그해 띠입니다.
+  const effectiveYear = month === undefined ? year : sajuYearMonth(year, month, day ?? 4).sajuYear;
   return (((effectiveYear - 4) % 12) + 12) % 12;
 }
 
@@ -318,8 +313,7 @@ export type SajuChart = {
 };
 
 export function buildChart({ year, month, day, timeSlot = 0 }: BirthInput): SajuChart {
-  const yearPillar = calcYearPillar(year);
-  const monthPillar = calcMonthPillar(yearPillar.stemIdx, month);
+  const { year: yearPillar, month: monthPillar } = calcYearMonthPillars(year, month, day, timeSlot);
   const dayPillar = calcDayPillar(year, month, day);
   const timePillar = calcTimePillar(dayPillar.stemIdx, timeSlot);
 
@@ -345,7 +339,7 @@ export function buildChart({ year, month, day, timeSlot = 0 }: BirthInput): Saju
     strongestElement: strongest,
     weakestElement: weakest,
     tenGod: getDominantTenGod(dayPillar.stemIdx, otherStems),
-    zodiacIndex: zodiacIndexFromYear(year, month, day),
+    zodiacIndex: yearPillar.branchIdx,
     starSignIndex: starSignIndexFromDate(month, day),
     seed: hashSeed(`${year}-${month}-${day}-${timeSlot}`),
   };

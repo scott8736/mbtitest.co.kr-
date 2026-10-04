@@ -103,3 +103,22 @@ test("날짜 키는 한국 시간 기준 YYYY-MM-DD 형식이다", () => {
   assert.equal(seoulDateKey(new Date("2026-01-01T20:00:00Z")), "2026-01-02");
   assert.match(seoulDateKey(), /^\d{4}-\d{2}-\d{2}$/);
 });
+
+// 2026-10-04: 년주·월주를 절입 시각표로 나눈다. 정답은 lunar-javascript(천문 계산)와 대조한 값.
+test("사주 년·월·일주가 만세력과 맞는다 (입춘·절입 경계 포함)", () => {
+  const label = (p) => heavenlyStemsKo[p.stemIdx] + earthlyBranchesKo[p.branchIdx];
+  const cases = [
+    [{ year: 2000, month: 1, day: 1 }, "기묘 병자 무오"],
+    [{ year: 1990, month: 5, day: 15 }, "경오 신사 경진"],
+    [{ year: 1984, month: 2, day: 3 }, "계해 을축 정묘"],
+    [{ year: 1995, month: 1, day: 20 }, "갑술 정축 신해"],
+    // 2024 입춘은 2월 4일 17:27 — 오시(정오 무렵)는 아직 계묘년, 유시(18시)는 갑진년
+    [{ year: 2024, month: 2, day: 4, timeSlot: 7 }, "계묘 을축 무술"],
+    [{ year: 2024, month: 2, day: 4, timeSlot: 10 }, "갑진 병인 무술"],
+  ];
+  for (const [input, expected] of cases) {
+    const c = buildChart(input);
+    assert.equal([c.year, c.month, c.day].map(label).join(" "), expected, JSON.stringify(input));
+    assert.equal(c.zodiacIndex, c.year.branchIdx);
+  }
+});

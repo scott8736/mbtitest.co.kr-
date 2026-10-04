@@ -50,9 +50,8 @@ test("2027년 1월 10일생은 사이트 기준 말띠이고, 년주 지지와�
   assert.equal(zodiacNames[zodiacIndexFromYear(2027, 1, 10)], "말띠");
   assert.equal(chart.zodiacIndex, 6);
 
-  // 년주 지지(chart.year.branchIdx)는 입춘 보정이 없어 2027년 그대로 7(양띠)이다 —
-  // 이 자체는 사주 년주 계산 방식이라 정상이다. 궁합 쪽이 이 값 대신 zodiacIndex 를 쓰는지가 핵심.
-  assert.equal(chart.year.branchIdx, 7);
+  // 2026-10-04 부터 년주도 입춘 시각으로 나누므로 년주 지지와 띠가 같다(6, 말띠).
+  assert.equal(chart.year.branchIdx, 6);
 });
 
 test("실제로는 같은 말띠인 두 사람의 궁합에서 띠 관계가 '보통'으로 정확히 나온다", () => {
