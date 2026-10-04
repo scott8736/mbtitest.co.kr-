@@ -27,13 +27,13 @@ FONT = os.path.join(ROOT, "scripts", "fonts", "NotoSansKR-Bold.ttf")
 # lib/mori.ts 의 MORI 와 같은 값입니다. 이름은 lib/mbti-data.ts 의 typeData.name 입니다.
 TYPES = {
     "ISTJ": ("#a9c4ec", "묵묵한 약속 지킴이"), "ISFJ": ("#f6b48f", "포근한 돌봄 요정"),
-    "INFJ": ("#8fd8c8", "조용한 마음 등대"), "INTJ": ("#5b63c9", "큰그림 설계자"),
+    "INFJ": ("#8fd8c8", "조용한 마음 등대"), "INTJ": ("#5b63c9", "멀리 보는 별지도 제작자"),
     "ISTP": ("#6f7d96", "척척 해결사"), "ISFP": ("#8fae8a", "감성 산책가"),
     "INFP": ("#b9a3e3", "몽글몽글 이야기꾼"), "INTP": ("#9cc9ef", "궁금증 탐구가"),
     "ESTP": ("#f99a3d", "직진 행동대장"), "ESFP": ("#f26b6b", "신나는 분위기 메이커"),
-    "ENFP": ("#f2d23c", "반짝반짝 아이디어 뱅크"), "ENTP": ("#a6d83c", "기발한 반전 토론가"),
+    "ENFP": ("#f2d23c", "반짝반짝 아이디어 뱅크"), "ENTP": ("#a6d83c", "엉뚱발랄 질문왕"),
     "ESTJ": ("#b98a5e", "똑부러진 현장 반장"), "ESFJ": ("#f5a9bd", "다정한 모임 호스트"),
-    "ENFJ": ("#c85bd6", "든든한 응원단장"), "ENTJ": ("#b5303f", "거침없는 목표 지휘관"),
+    "ENFJ": ("#c85bd6", "든든한 응원단장"), "ENTJ": ("#b5303f", "씩씩한 길잡이 대장"),
 }
 
 

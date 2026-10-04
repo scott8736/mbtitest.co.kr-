@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import AdUnit from "./AdUnit";
 import { MoriPortrait, MoriShare } from "./MoriCard";
 import MoriVideoShare from "./MoriVideoShare";
+import { MoriForestCard } from "./MoriWorld";
 import MbtiResultPick from "./MbtiResultPick";
 import ReportTeaser from "./ReportTeaser";
 import SajuLabBanner from "./SajuLabBanner";
@@ -61,7 +62,7 @@ export default function MbtiResult() {
 
   return (
     <section className="result-shell" style={{ "--result-color": resultInfo.color } as React.CSSProperties}>
-      <span className="result-kicker">검사가 완료되었습니다</span>
+      <span className="result-kicker">잠들어 있던 내 모리가 깨어났어요</span>
       {/* 결과 화면 첫 그림은 유형별 모리 캐릭터입니다(2026-10-04). 예전 1200x630 결과 카드는
           글자뿐이라 공유할 맛이 없었습니다. 공유 카드는 아래 MoriShare 가 9:16 으로 그립니다. */}
       <MoriPortrait code={result} name={resultInfo.name} />
@@ -70,6 +71,7 @@ export default function MbtiResult() {
       <p className="result-description">{resultInfo.description}</p>
       <MoriShare code={result} name={resultInfo.name} tagline={resultInfo.tagline} percents={percentages} best={MORI_BEST[result]} />
       <MoriVideoShare code={result} channel="mori-video" />
+      <MoriForestCard code={result} />
       <div className="result-grid">
         <article className="axis-card">
           <h2>나의 성향 지표</h2>

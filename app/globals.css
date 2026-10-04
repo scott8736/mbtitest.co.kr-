@@ -1362,6 +1362,68 @@ main:not(.screener) .result-card-image {
 @media (min-width:900px) { .type-hero-mori { float:right; width:320px; margin:0 0 20px 40px; } }
 .seo-card-head .seo-card-face img { width:100%; height:100%; border-radius:13px; object-fit:cover; }
 .seo-card-head .seo-card-face { overflow:hidden; }
+/* 모리 세계관 (2026-10-04) */
+.village-badge { display:inline-flex; align-items:center; padding:6px 12px; border-radius:999px; background:color-mix(in srgb,var(--village) 14%,#fff); color:var(--village); font-size:13px; font-weight:800; text-decoration:none; border:1px solid color-mix(in srgb,var(--village) 30%,#fff); }
+.mori-portrait-says { position:relative; display:inline-block; margin:0 auto 14px; padding:10px 18px; border-radius:18px; background:#fff; color:#1c2034; font-size:16px; font-weight:800; box-shadow:0 8px 20px rgba(34,40,70,.1); }
+.mori-portrait-says::after { content:""; position:absolute; left:50%; bottom:-8px; width:16px; height:16px; background:#fff; transform:translateX(-50%) rotate(45deg); }
+.forest-card { max-width:640px; margin:26px auto; padding:22px; border-radius:24px; background:linear-gradient(160deg,color-mix(in srgb,var(--mori) 14%,#fff),#fff 70%); border:1px solid color-mix(in srgb,var(--village) 22%,#fff); text-align:left; }
+.forest-card-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+.forest-card-head > span { color:#5b6275; font-size:13px; font-weight:800; letter-spacing:.06em; }
+.forest-says { margin:0 0 6px; color:#1c2034; font-size:22px; font-weight:900; letter-spacing:-.02em; word-break:keep-all; }
+.forest-line { margin:0 0 14px; color:#4b5266; font-size:15px; line-height:1.6; word-break:keep-all; }
+.forest-facts { display:grid; gap:8px; margin:0 0 14px; }
+.forest-facts div { display:flex; gap:10px; padding:10px 12px; border-radius:12px; background:rgba(255,255,255,.75); }
+.forest-facts dt { flex:none; width:108px; color:var(--village); font-size:13px; font-weight:800; }
+.forest-facts dd { margin:0; color:#1c2034; font-size:14px; word-break:keep-all; }
+.forest-friends { display:grid; gap:8px; margin-bottom:14px; }
+.forest-friends a { display:flex; align-items:center; gap:12px; padding:10px; border-radius:14px; background:#fff; border:1px solid #ece7f7; color:#1c2034; text-decoration:none; font-size:14px; line-height:1.5; word-break:keep-all; }
+.forest-friends img { flex:none; width:48px; height:48px; border-radius:14px; object-fit:cover; }
+.forest-friends b { display:block; font-size:12.5px; color:var(--village); }
+.forest-more { color:var(--village); font-weight:800; text-decoration:none; font-size:14px; }
+.pair-story { margin:0 0 18px; padding:18px 20px; border-radius:18px; background:#f6f2ff; border-left:4px solid #7657d6; }
+.pair-story.is-rival { background:#fff5ec; border-left-color:#c25e14; }
+.pair-story b { display:block; margin-bottom:6px; color:#1c2034; font-size:15px; }
+.pair-story p { margin:0 0 8px; font-size:15.5px !important; line-height:1.8 !important; }
+.pair-story a { color:#5d4aa1; font-weight:800; font-size:14px; text-decoration:none; }
+.world-hero { padding:64px 16px 40px; text-align:center; background:radial-gradient(circle at 50% 0,#efe9ff,transparent 60%),#fffdf8; }
+.world-hero h1 { margin:18px 0 16px; font-size:clamp(32px,6vw,58px); line-height:1.2; letter-spacing:-.05em; word-break:keep-all; }
+.world-hero h1 em { color:#7657d6; font-style:normal; }
+.world-hero > p { max-width:680px; margin:0 auto 26px; color:#4b5266; font-size:17px; line-height:1.85; word-break:keep-all; }
+.world-hero > p b { color:#1c2034; }
+.world-map { display:block; width:min(100%,960px); height:auto; margin:0 auto 26px; border-radius:28px; box-shadow:0 24px 60px rgba(34,40,70,.18); }
+.world-body { max-width:1080px; margin:0 auto; padding:30px 16px 90px; }
+.world-tree { max-width:720px; margin:0 auto 30px; text-align:center; }
+.world-tree h2 { font-size:28px; }
+.world-tree p { color:#4b5266; font-size:16px; line-height:1.85; word-break:keep-all; }
+.world-nav { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:16px; }
+.world-nav a { padding:9px 16px; border-radius:999px; background:color-mix(in srgb,var(--village) 12%,#fff); color:var(--village); font-weight:800; text-decoration:none; }
+.world-village { margin:50px 0; scroll-margin-top:90px; }
+.world-village-img { display:block; width:100%; height:auto; border-radius:26px; box-shadow:0 18px 44px rgba(34,40,70,.14); }
+.world-village-head { margin:-36px 16px 18px; position:relative; padding:18px 20px; border-radius:20px; background:#fff; box-shadow:0 12px 30px rgba(34,40,70,.1); border-top:4px solid var(--village); }
+.world-village-head span { color:var(--village); font-size:13px; font-weight:800; }
+.world-village-head h2 { margin:4px 0; font-size:28px; letter-spacing:-.04em; }
+.world-village-head p { margin:0; color:#5b6275; font-size:14px; }
+.world-mori-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.world-mori { display:flex; flex-direction:column; gap:4px; padding:14px; border-radius:20px; background:color-mix(in srgb,var(--mori) 12%,#fff); border:1px solid color-mix(in srgb,var(--mori) 28%,#fff); color:#1c2034; text-decoration:none; }
+.world-mori img { width:100%; height:auto; border-radius:16px; margin-bottom:6px; }
+.world-mori b { font-size:14.5px; word-break:keep-all; }
+.world-mori q { font-size:15px; font-weight:800; color:#3b2f7a; quotes:"“" "”"; }
+.world-mori span { color:#4b5266; font-size:13px; line-height:1.5; word-break:keep-all; }
+.world-mori small { color:#6b7280; font-size:12px; word-break:keep-all; }
+.world-pairs { margin:60px 0 30px; }
+.world-pairs > h2 { font-size:28px; text-align:center; }
+.world-pairs > p { text-align:center; color:#4b5266; word-break:keep-all; }
+.world-pair-list { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:20px; }
+.world-pair-list article { padding:20px; border-radius:22px; background:#f8f5ff; border:1px solid #e9e2fb; }
+.world-pair-list article.is-rival { background:#fff7f0; border-color:#f7e2d0; }
+.world-pair-list article > span { display:inline-block; padding:4px 10px; border-radius:999px; background:#fff; color:#7657d6; font-size:12px; font-weight:800; }
+.world-pair-list article.is-rival > span { color:#c25e14; }
+.world-pair-list h3 { margin:8px 0 4px; font-size:18px; word-break:keep-all; }
+.world-pair-list p { color:#4b5266; font-size:14.5px; line-height:1.75; word-break:keep-all; }
+.world-pair-list .world-pair-hook { margin:0 0 6px; color:#1c2034; font-weight:800; }
+.world-pair-list a { color:#5d4aa1; font-weight:800; font-size:14px; text-decoration:none; }
+.world-note { max-width:720px; margin:30px auto 0; color:#6b7280; font-size:13px; line-height:1.7; text-align:center; word-break:keep-all; }
+@media (max-width:760px) { .world-mori-grid { grid-template-columns:repeat(2,1fr); } .world-pair-list { grid-template-columns:1fr; } .forest-facts dt { width:92px; } }
 /* 궁합: 두 모리 나란히 (카드는 겹치게, 조합 제목 위는 크게) */
 .pair-moris { display:inline-flex; align-items:center; flex:none; }
 .pair-moris img { width:40px; height:40px; border-radius:12px; border:2px solid #fff; box-shadow:0 4px 10px rgba(34,40,70,.12); object-fit:cover; }

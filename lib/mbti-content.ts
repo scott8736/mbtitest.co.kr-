@@ -26,7 +26,7 @@ export type MbtiProfile = {
 
 export const profiles: Record<MbtiCode, MbtiProfile> = {
   intj: {
-    code: "INTJ", name: "설계자", group: "탐구형 NT", tagline: "복잡한 문제를 구조화하고 먼 미래를 설계하는 독립적인 전략가",
+    code: "INTJ", name: "별지도 제작자", group: "탐구형 NT", tagline: "복잡한 문제를 구조화하고 먼 미래를 설계하는 독립적인 전략가",
     summary: "INTJ는 장기적인 목표를 세우고 복잡한 문제를 체계로 바꾸는 데 강점을 보이는 유형입니다. 혼자 생각을 정리할 시간이 필요하고, 관계에서는 말보다 일관된 행동과 책임으로 신뢰를 표현하는 경우가 많습니다.",
     core: "가능성을 떠올리는 직관(N)과 논리적 기준으로 판단하는 사고(T), 계획을 선호하는 판단(J)이 결합됩니다. 겉으로는 조용해 보여도 머릿속에서는 여러 시나리오를 비교하며 가장 효율적인 경로를 찾습니다.",
     strengths: ["장기 목표와 우선순위를 선명하게 정합니다.", "정보의 패턴을 발견하고 전략으로 연결합니다.", "독립적으로 깊이 집중하며 기준을 지킵니다."],
@@ -54,7 +54,7 @@ export const profiles: Record<MbtiCode, MbtiProfile> = {
     matches: ["entj", "entp", "infj"], challenges: ["esfj", "estj", "isfj"],
   },
   entj: {
-    code: "ENTJ", name: "지휘관", group: "탐구형 NT", tagline: "목표를 구조화하고 사람과 자원을 움직여 결과를 만드는 지휘자",
+    code: "ENTJ", name: "길잡이 대장", group: "탐구형 NT", tagline: "목표를 구조화하고 사람과 자원을 움직여 결과를 만드는 지휘자",
     summary: "ENTJ는 목표 달성을 위해 빠르게 판단하고 실행 체계를 만드는 유형입니다. 큰 그림과 효율을 중시하며, 책임을 맡았을 때 방향을 제시하고 팀을 이끄는 모습이 자연스럽게 나타납니다.",
     core: "외향(E)의 추진력, 직관(N)의 전략적 시야, 사고(T)의 객관적 판단, 판단(J)의 계획성이 결합됩니다. 문제를 발견하면 오래 불평하기보다 해결 구조부터 만들려 합니다.",
     strengths: ["복잡한 목표를 단계별 실행 계획으로 바꿉니다.", "결정이 필요한 순간에 책임지고 방향을 제시합니다.", "성과를 막는 비효율을 빠르게 발견합니다."],
@@ -68,7 +68,7 @@ export const profiles: Record<MbtiCode, MbtiProfile> = {
     matches: ["intp", "enfp", "intj"], challenges: ["isfp", "esfp", "isfj"],
   },
   entp: {
-    code: "ENTP", name: "토론가", group: "탐구형 NT", tagline: "새로운 가능성을 빠르게 발견하고 질문과 토론으로 판을 바꾸는 탐험가",
+    code: "ENTP", name: "엉뚱 질문왕", group: "탐구형 NT", tagline: "새로운 가능성을 빠르게 발견하고 질문과 토론으로 판을 바꾸는 탐험가",
     summary: "ENTP는 익숙한 방식에 의문을 제기하고 새로운 가능성을 실험하는 유형입니다. 대화를 통해 생각을 발전시키며, 변화가 빠르고 선택지가 많은 상황에서 순발력과 창의성이 살아납니다.",
     core: "외향(E)의 상호작용, 직관(N)의 아이디어, 사고(T)의 논리, 인식(P)의 개방성이 결합됩니다. 하나의 결론보다 더 나은 질문과 다른 경로를 찾는 데 흥미를 느낍니다.",
     strengths: ["상황을 새로운 관점에서 재해석합니다.", "즉석에서 아이디어를 연결하고 설득합니다.", "불확실한 환경에서도 대안을 빠르게 만듭니다."],

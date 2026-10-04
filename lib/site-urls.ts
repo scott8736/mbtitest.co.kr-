@@ -71,6 +71,8 @@ export function siteUrls(now: Date = new Date()): SiteUrl[] {
       changeFrequency: "weekly" as const,
       priority: 0.88,
     })),
+    // 모리 세계관 한 장 (2026-10-04)
+    { path: "/mori/", lastModified: now, changeFrequency: "monthly" as const, priority: 0.8 },
     ...["result", "types", "compatibility", "blog"].map((page) => ({
       path: `/${page}/`,
       lastModified: now,

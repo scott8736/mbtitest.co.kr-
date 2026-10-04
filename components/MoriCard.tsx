@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import SharePanel from "./SharePanel";
 import { cardFont as font, inkOn, loadImage, mix, mixRgb, rgb } from "../lib/card-draw";
 import { MORI, moriImage, moriSharePath, shareText } from "../lib/mori";
+import { MORI_WORLD, VILLAGES, villageOf } from "../lib/mori-world";
 import { saveMyMori } from "../lib/my-mori";
 
 type Percent = { axis: string; left: string; right: string; value: number };
@@ -15,8 +16,10 @@ export function MoriPortrait({ code, name }: { code: string; name: string }) {
   if (!mori) return null;
   return (
     <figure className="mori-portrait" style={{ "--mori": mori.color } as React.CSSProperties}>
+      {MORI_WORLD[code] && <p className="mori-portrait-says">“{MORI_WORLD[code].says}”</p>}
       <img src={moriImage(code)} width={720} height={720} alt={`${code} ${name} 모리 캐릭터`} />
-      <figcaption>나의 캐릭터 <b>{code} 모리</b></figcaption>
+      {/* 「당신의 MBTI는」 대신 세계관 말투로 (모리 세계관 기획서, 2026-10-04) */}
+      <figcaption>당신 마음숲에 사는 모리는 <b>{code} 모리</b>{MORI_WORLD[code] && <> · {VILLAGES[villageOf(code)].name}</>}</figcaption>
     </figure>
   );
 }

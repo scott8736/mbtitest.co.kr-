@@ -25,7 +25,7 @@ export const MORI: Record<string, { color: string; prop: string }> = {
   ESTJ: { color: "#b98a5e", prop: "빨간 넥타이와 스톱워치" },
   ESFJ: { color: "#f5a9bd", prop: "컵케이크 쟁반" },
   ENFJ: { color: "#c85bd6", prop: "작은 깃발" },
-  ENTJ: { color: "#b5303f", prop: "왕관과 망토" },
+  ENTJ: { color: "#b5303f", prop: "깃발과 호루라기" },
 };
 
 /**
