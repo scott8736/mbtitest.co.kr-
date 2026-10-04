@@ -35,8 +35,8 @@ export const SELLER = {
   mailOrderNo: "",
   /** 사업장 주소 */
   address: "",
-  /** 고객 문의 연락처(전화 또는 이메일) */
-  contact: "",
+  /** 고객 문의 연락처 — 사용자 지정 이메일(2026-10-04). 문의 창구는 오픈채팅도 함께 씁니다(/contact/). */
+  contact: "tiredddq492@naver.com",
   hosting: "Cloudflare, Inc.",
 };
 
