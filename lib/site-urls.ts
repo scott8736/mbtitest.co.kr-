@@ -73,6 +73,8 @@ export function siteUrls(now: Date = new Date()): SiteUrl[] {
     })),
     // 모리 세계관 한 장 (2026-10-04)
     { path: "/mori/", lastModified: now, changeFrequency: "monthly" as const, priority: 0.8 },
+    // 유료 리포트 판매 안내 (2026-10-04)
+    { path: "/report/", lastModified: now, changeFrequency: "monthly" as const, priority: 0.7 },
     ...["result", "types", "compatibility", "blog"].map((page) => ({
       path: `/${page}/`,
       lastModified: now,
@@ -131,7 +133,7 @@ export function siteUrls(now: Date = new Date()): SiteUrl[] {
       changeFrequency: "monthly" as const,
       priority: 0.75,
     })),
-    ...["about", "contact", "privacy"].map((page) => ({
+    ...["about", "contact", "privacy", "refund"].map((page) => ({
       path: `/${page}/`,
       lastModified: now,
       changeFrequency: "yearly" as const,

@@ -78,13 +78,19 @@ test("주문 입력 검사: 유형·점수 짝, 휴대폰, 동의, 이름 정리
   assert.equal(noBirth.ok && noBirth.value.bt, 0, "생일이 없으면 시간도 버린다");
 });
 
-test("판매자 표시 정보가 비면 키와 스위치가 있어도 손님 주문은 닫혀 있다", async () => {
-  const db = await setup();
+test("손님 주문은 판매자 정보 + 스위치 + 연동 키 + 해독 키가 모두 있어야 열린다", async () => {
+  const db = await setup(); // 연동 키는 들어 있음
+  assert.equal(R.isSellerInfoComplete(), true, "통신판매업 신고번호·주소·연락처 입력됨(2026-10-04)");
+  assert.equal(await R.salesOpen(db), false, "스위치 꺼짐");
+  const order = () => R.handleReport(new Request("https://x/api/report/order", { method: "POST", body: "{}" }), new URL("https://x/api/report/order"), { DB: db }, ctx);
+  assert.equal((await order()).status, 503);
   await R.writeSetting(db, "report_open", "1");
-  assert.equal(R.isSellerInfoComplete(), false, "통신판매업 신고번호를 받기 전");
-  assert.equal(await R.salesOpen(db), false);
-  const res = await R.handleReport(new Request("https://x/api/report/order", { method: "POST", body: "{}" }), new URL("https://x/api/report/order"), { DB: db }, ctx);
-  assert.equal(res.status, 503);
+  assert.equal(await R.salesOpen(db), false, "해독 키가 없으면 결제해도 못 보므로 닫혀 있어야 한다");
+  await R.writeSetting(db, "report_content_key", "x");
+  assert.equal(await R.salesOpen(db), true);
+  assert.equal((await order()).status, 400, "열린 뒤에는 입력 검사로 넘어간다(빈 주문)");
+  await R.writeSetting(db, "report_open", "0");
+  assert.equal(await R.salesOpen(db), false, "다시 닫기");
 });
 
 test("결제 흐름: 위조·금액 불일치 거절 → 결제완료 → 중복 통보 무시 → 환불", async () => {

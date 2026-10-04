@@ -31,12 +31,12 @@ export const SELLER = {
   name: "챠리몰",
   owner: "김영훈",
   bizNo: "543-24-01142",
-  /** 통신판매업 신고번호 — 받으면 채웁니다. */
-  mailOrderNo: "",
+  /** 통신판매업 신고번호 (사용자 제공 2026-10-04) */
+  mailOrderNo: "제2021-경남사천-0189호",
   /** 사업장 주소 */
   address: "경상남도 사천시 용현면 용현로 87, 108동 404호",
   /** 고객 문의 연락처 — 사용자 지정 이메일(2026-10-04). 문의 창구는 오픈채팅도 함께 씁니다(/contact/). */
-  contact: "tiredddq492@naver.com",
+  contact: "010-2776-8898 · tiredddq492@naver.com",
   hosting: "Cloudflare, Inc.",
 };
 
