@@ -31,7 +31,7 @@ export async function generateMetadata({
       description: screener.description,
       images: [
         {
-          url: "/images/og/mbti-test-share.jpg",
+          url: "/images/og/mbti-mori-share.jpg",
           width: 1200,
           height: 630,
           alt: screener.title,

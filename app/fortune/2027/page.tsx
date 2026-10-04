@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     url: "/fortune/2027/",
     type: "article",
   
-    images: [{ url: "/images/og/mbti-test-share.jpg", width: 1200, height: 630 }],
+    images: [{ url: "/images/og/mbti-mori-share.jpg", width: 1200, height: 630 }],
   },
 };
 

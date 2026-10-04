@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     description: "일간 오행 관계와 띠 궁합을 바로 계산합니다.",
     url: "/fortune/gunghap/",
     type: "website",
-    images: [{ url: "/images/og/mbti-test-share.jpg", width: 1200, height: 630 }],
+    images: [{ url: "/images/og/mbti-mori-share.jpg", width: 1200, height: 630 }],
   },
 };
 

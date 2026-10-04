@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   keywords: ["띠별 운세", "12띠 운세", "2027 띠별운세", "띠 궁합", "내 띠 찾기"],
   alternates: { canonical: "/fortune/zodiac/" },
   openGraph: { title: "띠별 운세 | 12띠 성격과 2027 정미년 흐름", url: "/fortune/zodiac/", type: "website", 
-    images: [{ url: "/images/og/mbti-test-share.jpg", width: 1200, height: 630 }],
+    images: [{ url: "/images/og/mbti-mori-share.jpg", width: 1200, height: 630 }],
   },
 };
 

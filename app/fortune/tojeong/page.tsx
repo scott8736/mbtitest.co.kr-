@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     description: "상괘·중괘·하괘를 구하는 방식과 음력 변환기를 함께 정리했습니다.",
     url: "/fortune/tojeong/",
     type: "website",
-    images: [{ url: "/images/og/mbti-test-share.jpg", width: 1200, height: 630 }],
+    images: [{ url: "/images/og/mbti-mori-share.jpg", width: 1200, height: 630 }],
   },
 };
 
