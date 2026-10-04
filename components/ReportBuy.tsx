@@ -7,6 +7,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { questions, typeData, type Axis } from "../lib/mbti-data";
+import { readLastResult } from "../lib/my-mori";
 import { BIRTH_TIME_SLOTS, REPORT_CONSENT_TEXT, REPORT_CONSENT_VERSION, REPORT_PRICE } from "../lib/report-config";
 
 type Stored = { result: string; scores: Record<Axis, number> };
@@ -26,7 +27,10 @@ function readTouch(): Record<string, string> {
 function readStored(): Stored | null {
   try {
     const parsed = JSON.parse(sessionStorage.getItem("mbti-test-result") ?? "null") as Stored | null;
-    return parsed && typeData[parsed.result] && parsed.scores ? parsed : null;
+    if (parsed && typeData[parsed.result] && parsed.scores) return parsed;
+    // 탭을 닫았다가 다른 날 와도 이 기기에 남은 마지막 결과로 주문할 수 있게(lib/my-mori.ts)
+    const last = readLastResult();
+    return last && typeData[last.result] ? (last as Stored) : null;
   } catch {
     return null;
   }

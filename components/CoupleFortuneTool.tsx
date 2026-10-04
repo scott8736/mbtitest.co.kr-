@@ -5,6 +5,7 @@ import { buildCouple } from "../lib/fortune-couple";
 import { elementLabels, earthlyBranchesKo, heavenlyStemsKo } from "../lib/fortune-engine";
 import styles from "../lib/fortune.module.css";
 import SajuLabBanner from "./SajuLabBanner";
+import ReportCrossSell from "./ReportCrossSell";
 import ResultShareCard from "./ResultShareCard";
 
 /**
@@ -165,6 +166,7 @@ export default function CoupleFortuneTool() {
             group="fortune"
           />
 
+          <ReportCrossSell from="gunghap" />
           <SajuLabBanner placement="gunghap" />
         </div>
       )}

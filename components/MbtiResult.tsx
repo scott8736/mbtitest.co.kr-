@@ -11,6 +11,7 @@ import SajuLabBanner from "./SajuLabBanner";
 import { questions, typeData, typeDetails, type Axis } from "../lib/mbti-data";
 import { onResultLinkClick, recordCompletionOnce, recordTestEvent } from "../lib/test-events";
 import { MORI_BEST } from "../lib/mori";
+import { saveLastResult } from "../lib/my-mori";
 
 const TEST_PATH = "/tests/mbti/";
 const STORAGE_KEY = "mbti-test-result";
@@ -32,6 +33,8 @@ export default function MbtiResult() {
       const parsed = JSON.parse(saved) as StoredResult;
       if (!typeData[parsed.result] || !parsed.scores) throw new Error("invalid result");
       setStored(parsed);
+      // 리포트 주문용으로 결과를 이 기기에 오래 남깁니다(탭을 닫아도 다른 페이지에서 「내 리포트」로 이어지게).
+      saveLastResult(parsed);
       // 결과 유형 분포와 동점 축을 함께 남깁니다. 동점(5:5)은 지금 E·S·T·J 쪽으로 가므로 쏠림을 재려는 기록입니다.
       recordCompletionOnce("mbti", () => {
         recordTestEvent(parsed.result.toLowerCase(), "mbti_type");

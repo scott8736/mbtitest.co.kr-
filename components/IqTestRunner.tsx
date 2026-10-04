@@ -10,6 +10,7 @@ import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
 import TestResultPick from "./TestResultPick";
 import SajuLabBanner from "./SajuLabBanner";
+import ReportCrossSell from "./ReportCrossSell";
 import { markTestCompleted, recordCompletionOnce, recordTestEvent } from "../lib/test-events";
 
 /**
@@ -242,6 +243,7 @@ export default function IqTestRunner() {
             정식 IQ는 웩슬러 지능검사처럼 전문가가 실시하는 검사로 확인할 수 있습니다.
           </p>
 
+          <ReportCrossSell from="iq" />
           <SajuLabBanner placement="iq" />
           <TestResultPick slug={IQ_SLUG} resultKey={String(band.min)} />
 

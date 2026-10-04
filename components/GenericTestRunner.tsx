@@ -13,6 +13,7 @@ import TestGuide from "./TestGuide";
 import { leadFacts } from "../lib/test-lead";
 import TestResultPick from "./TestResultPick";
 import SajuLabBanner from "./SajuLabBanner";
+import ReportCrossSell from "./ReportCrossSell";
 import TestShareCard from "./TestShareCard";
 import Mascot, { moodForQuestion } from "./Mascot";
 
@@ -234,6 +235,7 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
           </div>
           <AdUnit key={`result-middle-${resultKey}`} position="resultMiddle" label={`${test.title} 결과 본문 광고`} />
           <div className="growth-plan"><span>나를 위한 작은 실천</span><h2>오늘부터 이렇게 해보세요</h2>{result.growth.map((x, i) => <p key={x}><b>{String(i + 1).padStart(2, "0")}</b>{x}</p>)}</div>
+          <ReportCrossSell from="test-result" />
           <SajuLabBanner placement="test" />
           <TestResultPick slug={test.slug} resultKey={resultKey} />
           <div className="result-actions"><button className="secondary-button" onClick={start}>다시 검사하기</button></div>

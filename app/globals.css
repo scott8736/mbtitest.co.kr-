@@ -1521,3 +1521,25 @@ main:not(.screener) .result-card-image {
 /* 가로로 넘치는 요소(광고 등)가 있어도 화면이 옆으로 밀리지 않게(2026-10-04: 상단 메뉴 로고가 잘려 보였음).
    hidden 과 달리 clip 은 스크롤 상자를 만들지 않아 sticky 상단 메뉴가 그대로 동작합니다. */
 html, body { overflow-x:clip; }
+/* 사이트 곳곳 리포트 안내 카드(ReportCrossSell) */
+.report-xsell { display:flex; align-items:center; gap:16px; max-width:980px; margin:28px auto; padding:16px 18px; border-radius:20px; background:linear-gradient(120deg,#f3eefc,#fff7ef); border:1px solid #e9e1f6; text-align:left; word-break:keep-all; }
+.report-xsell-mori { width:72px; height:72px; flex:none; object-fit:cover; border-radius:22px; background:white; box-shadow:0 8px 18px rgba(118,87,214,.18); }
+.report-xsell-text { flex:1; display:grid; gap:3px; min-width:0; }
+.report-xsell-text span { font-size:11px; font-weight:800; letter-spacing:.06em; color:#7657d6; }
+.report-xsell-text strong { font-size:17px; line-height:1.4; color:var(--ink); }
+.report-xsell-text small { font-size:13px; line-height:1.5; color:#5d6375; }
+.report-xsell-button { flex:none; padding:12px 16px; border-radius:12px; background:#7657d6; color:#fff; font-size:14px; font-weight:800; text-decoration:none; white-space:nowrap; }
+@media (max-width:640px) {
+  .report-xsell { flex-wrap:wrap; margin:22px 12px; }
+  .report-xsell-mori { width:56px; height:56px; border-radius:18px; }
+  .report-xsell-text { flex:1 1 calc(100% - 80px); }
+  .report-xsell-button { flex:1 1 100%; text-align:center; }
+}
+/* 떠 있는 리포트 알약(ReportFloat) — 애드센스 하단 고정 광고 자리(약 100px)보다 위 */
+.report-float { position:fixed; right:16px; bottom:120px; z-index:40; display:flex; align-items:center; gap:4px; padding:6px 6px 6px 14px; border-radius:999px; background:#2b1f5c; box-shadow:0 10px 26px rgba(43,31,92,.35); animation:report-float-in .35s ease; }
+.report-float a { display:grid; color:#fff; text-decoration:none; line-height:1.25; }
+.report-float b { font-size:14px; }
+.report-float span { font-size:11px; opacity:.8; }
+.report-float button { width:30px; height:30px; border:0; border-radius:50%; background:rgba(255,255,255,.14); color:#fff; font-size:16px; cursor:pointer; }
+@keyframes report-float-in { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+@media print { .report-float { display:none; } }

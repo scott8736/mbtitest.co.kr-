@@ -3,6 +3,7 @@ import type { GenericResult, GenericTest } from "../lib/generic-tests";
 import { testCatalog } from "../lib/test-catalog";
 import AdUnit from "./AdUnit";
 import SajuLabBanner from "./SajuLabBanner";
+import ReportCrossSell from "./ReportCrossSell";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
 import Mascot from "./Mascot";
@@ -116,6 +117,7 @@ export default function SharedResult({
           </Link>
         </div>
 
+        <ReportCrossSell from="shared-result" />
         <SajuLabBanner placement="shared" />
 
         <AdUnit position="resultBottom" label={`${test.title} ${result.name} 하단 광고`} />

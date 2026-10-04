@@ -12,6 +12,7 @@ import {
 } from "../lib/tarot";
 import AdUnit from "./AdUnit";
 import SajuLabBanner from "./SajuLabBanner";
+import ReportCrossSell from "./ReportCrossSell";
 import ResultShareCard from "./ResultShareCard";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
@@ -189,6 +190,7 @@ export default function TarotDaily({ fortune }: { fortune: TarotFortune }) {
 
           <AdUnit position="resultMiddle" />
 
+          <ReportCrossSell from="tarot" />
           <SajuLabBanner placement="tarot" />
 
           <p className="tarot-again">

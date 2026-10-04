@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import AdUnit from "../../../components/AdUnit";
 import ContentHeader from "../../../components/ContentHeader";
 import MbtiResultPick from "../../../components/MbtiResultPick";
+import ReportCrossSell from "../../../components/ReportCrossSell";
 import { moriImage, moriOgImage } from "../../../lib/mori";
 import { pairOf } from "../../../lib/mori-world";
 import SiteFooter from "../../../components/SiteFooter";
@@ -26,6 +27,7 @@ export default async function CompatibilityTypePage({params}:{params:Promise<{ty
     <header className={styles.hero}><div className={styles.crumbs}><a href="/">MBTI 검사</a> / <a href="/compatibility/">MBTI 궁합</a> / {p.code}</div><img className="type-hero-mori" src={moriImage(p.code)} width={720} height={720} alt={`${p.code} 모리 캐릭터`} /><span className={styles.eyebrow}>MBTI COMPATIBILITY</span><h1>{p.code} 궁합<br/>15개 유형 총정리</h1><p>{p.code}와 각 유형의 관계를 연애, 소통, 갈등 해결 관점에서 살펴봅니다. 궁합은 등급이 아니라 서로 다른 사용 설명서를 이해하는 자료입니다.</p><div className={styles.actions}><a href={`/types/${code}/`}>{p.code} 특징 보기</a><a href="/">내 유형 검사하기</a></div></header>
     <article className={styles.body}><section className={styles.answer}><strong>{p.code}와 잘 맞는 MBTI는?</strong><p>{p.code}는 {p.matches.map(x=>profiles[x].code).join(", ")}와 서로의 강점을 보완하기 쉽습니다. 하지만 실제 관계의 만족도는 유형보다 가치관, 애착 방식, 대화 습관과 갈등 후 회복 방식에 더 크게 영향을 받습니다.</p></section>
       <AdUnit position="articleTop" label={`${p.code} 궁합 상단 광고`} />
+      <ReportCrossSell from="compat" pageType={p.code} />
       <MbtiResultPick code={p.code} />
       <section className={styles.section}><h2>{p.code} 궁합 한눈에 보기</h2><div className={styles.pairTable}>{others.map(other=>{const x=pairInsight(code,other);return <article className={styles.pairCard} key={other} style={{"--card-accent":typeData[profiles[other].code].color} as React.CSSProperties}><div className={styles.pairHead}><span className="pair-moris" aria-hidden="true"><img src={moriImage(p.code)} width={40} height={40} alt="" loading="lazy" /><img src={moriImage(other)} width={40} height={40} alt="" loading="lazy" /></span><b>{p.code} × {profiles[other].code}</b></div><p>{x.summary}</p><a href={`#${other}`}>관계 해석 보기 ↓</a></article>})}</div></section>
       <AdUnit position="articleBody" label={`${p.code} 궁합 본문 광고`} />

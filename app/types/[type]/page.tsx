@@ -4,6 +4,7 @@ import AdUnit from "../../../components/AdUnit";
 import ContentHeader from "../../../components/ContentHeader";
 import CrossPromo from "../../../components/CrossPromo";
 import MbtiResultPick from "../../../components/MbtiResultPick";
+import ReportCrossSell from "../../../components/ReportCrossSell";
 import MoriLoopVideo from "../../../components/MoriLoopVideo";
 import MoriVideoShare from "../../../components/MoriVideoShare";
 import { MoriForestCard } from "../../../components/MoriWorld";
@@ -68,6 +69,7 @@ export default async function TypePage({params}:{params:Promise<{type:string}>})
       <section id="work" className={styles.section}><h2>{p.code} 직업·업무·공부 스타일</h2><p>{p.work}</p><p>유형은 직업 적성을 결정하는 검사가 아닙니다. 실제 선택에서는 능력, 경험, 흥미, 생활 조건을 함께 고려해야 합니다.</p></section>
       <CrossPromo variant="tests" title="다른 심리테스트도 해보세요" />
       <section id="stress" className={styles.section}><h2>{p.code}가 스트레스받을 때</h2><p>{p.stress}</p></section>
+      <ReportCrossSell from="types" pageType={p.code} />
       <MbtiResultPick code={p.code} />
       <section id="communication" className={styles.section}><h2>{p.code}와 편안하게 소통하는 방법</h2><p>{p.communication}</p></section>
       <section id="compatibility" className={styles.section}><h2>{p.code}와 잘 맞는 MBTI 궁합</h2><p>{p.code}와 비교적 자연스럽게 강점을 보완하기 쉬운 유형은 {p.matches.map(x=>profiles[x].code).join(", ")}입니다. 차이를 더 의식적으로 조율해야 하는 유형으로는 {p.challenges.map(x=>profiles[x].code).join(", ")}가 자주 언급됩니다. 그러나 어떤 조합도 성공이나 실패를 결정하지 않습니다.</p><div className={styles.actions}><a href={`/compatibility/${code}/`}>{p.code} × 15개 유형 궁합 보기</a></div></section>

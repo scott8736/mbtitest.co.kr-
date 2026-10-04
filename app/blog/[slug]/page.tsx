@@ -1,3 +1,4 @@
+import ReportCrossSell from "../../../components/ReportCrossSell";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import AdUnit from "../../../components/AdUnit";
@@ -224,6 +225,7 @@ export default async function BlogArticlePage({
               <p>{post.cta.description}</p>
               <a href={post.cta.href}>{post.cta.label}</a>
             </section>
+            <ReportCrossSell from="blog" />
           </div>
 
           <aside className="article-sidebar">

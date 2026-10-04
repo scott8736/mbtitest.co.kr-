@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import AdUnit from "./AdUnit";
 import SajuLabBanner from "./SajuLabBanner";
+import ReportCrossSell from "./ReportCrossSell";
 import ResultShareCard, { type ResultShareProps } from "./ResultShareCard";
 import {
   birthTimeSlots,
@@ -252,6 +253,7 @@ export default function FortuneTool({ mode, resultOnly = false }: { mode: Fortun
 
           <ResultShareCard {...fortuneShare(mode, result, today, submitted?.mbti ?? "")} group="fortune" />
 
+          <ReportCrossSell from="fortune" />
           <SajuLabBanner placement={mode === "today" ? "fortune-today" : mode === "saju" ? "fortune-saju" : "fortune-saju-mbti"} />
 
           <AdUnit position="resultBottom" label="운세 결과 하단 광고" />
