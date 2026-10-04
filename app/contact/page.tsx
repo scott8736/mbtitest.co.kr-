@@ -17,9 +17,9 @@ export default function ContactPage() {
         <h1>서비스 문의</h1>
         <p>검사 오류, 결과 설명, 콘텐츠 제안, 광고 및 제휴 관련 문의를 남겨주세요.</p>
         <div className="contact-card">
-          <span>문의 이메일</span>
-          <strong>charry333@gmail.com</strong>
-          <a href="mailto:charry333@gmail.com">이메일 보내기 <span>→</span></a>
+          <span>문의 오픈채팅</span>
+          <strong>카카오톡 오픈채팅</strong>
+          <a href="https://open.kakao.com/o/s2sMEJQi" target="_blank" rel="noopener noreferrer">오픈채팅으로 문의하기 <span>→</span></a>
         </div>
         <div className="notice-box"><strong>문의 시 포함하면 좋은 내용</strong><p>이용한 테스트 이름, 사용 기기, 발생한 문제와 화면 상황을 함께 알려주시면 확인에 도움이 됩니다.</p></div>
       </article>
