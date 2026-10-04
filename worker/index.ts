@@ -6,6 +6,7 @@ import { rssXml } from "../lib/rss";
 import { handleAdmin } from "./admin";
 import { ensureSchema } from "./schema";
 import { handleTestEvent } from "./test-events";
+import { handleTrending } from "./trending";
 import {
   classifyDevice,
   classifySource,
@@ -83,6 +84,10 @@ const worker = {
 
     // 검사 진행 이벤트. 첫 문항에 답한 시점을 세어, 화면을 열자마자 나간
     // 사람과 몇 문항 풀다 그만둔 사람을 구분합니다.
+    // 홈 「요즘 뜨는 심리테스트」 카드. 관리자 트렌드 캐시를 같이 씁니다.
+    const trending = handleTrending(request, url, env, ctx);
+    if (trending) return trending;
+
     const testEvent = handleTestEvent(request, url, env, ctx);
     if (testEvent) return testEvent;
 

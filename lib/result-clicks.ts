@@ -13,6 +13,7 @@ export const RESULT_CLICK_PLACEMENTS = {
   "mbti-type": "MBTI 결과 · 유형 특징·궁합",
   "mbti-fortune": "MBTI 결과 · 운세·사주",
   "test-next": "성향 테스트 결과 · 다음 테스트",
+  "home-trending": "홈 · 요즘 뜨는 심리테스트",
 } as const;
 
 export type ResultClickPlacement = keyof typeof RESULT_CLICK_PLACEMENTS;

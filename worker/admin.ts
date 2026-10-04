@@ -444,6 +444,8 @@ async function dashboard(
       WHERE day BETWEEN ? AND ? AND name = 'result_click' GROUP BY slug`, from, to);
   const clicksFor = (key: string) => clickRows.find((row) => row.slug === key)?.count ?? 0;
   const mbtiCompleted = completedBySlug.get("mbti") ?? 0;
+  const homeViews =
+    (await db.prepare(`SELECT COUNT(*) AS n FROM page_views WHERE day BETWEEN ? AND ? AND path = '/'`).bind(from, to).first<{ n: number }>())?.n ?? 0;
   const otherCompleted = [...completedBySlug].filter(([slug]) => slug !== "mbti").reduce((sum, [, n]) => sum + n, 0);
   const clickRate = (click: number, whole: number) => {
     if (from < RESULT_CLICK_SINCE) return "-";
@@ -544,12 +546,12 @@ ${journeyDays.map((d) => `<tr><td>${d.day.slice(5)}</td><td>${d.visitors.toLocal
 <div class="box"><h2>결과 화면 링크 묶음 클릭</h2>
 <p class="note">
 결과 화면의 링크 묶음 중 어느 것이 사람을 붙잡는지 봅니다. 묶음 안의 카드를 누른 사람을 탭당 묶음마다 한 번만 셉니다.
-<b>클릭률 = 클릭 ÷ 완주</b> (MBTI 묶음은 MBTI 완주, 「다음 테스트」는 MBTI를 뺀 테스트 완주). 쿠팡 카드·사주랩 배너·유료 리포트는 각 표에 따로 있습니다.
+<b>클릭률 = 클릭 ÷ 분모</b> (MBTI 묶음은 MBTI 완주, 「다음 테스트」는 MBTI를 뺀 테스트 완주, 홈 「요즘 뜨는 심리테스트」는 홈 페이지뷰). 쿠팡 카드·사주랩 배너·유료 리포트는 각 표에 따로 있습니다.
 비율은 ${RESULT_CLICK_SINCE} 부터 냅니다.
 </p>
-<div class="scroll"><table><thead><tr><th>묶음</th><th>클릭</th><th>분모(완주)</th><th>클릭률</th></tr></thead><tbody>
+<div class="scroll"><table><thead><tr><th>묶음</th><th>클릭</th><th>분모</th><th>클릭률</th></tr></thead><tbody>
 ${RESULT_CLICK_PLACEMENT_KEYS.map((key) => {
-  const whole = key.startsWith("mbti-") ? mbtiCompleted : otherCompleted;
+  const whole = key.startsWith("mbti-") ? mbtiCompleted : key === "home-trending" ? homeViews : otherCompleted;
   return `<tr><td>${esc(RESULT_CLICK_PLACEMENTS[key])}</td><td>${clicksFor(key)}</td><td>${whole || "-"}</td><td>${clickRate(clicksFor(key), whole)}</td></tr>`;
 }).join("")}
 </tbody></table></div>

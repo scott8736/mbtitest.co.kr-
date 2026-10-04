@@ -1153,6 +1153,14 @@ main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% -
 .season-go span { margin-left:6px; }
 @media (max-width:900px) { .season-cards { grid-template-columns:1fr; } }
 
+/* 홈 「요즘 뜨는 심리테스트」(2026-10-04). 시즌 띠 디자인을 그대로 쓰고 배지만 더한다.
+   배지 글자색은 바탕 대비 4.5:1 이상. 휴대폰에서는 2열로 둬 홈이 길어지지 않게 한다. */
+.trending-cards { grid-template-columns:repeat(4,1fr); }
+.trending-badge { align-self:flex-start; padding:4px 10px; border-radius:99px; background:#fde8e4; color:#9c2f22; font-size:13px; font-weight:800; }
+.trending-badge.quiet { background:#eceff4; color:#465063; }
+@media (max-width:900px) { .trending-cards { grid-template-columns:1fr 1fr; } }
+@media (max-width:620px) { .trending-cards .season-card { padding:16px 14px 14px; } .trending-cards .season-card strong { font-size:17px; margin:10px 0 4px; } .trending-cards .season-card p { margin-bottom:10px; font-size:13px; } }
+
 /* 결과 화면 맨 위의 결과 카드.
    결과마다 구워 둔 공유 이미지를 검사한 사람에게도 보여준다. 전에는 카카오톡
    미리보기로만 쓰여서, 정작 테스트를 끝낸 사람은 색 네모 하나만 봤다.
