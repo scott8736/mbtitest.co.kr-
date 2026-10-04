@@ -9,6 +9,7 @@
  * 저장하는 것: 경로·리퍼러·기기·국가·날짜별 방문자 해시.
  * 저장하지 않는 것: IP 원본, 쿠키, 쿼리스트링.
  */
+import { handleReportAdmin } from "./report-admin";
 import { SAJULAB_PLACEMENTS, SAJULAB_PLACEMENT_KEYS } from "../lib/sajulab";
 import { RESULT_CLICK_PLACEMENTS, RESULT_CLICK_PLACEMENT_KEYS } from "../lib/result-clicks";
 import { loadRollups, mergeRollups } from "./rollup";
@@ -427,7 +428,7 @@ async function dashboard(
   return shell(
     "접속 현황",
     `<div class="wrap">
-<div class="head"><div><h1>접속 현황</h1><p>${from} ~ ${to} (KST)</p></div><nav class="ranges">${ranges}<a href="/admin/trends/">트렌드</a><a href="/admin/keywords/">키워드 조회</a><a href="/admin/coupang/">쿠팡</a></nav></div>
+<div class="head"><div><h1>접속 현황</h1><p>${from} ~ ${to} (KST)</p></div><nav class="ranges">${ranges}<a href="/admin/report/">리포트 판매</a><a href="/admin/trends/">트렌드</a><a href="/admin/keywords/">키워드 조회</a><a href="/admin/coupang/">쿠팡</a></nav></div>
 ${rangeForm}
 ${pending > 0 ? `<p class="note">지난 ${pending}일 집계가 아직 없습니다. 한 번에 7일씩 채우므로 새로고침하면 이어서 채웁니다.</p>` : ""}
 
@@ -1102,6 +1103,12 @@ export async function handleAdmin(request: Request, url: URL, db: D1Database | u
       return redirect("/admin/");
     }
     return html(setupPage(url.searchParams.get("error") === "1"));
+  }
+
+  // 리포트 판매(2026-10-04): 로그인한 관리자만. 폼 처리까지 그 파일이 맡습니다.
+  if (path === "/admin/report" || path.startsWith("/admin/report/")) {
+    if (!(await isSignedIn(request, db))) return redirect("/admin/");
+    return handleReportAdmin(request, url, path, db, { esc, shell, html, redirect });
   }
 
   if (request.method === "POST") {

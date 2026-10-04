@@ -1459,3 +1459,25 @@ main:not(.screener) .result-card-image {
 .mori-dex a.on { border:2px solid var(--violet); }
 .mori-dex img { display:block; width:100%; height:auto; border-radius:12px; }
 @media (max-width:620px) { .mori-dex > div { grid-template-columns:repeat(4,1fr); } .mori-share-buttons button { font-size:14px; } }
+
+/* ── 유료 리포트 (2026-10-04) ── */
+.rp .rp-price { display:flex; flex-direction:column; gap:6px; margin:28px 0 8px; padding:22px 24px; border-radius:20px; background:#f3eefc; max-width:780px; }
+.rp .rp-price b { font-size:34px; letter-spacing:-.03em; }
+.rp .rp-price small { color:var(--muted); font-size:14px; }
+.rp-event { align-self:flex-start; padding:4px 12px; border-radius:99px; background:#7657d6; color:#fff; font-size:13px; font-weight:700; }
+.rp-preview { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; max-width:780px; }
+.rp-preview img { width:100%; aspect-ratio:148/210; object-fit:cover; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.12); background:#fffaf3; }
+.rp-topics { max-width:780px; columns:2; gap:28px; color:var(--muted); line-height:1.9; }
+.rp-box { max-width:780px; margin:12px 0 8px; padding:22px 24px; border:1px solid #e5e0ef; border-radius:18px; background:#fff; line-height:1.8; }
+.rp-form { display:grid; gap:14px; }
+.rp-form label { display:grid; gap:6px; font-size:14px; color:var(--muted); }
+.rp-form input:not([type=checkbox]), .rp-form select { padding:12px 14px; border:1px solid #e5e0ef; border-radius:10px; font-size:16px; color:var(--ink); background:#fff; }
+.rp-form .rp-agree { display:flex; gap:10px; align-items:flex-start; color:var(--ink); }
+.rp-form .rp-agree input { margin-top:5px; width:18px; height:18px; flex:none; }
+.rp-mine { margin:0; font-size:15px; }
+.rp-button { display:inline-block; padding:14px 22px; border:0; border-radius:12px; background:#7657d6; color:#fff; font-size:16px; font-weight:800; text-align:center; text-decoration:none; cursor:pointer; }
+.rp-button:disabled { opacity:.6; }
+.rp-error { margin:0; color:#b6483c; font-weight:700; }
+.rp-muted { color:var(--muted); font-size:14px; }
+.seller-info { display:flex; flex-wrap:wrap; gap:4px 12px; margin:14px 0 0; font-size:12px; color:var(--muted); line-height:1.6; }
+@media (max-width:640px) { .rp-preview { grid-template-columns:repeat(3,1fr); gap:6px; } .rp-topics { columns:1; } }

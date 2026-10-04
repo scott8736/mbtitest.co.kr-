@@ -7,6 +7,7 @@ import { handleAdmin } from "./admin";
 import { ensureSchema } from "./schema";
 import { handleTestEvent } from "./test-events";
 import { handleTrending } from "./trending";
+import { handleReport } from "./report";
 import {
   classifyDevice,
   classifySource,
@@ -90,6 +91,10 @@ const worker = {
 
     const testEvent = handleTestEvent(request, url, env, ctx);
     if (testEvent) return testEvent;
+
+    // 유료 리포트 주문·페이앱 통보·열람 (/api/report/*)
+    const report = handleReport(request, url, env, ctx);
+    if (report) return report;
 
     // /admin 은 워커에서 직접 처리합니다. Next 페이지로 두면 output: "export" 의
     // 프리렌더가 Node 에서 cloudflare:workers 를 읽지 못해 빌드가 깨집니다.

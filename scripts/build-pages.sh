@@ -35,6 +35,7 @@ cat > "${out}/_routes.json" <<'JSON'
   "exclude": [
     "/_next/*",
     "/images/*",
+    "/report-app/*",
     "/favicon.svg",
     "/file.svg",
     "/globe.svg",

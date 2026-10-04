@@ -24,6 +24,7 @@ import {
 import { ensureSchema } from "./schema";
 import { handleTestEvent } from "./test-events";
 import { handleTrending } from "./trending";
+import { handleReport } from "./report";
 
 interface Env {
   ASSETS: Fetcher;
@@ -62,6 +63,10 @@ const worker = {
 
     const testEvent = handleTestEvent(request, url, env, ctx);
     if (testEvent) return testEvent;
+
+    // 유료 리포트 주문·페이앱 통보·열람 (/api/report/*)
+    const report = handleReport(request, url, env, ctx);
+    if (report) return report;
 
     try {
       const admin = await handleAdmin(request, url, env?.DB);

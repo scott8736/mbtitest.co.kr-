@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>모리 마음숲 안내서</title>
+<!--
+  정밀 리포트 디자인 틀 (2026-10-04). 유형과 상관없는 「틀」을 먼저 확정하려는 견본입니다.
+  report.html?type=INFP&name=하늘&ei=38&sn=27&tf=31&jp=64  (축 값은 왼쪽 글자 E/S/T/J 쪽 %)
+  인쇄(PDF)는 A5 세로 한 쪽 = .page 하나. render.py 가 PDF·쪽 그림·배경화면·포스터를 뽑습니다.
+  본문 문장은 아직 사이트 유형 설명(profiles)을 그대로 끌어다 채운 자리표시입니다 — 원고는 따로 씁니다.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="data.js"></script>
+<script src="saju_calc.js"></script>
+<style>
+@page { size: 148mm 210mm; margin: 0; }
+:root {
+  --c: #b9a3e3; --cd: #5b4a8c; --cl: #f3eefc; --cx: #ece4fa;
+  --v: #2f8f7c; --ink: #22223a; --sub: #5d6075; --paper: #fffaf3; --line: #ece5d8;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #d9d4cc; }
+body { font-family: "Noto Sans KR", sans-serif; color: var(--ink); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.book { display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 24px 0; }
+.page {
+  position: relative; width: 148mm; height: 210mm; overflow: hidden; background: var(--paper);
+  box-shadow: 0 10px 30px rgba(0,0,0,.18); page-break-after: always; break-after: page;
+}
+@media print { html, body { background: none; } .book { padding: 0; gap: 0; } .page { box-shadow: none; } .label, .extras { display: none !important; } .page::before { display: none; } }
+/* 종이 질감 (아주 옅은 점) */
+.page::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .35;
+  background-image: radial-gradient(rgba(120,100,70,.08) 1px, transparent 1.2px); background-size: 4mm 4mm;
+}
+.inner { position: relative; height: 100%; padding: 15mm 13mm 14mm; display: flex; flex-direction: column; }
+.serif { font-family: "Gowun Batang", serif; }
+.cute { font-family: "Jua", sans-serif; font-weight: 400; }
+/* 쪽 머리띠·쪽번호 */
+.ribbon { position: absolute; top: 0; right: 12mm; padding: 9mm 3.2mm 3mm; background: var(--c); color: #fff; font-size: 7.5pt; font-weight: 700; letter-spacing: .08em; writing-mode: vertical-rl; border-radius: 0 0 2mm 2mm; text-shadow: 0 1px 2px rgba(0,0,0,.15); }
+.folio { position: absolute; bottom: 7mm; left: 0; right: 0; display: flex; justify-content: space-between; padding: 0 13mm; font-size: 7pt; color: #a29a8c; }
+.folio b { color: var(--cd); font-weight: 700; }
+h2.t { font-family: "Gowun Batang", serif; font-size: 17pt; line-height: 1.35; margin: 0 0 4mm; letter-spacing: -.02em; }
+.kicker { font-size: 7.5pt; font-weight: 900; letter-spacing: .16em; color: var(--cd); margin-bottom: 2.5mm; }
+p.body { font-size: 9.3pt; line-height: 1.85; color: #3a3b4e; margin: 0 0 3.5mm; word-break: keep-all; }
+.lead { font-size: 10.2pt !important; color: var(--ink) !important; font-weight: 500; }
+
+/* 표지 */
+.cover { background: linear-gradient(165deg, var(--cl) 0%, #fff 46%, var(--cx) 100%); }
+.cover .inner { align-items: center; text-align: center; padding-top: 17mm; }
+.cover .brand { font-size: 7pt; letter-spacing: .3em; color: var(--cd); font-weight: 700; }
+.cover .arch { position: relative; width: 98mm; height: 112mm; margin: 8mm 0 7mm; border-radius: 49mm 49mm 6mm 6mm; overflow: hidden; background: #fff; box-shadow: 0 6mm 14mm rgba(60,40,90,.18); border: 2.2mm solid #fff; }
+.cover .arch img { width: 100%; height: 100%; object-fit: cover; }
+.cover .says { position: absolute; top: 6mm; left: 50%; transform: translateX(-50%); white-space: nowrap; background: #fff; padding: 2mm 4mm; border-radius: 4mm; font-size: 8.5pt; font-weight: 700; box-shadow: 0 1mm 3mm rgba(0,0,0,.08); }
+.cover h1 { font-family: "Gowun Batang", serif; font-size: 21pt; line-height: 1.3; margin: 0; letter-spacing: -.02em; }
+.cover h1 em { font-style: normal; color: var(--cd); }
+.cover .owner { margin-top: 3.5mm; font-size: 10pt; color: var(--sub); }
+.cover .chips { display: flex; gap: 2mm; margin-top: 5mm; }
+.chip { display: inline-block; padding: 1.4mm 3.2mm; border-radius: 99px; font-size: 7.5pt; font-weight: 700; background: #fff; border: .3mm solid var(--line); color: var(--sub); }
+.chip.v { color: var(--v); border-color: color-mix(in srgb, var(--v) 35%, #fff); }
+.cover .date { position: absolute; bottom: 9mm; font-size: 7pt; color: #a29a8c; letter-spacing: .1em; }
+
+/* 고지·읽는 법 */
+.notice-box { margin-top: auto; padding: 4mm 4.5mm; border-radius: 3mm; background: #f4f1ea; font-size: 7.6pt; line-height: 1.75; color: #6b6656; word-break: keep-all; }
+.howto { display: grid; gap: 3mm; margin: 2mm 0 5mm; }
+.howto div { display: flex; gap: 3mm; align-items: flex-start; padding: 3.2mm; border-radius: 3mm; background: #fff; border: .3mm solid var(--line); }
+.howto > div > b { flex: none; width: 7mm; height: 7mm; border-radius: 50%; background: var(--c); color: #fff; display: grid; place-items: center; font-size: 8pt; }
+.howto p { margin: 0; font-size: 8.6pt; line-height: 1.65; color: #45465a; word-break: keep-all; }
+
+/* 목차 */
+.toc { list-style: none; margin: 0; padding: 0; display: grid; gap: .7mm; }
+.toc li { display: grid; grid-template-columns: 9mm 1fr auto; align-items: baseline; padding-bottom: .9mm; border-bottom: .3mm dashed var(--line); }
+.toc .no { font-family: "Gowun Batang", serif; font-size: 10.5pt; color: var(--c); font-weight: 700; }
+.toc .tt { font-size: 8.4pt; font-weight: 700; }
+.toc .tt small { display: block; font-size: 6.6pt; color: var(--sub); font-weight: 400; margin-top: .3mm; }
+.toc .pg { font-size: 8pt; color: #a29a8c; }
+
+/* 장 표지 */
+.chapter { color: #fff; }
+.chapter > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.chapter::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,15,40,.05) 30%, rgba(20,15,40,.72) 100%); }
+.chapter .inner { z-index: 2; justify-content: flex-end; padding-bottom: 20mm; }
+.chapter .num { font-family: "Gowun Batang", serif; font-size: 44pt; line-height: 1; opacity: .9; }
+.chapter .label { font-size: 7.5pt; letter-spacing: .3em; font-weight: 700; margin: 3mm 0 2mm; opacity: .85; }
+.chapter h2 { font-family: "Gowun Batang", serif; font-size: 22pt; margin: 0 0 3mm; line-height: 1.3; }
+.chapter p { margin: 0; font-size: 9.4pt; line-height: 1.7; opacity: .92; word-break: keep-all; }
+.chapter .mini { position: absolute; z-index: 3; right: 12mm; bottom: 46mm; width: 26mm; height: 26mm; border-radius: 7mm; border: 1.2mm solid #fff; overflow: hidden; box-shadow: 0 2mm 6mm rgba(0,0,0,.25); }
+.chapter .mini img { width: 100%; height: 100%; object-fit: cover; }
+
+/* 축 막대 (좌우 2색) */
+.axes { display: grid; gap: 5.2mm; margin: 4mm 0 6mm; }
+.axis .names { display: flex; justify-content: space-between; font-size: 8.4pt; font-weight: 700; margin-bottom: 1.6mm; }
+.axis .names span { color: var(--sub); font-weight: 500; font-size: 7.4pt; }
+.axis .bar { position: relative; height: 6.4mm; border-radius: 99px; overflow: hidden; display: flex; background: #eee; }
+.axis .bar i { display: block; height: 100%; }
+.axis .bar i:first-child { background: var(--c); }
+.axis .bar i:last-child { background: color-mix(in srgb, var(--c) 28%, #fff); }
+.axis .bar b { position: absolute; top: 50%; transform: translateY(-50%); font-size: 7.6pt; color: #fff; text-shadow: 0 .3mm 1mm rgba(0,0,0,.25); }
+.axis .bar b.l { left: 3mm; } .axis .bar b.r { right: 3mm; color: var(--cd); text-shadow: none; }
+.axis .note { font-size: 7.6pt; color: var(--sub); margin-top: 1.4mm; }
+
+/* 레이더 */
+.radar-wrap { display: flex; align-items: center; gap: 4mm; }
+.radar-wrap svg { flex: none; }
+.legend { display: grid; gap: 1.6mm; font-size: 7.8pt; color: #45465a; }
+.legend b { color: var(--cd); }
+
+/* 말풍선 인용 */
+.quote { display: flex; gap: 3.5mm; align-items: center; margin: 3mm 0 5mm; padding: 4mm; border-radius: 4mm; background: var(--cl); }
+.quote img { width: 17mm; height: 17mm; border-radius: 5mm; object-fit: cover; flex: none; }
+.quote p { margin: 0; font-family: "Gowun Batang", serif; font-size: 11pt; line-height: 1.55; color: var(--cd); font-weight: 700; word-break: keep-all; }
+
+/* 카드 묶음 */
+.cards { display: grid; gap: 3mm; }
+.card { padding: 3.8mm 4.2mm; border-radius: 3.5mm; background: #fff; border: .3mm solid var(--line); }
+.card h3 { margin: 0 0 1.6mm; font-size: 9.6pt; display: flex; align-items: center; gap: 2mm; }
+.card h3 i { font-style: normal; width: 5.5mm; height: 5.5mm; border-radius: 50%; display: grid; place-items: center; font-size: 7pt; background: var(--cl); color: var(--cd); }
+.card p { margin: 0; font-size: 8.6pt; line-height: 1.7; color: #45465a; word-break: keep-all; }
+.card.warm { background: #fff8ee; border-color: #f3e3c9; }
+.card.warm h3 i { background: #fde9c8; color: #a26a17; }
+
+/* 궁합표 */
+.pairs-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.8mm; margin: 2mm 6mm 0; }
+.pairs-grid div { position: relative; padding: 1.2mm .8mm 1.2mm; border-radius: 3mm; background: #fff; border: .3mm solid var(--line); text-align: center; }
+.pairs-grid img { width: 78%; aspect-ratio: 1; border-radius: 2.4mm; object-fit: cover; }
+.pairs-grid b { display: block; font-size: 7pt; margin-top: .8mm; }
+.pairs-grid small { display: block; font-size: 5.8pt; color: var(--sub); }
+.pairs-grid .mate { border: .6mm solid #f07fa8; background: #fff3f7; }
+.pairs-grid .rival { border: .6mm solid #f0a052; background: #fff7ee; }
+.pairs-grid .me { border: .6mm solid var(--cd); background: var(--cl); }
+.pairs-grid em { position: absolute; top: -1.6mm; right: -1mm; font-style: normal; font-size: 8pt; }
+.key { display: flex; gap: 4mm; font-size: 7.2pt; color: var(--sub); margin-top: 3mm; }
+
+/* 색 견본 */
+.swatches { display: grid; gap: 3mm; margin-top: 3mm; }
+.sw { display: grid; grid-template-columns: 22mm 1fr; gap: 3.5mm; align-items: center; }
+.sw i { display: block; height: 15mm; border-radius: 3mm; box-shadow: inset 0 0 0 .3mm rgba(0,0,0,.06); }
+.sw b { display: block; font-family: "Gowun Batang", serif; font-size: 10.5pt; }
+.sw span { display: block; font-size: 7.6pt; color: var(--sub); line-height: 1.55; word-break: keep-all; }
+.sw code { font-size: 6.6pt; color: #a29a8c; }
+
+/* 12개월 */
+.months { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2mm; margin-top: 2.6mm; }
+.mo { padding: 2.2mm 2.4mm; border-radius: 3mm; background: #fff; border: .3mm solid var(--line); min-height: 21mm; }
+.mo b { font-family: "Gowun Batang", serif; font-size: 11pt; color: var(--cd); }
+.mo .tag { display: inline-block; margin-left: 1mm; padding: .3mm 1.6mm; border-radius: 99px; font-size: 5.8pt; font-weight: 700; vertical-align: middle; }
+.mo .tag.up { background: #e6f6ee; color: #23845a; } .mo .tag.rest { background: #eef1fb; color: #4b5bb0; } .mo .tag.care { background: #fff1e6; color: #b2611b; }
+.mo p { margin: 1.4mm 0 0; font-size: 6.9pt; line-height: 1.5; color: #55566a; word-break: keep-all; }
+.mo-first { margin-top: 2mm; padding: 3.4mm 4mm; border-radius: 3.5mm; background: var(--cl); border: .5mm solid var(--c); }
+.mo-first span:first-child { font-size: 7pt; font-weight: 900; letter-spacing: .14em; color: var(--cd); margin-right: 2mm; }
+.mo-first b { font-family: "Gowun Batang", serif; font-size: 13pt; color: var(--ink); }
+.mo-first .tag { margin-left: 1.5mm; }
+.mo-first p { margin: 1.2mm 0 0; font-size: 8pt; color: #45465a; line-height: 1.6; word-break: keep-all; }
+.mo .yr { margin-left: .8mm; font-size: 6pt; color: #a29a8c; }
+.mo-range { margin: 2.4mm 0 0; text-align: right; font-size: 7pt; color: #a29a8c; }
+.mo.now { border-color: var(--c); box-shadow: 0 0 0 .6mm color-mix(in srgb, var(--c) 40%, transparent); }
+
+/* 워크북 */
+.write { flex: 1; display: flex; flex-direction: column; gap: 4.5mm; }
+.write .q { font-size: 9pt; font-weight: 700; margin-bottom: 1.5mm; }
+.write .lines { height: 21mm; background: repeating-linear-gradient(transparent 0 6.6mm, #e6dfd2 6.6mm 6.9mm); }
+.checks { display: grid; gap: 2.2mm; margin-top: 2mm; }
+.checks span { display: flex; gap: 2.4mm; align-items: center; font-size: 8.6pt; }
+.checks span::before { content: ""; width: 4mm; height: 4mm; border-radius: 1.2mm; border: .4mm solid var(--c); flex: none; }
+
+/* 소장 페이지 */
+.keep { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 3mm; }
+.keep figure { margin: 0; text-align: center; }
+.keep figure > div { border-radius: 3mm; overflow: hidden; box-shadow: 0 2mm 6mm rgba(0,0,0,.12); }
+.keep figcaption { font-size: 7.4pt; color: var(--sub); margin-top: 1.6mm; }
+.frame-tip { margin-top: 5mm; padding: 4mm; border-radius: 3mm; background: #fff; border: .3mm dashed var(--c); font-size: 8.2pt; line-height: 1.7; word-break: keep-all; }
+.frame-tip b { color: var(--cd); }
+
+/* 뒤표지 */
+.back { background: linear-gradient(180deg, #fff 0%, var(--cl) 100%); }
+.back .inner { align-items: center; justify-content: center; text-align: center; }
+.back img { width: 44mm; height: 44mm; border-radius: 12mm; object-fit: cover; box-shadow: 0 3mm 9mm rgba(0,0,0,.12); }
+.back p { font-family: "Gowun Batang", serif; font-size: 11pt; line-height: 1.7; margin: 7mm 0 4mm; color: var(--cd); }
+.back small { font-size: 7pt; color: #a29a8c; letter-spacing: .14em; }
+
+/* ── 따로 뽑는 것: 배경화면(1080x2340 → 화면에선 축소) · 포스터(A4) ── */
+.extras { display: flex; gap: 24px; align-items: flex-start; padding: 0 24px 40px; justify-content: center; flex-wrap: wrap; }
+.wall { position: relative; width: 360px; height: 780px; overflow: hidden; border-radius: 0; background: linear-gradient(180deg, var(--cl), #fff 55%, var(--cx)); font-family: "Noto Sans KR"; }
+.wall img.m { position: absolute; left: 50%; top: 47%; width: 290px; transform: translate(-50%, -50%); border-radius: 60px; }
+.wall .says { position: absolute; left: 50%; top: 23%; transform: translateX(-50%); white-space: nowrap; padding: 10px 18px; border-radius: 18px; background: #fff; font-family: "Jua"; font-size: 20px; color: var(--cd); box-shadow: 0 6px 16px rgba(0,0,0,.08); }
+.wall .foot { position: absolute; left: 0; right: 0; bottom: 64px; text-align: center; font-family: "Gowun Batang", serif; color: var(--cd); font-size: 15px; }
+.wall.v2 { background: var(--c); }
+.wall.v2 .dots { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,.35) 2px, transparent 2.5px); background-size: 26px 26px; }
+.wall.v2 .says { background: rgba(255,255,255,.92); }
+.wall.v2 .foot { color: #fff; }
+.wall.v3 { background: url("../mbtitest.co.kr-/public/images/world/village-nf.webp") center/cover; }
+.wall.v3 img.m { width: 210px; top: 66%; border: 6px solid #fff; }
+.wall.v3 .says { top: 14%; }
+.wall.v3 .foot { color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.4); }
+.poster { position: relative; width: 420px; height: 594px; background: #fffaf3; padding: 34px 30px; display: flex; flex-direction: column; align-items: center; text-align: center; overflow: hidden; }
+.poster::before { content: ""; position: absolute; inset: 12px; border: 1.5px solid var(--c); border-radius: 6px; pointer-events: none; }
+.poster .top { font-size: 9px; letter-spacing: .35em; color: var(--cd); font-weight: 700; }
+.poster .img { width: 290px; height: 290px; margin: 22px 0 18px; border-radius: 145px 145px 20px 20px; overflow: hidden; }
+.poster .img img { width: 100%; height: 100%; object-fit: cover; }
+.poster h3 { margin: 0; font-family: "Gowun Batang", serif; font-size: 26px; color: var(--ink); }
+.poster .nm { margin: 6px 0 12px; font-family: "Gowun Batang", serif; font-size: 15px; color: var(--cd); }
+.poster .ln { font-size: 11px; color: var(--sub); line-height: 1.7; max-width: 300px; word-break: keep-all; }
+.poster .vil { margin-top: auto; font-size: 9px; letter-spacing: .2em; color: #a29a8c; }
+.label { width: 100%; text-align: center; font: 600 13px "Noto Sans KR"; color: #555; margin: 8px 0 -8px; }
+
+/* ── 본편(2026-10-04) 추가 ── */
+.fit { overflow: hidden; }
+.fit[data-tight] .toc li { padding-bottom: .5mm; } .fit[data-tight] .toc .tt small { display: inline; margin-left: 2mm; }
+.fit[data-tight="1"] p.body { font-size: 8.9pt; line-height: 1.75; }
+.fit[data-tight="2"] p.body { font-size: 8.5pt; line-height: 1.68; margin-bottom: 2.6mm; }
+.fit[data-tight="2"] h2.t { font-size: 15pt; }
+.fit[data-tight="3"] p.body { font-size: 8.1pt; line-height: 1.6; margin-bottom: 2.2mm; }
+.fit[data-tight="3"] h2.t { font-size: 14pt; margin-bottom: 2.5mm; }
+.points { margin-top: auto; padding: 3.4mm 4mm; border-radius: 3mm; background: var(--cl); display: grid; gap: 1.4mm; }
+.points b { font-size: 7.4pt; letter-spacing: .12em; color: var(--cd); }
+.points span { font-size: 8.4pt; color: #3a3b4e; padding-left: 4mm; position: relative; word-break: keep-all; }
+.points span::before { content: ""; position: absolute; left: 0; top: .55em; width: 1.8mm; height: 1.8mm; border-radius: 50%; background: var(--c); }
+.chapter .memo { margin-top: 5mm; padding: 3.4mm 4mm; border-radius: 3mm; background: rgba(255,255,255,.16); border: .3mm solid rgba(255,255,255,.45); backdrop-filter: blur(2px); font-size: 8.4pt; line-height: 1.65; word-break: keep-all; }
+.chapter .memo b { display: block; font-size: 7pt; letter-spacing: .1em; margin-bottom: 1.2mm; opacity: .9; }
+.villages { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; margin-top: 2mm; }
+.villages figure { margin: 0; border-radius: 3mm; overflow: hidden; background: #fff; border: .3mm solid var(--line); }
+.villages figure.home { border: .7mm solid var(--v); }
+.villages img { width: 100%; height: 30mm; object-fit: cover; display: block; }
+.villages figcaption { padding: 2mm 2.4mm; font-size: 7pt; line-height: 1.5; color: var(--sub); word-break: keep-all; }
+.villages figcaption b { display: block; font-size: 8.6pt; color: var(--ink); }
+.hero { height: 78mm; border-radius: 4mm; overflow: hidden; margin: 1mm 0 4mm; }
+.hero img { width: 100%; height: 100%; object-fit: cover; }
+.facts { margin: 0; display: grid; gap: 2mm; }
+.facts div { display: grid; grid-template-columns: 26mm 1fr; gap: 2mm; padding-bottom: 2mm; border-bottom: .3mm dashed var(--line); }
+.facts dt { font-size: 7.6pt; font-weight: 700; color: var(--cd); }
+.facts dd { margin: 0; font-size: 8.6pt; color: #3a3b4e; word-break: keep-all; }
+.pair-head { display: flex; gap: 3.5mm; align-items: center; margin-bottom: 2mm; }
+.pair-head img { width: 20mm; height: 20mm; border-radius: 6mm; object-fit: cover; flex: none; }
+.pair-head small { font-size: 7.4pt; color: var(--sub); font-weight: 700; }
+.pair-head h2.t { margin: 1mm 0 0; font-size: 15pt; }
+.tag.mate, .tag.rival { display: inline-block; margin-left: 1.5mm; padding: .3mm 1.8mm; border-radius: 99px; font-size: 6.6pt; }
+.tag.mate { background: #fff0f5; color: #c2416f; } .tag.rival { background: #fff4e6; color: #b2611b; }
+.pair-boxes { margin-top: auto; display: grid; gap: 2mm; }
+.pair-boxes div { padding: 2.6mm 3.4mm; border-radius: 2.6mm; background: #fff; border: .3mm solid var(--line); font-size: 8.2pt; line-height: 1.6; color: #45465a; word-break: keep-all; }
+.pair-boxes b { display: block; font-size: 7pt; color: var(--cd); letter-spacing: .08em; margin-bottom: .6mm; }
+.pillars { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2.4mm; margin: 2mm 0 5mm; }
+.pil { text-align: center; padding: 3mm 1mm; border-radius: 3mm; background: #fff; border: .3mm solid var(--line); }
+.pil:nth-child(2) { border: .7mm solid var(--c); background: var(--cl); }
+.pil small { display: block; font-size: 6.8pt; color: var(--sub); margin-bottom: 1.4mm; }
+.pil b { display: block; font-family: "Gowun Batang", serif; font-size: 22pt; line-height: 1.15; }
+.pil span { display: block; font-size: 7.4pt; color: var(--sub); margin-top: 1.2mm; }
+.pil.none b { color: #cfc8bb; }
+.els { display: grid; gap: 2.2mm; margin: 2mm 0 4mm; }
+.el { display: grid; grid-template-columns: 14mm 1fr 6mm; gap: 2mm; align-items: center; }
+.el span { font-size: 9pt; font-weight: 700; } .el small { font-size: 7pt; color: var(--sub); margin-left: 1mm; }
+.el > div { height: 4.6mm; border-radius: 99px; background: #f0ebe2; overflow: hidden; }
+.el i { display: block; height: 100%; border-radius: 99px; }
+.el b { font-size: 8.4pt; text-align: right; }
+.tg { display: flex; gap: 2mm; margin-top: auto; }
+.tg span { flex: 1; text-align: center; padding: 2.4mm 0; border-radius: 2.6mm; background: #f4f1ea; font-size: 8.4pt; color: #a29a8c; font-weight: 700; }
+.tg span.on { background: var(--c); color: #fff; }
+.phone { position: relative; width: 62mm; height: 134mm; margin: 2mm auto 4mm; border-radius: 8mm; overflow: hidden; border: 2mm solid #22223a; box-shadow: 0 3mm 8mm rgba(0,0,0,.2); }
+.phone img { width: 100%; height: 100%; object-fit: cover; }
+.phone .clock { position: absolute; top: 10mm; left: 0; right: 0; text-align: center; color: #fff; font-size: 22pt; font-weight: 300; text-shadow: 0 .5mm 2mm rgba(0,0,0,.25); }
+p.body.center { text-align: center; font-size: 8.2pt; }
+.poster-mini { width: 84mm; margin: 2mm auto 0; padding: 6mm; background: #fffaf3; border: .4mm solid var(--c); text-align: center; box-shadow: 0 2mm 6mm rgba(0,0,0,.1); }
+.poster-mini .img { height: 80mm; border-radius: 34mm 34mm 3mm 3mm; overflow: hidden; margin-bottom: 4mm; }
+.poster-mini img { width: 100%; height: 100%; object-fit: cover; }
+.poster-mini b { display: block; font-family: "Gowun Batang", serif; font-size: 14pt; }
+.poster-mini span { font-size: 9pt; color: var(--cd); }
+.tipline { margin-top: 2mm !important; font-size: 7.8pt !important; color: var(--sub) !important; }
+.tipline b { color: var(--cd); font-size: 7pt; margin-right: 1mm; }
+.wall img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.wall .foot { color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.35); }
+
+/* ── 사이트 열람 화면(public/report-app) 전용 ── */
+.label, .extras { display: none !important; }
+.vbar { position: sticky; top: 0; z-index: 50; background: rgba(255,250,243,.96); border-bottom: 1px solid #e6dfd2; backdrop-filter: blur(6px); font-family: "Noto Sans KR", sans-serif; }
+.vbar-in { max-width: 760px; margin: 0 auto; padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.vbar-in b { font-size: 15px; margin-right: auto; }
+.vbar-in span { font-size: 13px; color: #6b6c80; }
+.vbar-in button, .vbar-in a { padding: 8px 12px; border-radius: 99px; border: 1px solid var(--c); background: #fff; color: var(--cd); font: 600 13px "Noto Sans KR", sans-serif; text-decoration: none; cursor: pointer; }
+.vbar-in button { background: var(--c); color: #fff; }
+.vhelp { max-width: 760px; margin: 0 auto; padding: 0 16px 10px; font-size: 12px; color: #6b6c80; }
+.vmsg { max-width: 560px; margin: 40px auto; padding: 0 16px; text-align: center; font: 15px/1.7 "Noto Sans KR", sans-serif; color: #45465a; }
+.vmsg:empty { display: none; }
+@media print { .vbar, .vmsg { display: none !important; } body { zoom: 1 !important; } }
+</style>
+</head>
+<body>
+<div class="vbar" id="vbar">
+  <div class="vbar-in">
+    <b>모리 마음숲 안내서</b>
+    <span id="vorder"></span>
+    <button type="button" id="vprint">PDF로 저장 · 인쇄</button>
+    <a id="vw1" download>배경화면 1</a><a id="vw2" download>배경화면 2</a><a id="vw3" download>배경화면 3</a>
+  </div>
+  <p class="vhelp">휴대폰: 「PDF로 저장」을 누른 뒤 인쇄 화면에서 <b>PDF로 저장</b>을 고르세요. 이 주소와 주문번호를 함께 보관하면 언제든 다시 열 수 있어요.</p>
+</div>
+<div class="vmsg" id="vmsg">리포트를 불러오는 중이에요…</div>
+<div class="book" id="book"></div>
+<p class="label">— 따로 드리는 것: 휴대폰 배경화면 3종 · 액자용 포스터 —</p>
+<div class="extras" id="extras"></div>
+<script>
+// 주문 열쇠(?o=)로 결제된 리포트를 받아 그린다. 원고는 이 파일에 없고 서버가 결제 확인 뒤에만 준다.
+(function () {
+  var msg = document.getElementById("vmsg");
+  var token = new URLSearchParams(location.search).get("o") || "";
+  if (!/^[0-9a-f]{64}$/.test(token)) { msg.textContent = "주소가 올바르지 않아요. 결제 완료 화면의 링크나 「주문 다시 찾기」로 열어 주세요."; return; }
+  fetch("/api/report/book?o=" + token, { cache: "no-store" })
+    .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+    .then(function (res) {
+      if (!res.ok) { msg.textContent = res.j.error || "리포트를 불러오지 못했어요."; return; }
+      var p = res.j.params;
+      var q = new URLSearchParams();
+      Object.keys(p).forEach(function (k) { if (p[k] !== "" && p[k] !== null && p[k] !== undefined) q.set(k, String(p[k])); });
+      if (!p.birth) q.delete("bt");
+      window.PARAMS = q.toString();
+      window.BOOK = res.j.book;
+      document.getElementById("vorder").textContent = "주문번호 " + res.j.orderNo;
+      ["1", "2", "3"].forEach(function (n) {
+        var a = document.getElementById("vw" + n);
+        a.href = "walls/" + p.type + "-" + n + ".jpg";
+        a.setAttribute("download", "mori-" + p.type.toLowerCase() + "-wallpaper-" + n + ".jpg");
+      });
+      document.getElementById("vprint").onclick = function () { window.print(); };
+      var s = document.createElement("script");
+      s.src = "report_main.js";
+      s.onload = function () {
+        msg.textContent = "";
+        // 화면이 좁으면 쪽 전체가 보이게 줄인다(인쇄에는 영향 없음)
+        var fit = function () { var w = Math.min(1, (window.innerWidth - 16) / 580); document.getElementById("book").style.zoom = w; };
+        fit(); window.addEventListener("resize", fit);
+      };
+      document.body.appendChild(s);
+    })
+    .catch(function () { msg.textContent = "리포트를 불러오지 못했어요. 잠시 뒤 새로고침해 주세요."; });
+})();
+</script>
+</body>
+</html>
