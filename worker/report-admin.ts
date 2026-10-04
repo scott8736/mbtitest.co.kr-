@@ -124,6 +124,27 @@ export async function handleReportAdmin(request: Request, url: URL, path: string
       return redirect(`/admin/report/?test=${encodeURIComponent(made.orderNo)}`);
     }
 
+    if (path === "/admin/report/free") {
+      // 검수용 무료 리포트. 결제 없이 결제 완료 상태의 시험 주문(0원)을 만들어 바로 열람합니다. 매출에는 잡히지 않습니다.
+      const type = val("type").toUpperCase();
+      if (!hasBook(type)) return redirect("/admin/report/?err=free");
+      const left = ["E", "S", "T", "J"];
+      const scores = (["ei", "sn", "tf", "jp"] as const).map((k, i) => {
+        const raw = Number(val(k));
+        const fallback = type[i] === left[i] ? 65 : 35;
+        const n = Number.isFinite(raw) && val(k) !== "" ? Math.round(raw) : fallback;
+        return Math.min(100, Math.max(0, n));
+      }) as [number, number, number, number];
+      // 점수는 「왼쪽 글자(E·S·T·J) 비율」입니다. 유형과 어긋나면 리포트 단계가 틀리게 나오므로 막습니다.
+      if (scores.some((n, i) => (type[i] === left[i] ? n < 50 : n > 50))) return redirect("/admin/report/?err=freescore");
+      const birth = /^\d{4}-\d{2}-\d{2}$/.test(val("birth")) ? val("birth") : "";
+      const bt = birth ? Math.min(12, Math.max(0, Number(val("bt")) || 0)) : 0;
+      const name = (val("name") || "검수").replace(/[^가-힣a-zA-Z0-9 ]/g, "").slice(0, 10) || "검수";
+      const made = await createOrder(db, { type, scores, name, birth, bt, phone: "01000000000" }, { price: 0, test: true, free: true });
+      if (!made.ok) return redirect("/admin/report/?err=free");
+      return redirect(`/admin/report/?free=${encodeURIComponent(made.orderNo)}`);
+    }
+
     if (path === "/admin/report/cancel") {
       const orderNo = val("order_no");
       const row = await db.prepare("SELECT * FROM report_orders WHERE order_no = ?").bind(orderNo).first<OrderRow>();
@@ -163,11 +184,18 @@ export async function handleReportAdmin(request: Request, url: URL, path: string
     pay: "페이앱 결제요청이 실패했습니다. 아래 기록을 보세요.", cancel: "취소할 수 없는 주문입니다.",
     cancelfail: `페이앱 취소 실패: ${q.get("msg") ?? ""}`,
     contentkey: "원고 해독 키가 맞지 않습니다. report_content.key 파일 내용을 그대로 붙여넣으세요.",
+    free: "무료 리포트를 만들지 못했습니다. 유형(원고가 있는 것)을 확인하세요.",
+    freescore: "점수가 유형과 맞지 않습니다. 점수는 왼쪽 글자(E·S·T·J) 비율 — 예: I 유형이면 EI 는 50 이하.",
     tgtoken: "봇 토큰 모양이 아닙니다. BotFather 가 준 「숫자:영문」 토큰 전체를 붙여넣으세요.",
     tgchat: "대화 ID 를 찾지 못했습니다. 텔레그램에서 봇에게 아무 말이나 한 번 보낸 뒤 다시 저장하세요.",
     tgsend: "텔레그램 알림을 보내지 못했습니다. 토큰·대화 ID 를 확인하세요.",
   };
   const testOrder = q.get("test") ? orders.find((o) => o.order_no === q.get("test")) : null;
+  const freeOrder = q.get("free") ? orders.find((o) => o.order_no === q.get("free")) : null;
+  const freeBox = freeOrder
+    ? `<div class="box" style="border-color:#3f7d5c"><h2>검수용 무료 리포트를 만들었습니다 — ${esc(freeOrder.order_no)} (${esc(freeOrder.type)} · ${esc(freeOrder.scores)})</h2>
+<p><a href="/report-app/?o=${freeOrder.token}" target="_blank" rel="noopener"><b>📖 리포트 열기</b></a> · 아래 주문 표에도 「(시험) 0원」으로 남고 「열기」로 다시 볼 수 있습니다.</p></div>`
+    : "";
   const testBox = testOrder
     ? `<div class="box" style="border-color:#7657d6"><h2>시험 결제 주문을 만들었습니다 — ${esc(testOrder.order_no)}</h2>
 <p class="note">아래 결제창에서 ${REPORT_TEST_PRICE.toLocaleString()}원을 결제하세요. 결제가 끝나면 이 화면을 새로고침해 상태가 「결제 완료」로 바뀌는지, 열람 링크가 열리는지 확인하고 표의 「취소」로 돌려받습니다.</p>
@@ -181,6 +209,7 @@ ${q.get("saved") ? `<p class="note" style="color:#3f7d5c">저장했습니다.</p
 ${q.get("tgsent") ? `<p class="note" style="color:#3f7d5c">텔레그램으로 시험 알림을 보냈습니다. 휴대폰에서 확인하세요.</p>` : ""}
 ${q.get("err") ? `<p class="note" style="color:#b6483c">${esc(err[q.get("err") ?? ""] ?? "오류")}</p>` : ""}
 ${testBox}
+${freeBox}
 <div class="cards">
 <div><b>${live ? "판매 중" : "닫힘"}</b><span>손님 주문</span></div>
 <div><b>${paidReal.reduce((a, s) => a + s.n, 0)}</b><span>실결제 건수</span></div>
@@ -215,6 +244,19 @@ ${testBox}
 <label><span>대화 ID</span><input name="tg_chat" autocomplete="off" spellcheck="false" placeholder="${tg.chatId ? "바꿀 때만 입력" : "비워 두면 자동으로 찾음"}"></label>
 </div><button type="submit" style="margin-top:12px">저장</button></form>
 ${tg.token && tg.chatId ? `<form method="post" action="/admin/report/telegram-test" style="margin-top:10px"><button type="submit">시험 알림 보내기</button></form>` : ""}</div>
+
+<div class="box"><h2>검수용 무료 리포트 (결제 없음)</h2>
+<p class="note">관리자만 씁니다. 결제 없이 바로 리포트를 엽니다. 매출·판매 통계에는 잡히지 않고 주문 표에 「(시험) 0원」으로 남습니다.
+점수는 <b>왼쪽 글자 비율(E·S·T·J 쪽 %)</b> — 비우면 유형에 맞춰 65/35 로 넣습니다. 반반(55)·중간(70)·뚜렷(85)을 바꿔 가며 점수 단계 원고를 검수하세요.
+생년월일을 넣으면 사주 장 6쪽이 붙습니다.</p>
+<form method="post" action="/admin/report/free" class="row" autocomplete="off" style="flex-wrap:wrap;gap:8px">
+<select name="type">${MBTI_TYPES.filter((t) => hasBook(t)).map((t) => `<option>${t}</option>`).join("")}</select>
+<input name="ei" placeholder="E %" inputmode="numeric" style="width:70px"><input name="sn" placeholder="S %" inputmode="numeric" style="width:70px">
+<input name="tf" placeholder="T %" inputmode="numeric" style="width:70px"><input name="jp" placeholder="J %" inputmode="numeric" style="width:70px">
+<input name="name" placeholder="이름(기본 검수)" style="width:120px">
+<input name="birth" type="date" style="width:150px">
+<select name="bt">${BIRTH_TIME_SLOTS.map((label, i) => `<option value="${i}">${esc(label)}</option>`).join("")}</select>
+<button type="submit">무료 리포트 만들기</button></form></div>
 
 <div class="box"><h2>${REPORT_TEST_PRICE.toLocaleString()}원 시험 결제</h2>
 <p class="note">판매를 열지 않아도 됩니다. 진짜 결제창이 열리고, 결제 완료 통보·열람·취소까지 실제 흐름을 그대로 탑니다. 결제창 링크는 입력한 휴대폰으로 가지 않고(문자 끔) 다음 화면에 나옵니다.</p>

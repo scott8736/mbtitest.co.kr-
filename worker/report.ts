@@ -239,7 +239,8 @@ export async function payappPost(params: Record<string, string>): Promise<Record
 export async function createOrder(
   db: D1Database,
   order: CleanOrder,
-  opts: { price: number; test: boolean; meta?: OrderMeta },
+  /** free: 관리자 검수용 무료 리포트(2026-10-05). 결제창 없이 바로 결제 완료 상태로 만듭니다 — 관리자 화면에서만 부릅니다. */
+  opts: { price: number; test: boolean; meta?: OrderMeta; free?: boolean },
 ): Promise<{ ok: true; payurl: string; orderNo: string; token: string } | { ok: false; error: string }> {
   const token = newToken();
   const now = new Date();
@@ -263,6 +264,15 @@ export async function createOrder(
     }
   }
   if (!orderNo) return { ok: false, error: "주문을 만들지 못했어요. 잠시 뒤 다시 시도해 주세요." };
+
+  if (opts.free) {
+    await db
+      .prepare("UPDATE report_orders SET status = 'paid', paid_at = ?, pay_type = 'admin-free', updated_at = CURRENT_TIMESTAMP WHERE token = ?")
+      .bind(now.toISOString(), token)
+      .run();
+    await logEvent(db, orderNo, "admin_free", "관리자 검수용 무료 리포트");
+    return { ok: true, payurl: "", orderNo, token };
+  }
 
   let res: Record<string, string>;
   try {

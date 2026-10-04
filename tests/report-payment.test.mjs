@@ -263,3 +263,16 @@ test("열쇠 모양이 다르면 DB 를 보지 않고 404", async () => {
     assert.equal((await R.handleReport(new Request(u), u, { DB: db }, ctx)).status, 404);
   }
 });
+
+test("관리자 검수용 무료 리포트: 결제창 없이 결제 완료, 0원 시험 주문", async () => {
+  fetchCalls = [];
+  const db = await setup();
+  const made = await R.createOrder(db, { ...order, phone: "01000000000" }, { price: 0, test: true, free: true });
+  assert.equal(made.ok, true);
+  assert.equal(fetchCalls.length, 0, "페이앱을 부르지 않는다");
+  const row = db.sql.prepare("SELECT status, price, test, pay_type FROM report_orders WHERE token = ?").get(made.token);
+  assert.deepEqual({ ...row }, { status: "paid", price: 0, test: 1, pay_type: "admin-free" });
+  const url = new URL(`https://x/api/report/status?o=${made.token}`);
+  const res = await R.handleReport(new Request(url), url, { DB: db }, ctx);
+  assert.equal((await res.json()).status, "paid", "열람 화면이 결제 완료로 본다");
+});

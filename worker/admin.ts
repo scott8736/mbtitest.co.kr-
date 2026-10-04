@@ -284,6 +284,61 @@ export function parseRange(url: URL): { from: string; to: string } | null {
   return { from, to: to > today ? today : to };
 }
 
+// 지금 접속 중 (2026-10-05). 오늘·어제 page_views 중 최근 30분만 읽습니다(하루치 전체를 훑지 않게 created_at 으로 자릅니다).
+const CITY_KO: Record<string, string> = {
+  Seoul: "서울", Busan: "부산", Incheon: "인천", Daegu: "대구", Daejeon: "대전", Gwangju: "광주", Ulsan: "울산", Suwon: "수원",
+  Seongnam: "성남", Goyang: "고양", Yongin: "용인", Bucheon: "부천", Ansan: "안산", Cheongju: "청주", Jeonju: "전주", Changwon: "창원",
+  Cheonan: "천안", Pohang: "포항", Jeju: "제주", "Jeju City": "제주", Gimhae: "김해", Hwaseong: "화성", Namyangju: "남양주", Anyang: "안양",
+  Pyeongtaek: "평택", Uijeongbu: "의정부", Paju: "파주", Siheung: "시흥", Gimpo: "김포", Gwangmyeong: "광명", Wonju: "원주", Chuncheon: "춘천",
+  Sejong: "세종", Gumi: "구미", Jinju: "진주", Gunsan: "군산", Iksan: "익산", Mokpo: "목포", Yeosu: "여수", Suncheon: "순천", Gangneung: "강릉",
+};
+const COUNTRY_KO: Record<string, string> = { KR: "한국", US: "미국", JP: "일본", CN: "중국", CA: "캐나다", AU: "호주", VN: "베트남", DE: "독일", GB: "영국", SG: "싱가포르", TW: "대만", HK: "홍콩" };
+const placeOf = (country: string, city: string) =>
+  `${COUNTRY_KO[country] ?? (country || "알 수 없음")}${city ? ` · ${CITY_KO[city] ?? city}` : ""}`;
+
+async function liveNow(db: D1Database): Promise<string> {
+  const today = seoulDay();
+  const yesterday = seoulDay(new Date(Date.now() - 86400000));
+  const rows =
+    (
+      await db
+        .prepare(
+          `SELECT path, source, device, country, city, visitor_hash, created_at FROM page_views
+           WHERE day IN (?, ?) AND created_at >= datetime('now', '-30 minutes') ORDER BY created_at`,
+        )
+        .bind(today, yesterday)
+        .all<{ path: string; source: string; device: string; country: string; city: string; visitor_hash: string; created_at: string }>()
+    ).results ?? [];
+  const now = Date.now();
+  const at = (stamp: string) => Date.parse(stamp.replace(" ", "T") + "Z");
+  type V = { place: string; device: string; source: string; path: string; views: number; last: number };
+  const people = new Map<string, V>();
+  for (const r of rows) {
+    const v = people.get(r.visitor_hash) ?? { place: placeOf(r.country, r.city), device: r.device, source: r.source, path: r.path, views: 0, last: 0 };
+    v.views += 1;
+    if (at(r.created_at) >= v.last) {
+      v.last = at(r.created_at);
+      v.path = r.path;
+    }
+    people.set(r.visitor_hash, v);
+  }
+  const all = [...people.values()];
+  const live = all.filter((v) => now - v.last <= 5 * 60_000).sort((a, b) => b.last - a.last);
+  const places = new Map<string, number>();
+  for (const v of live) places.set(v.place, (places.get(v.place) ?? 0) + 1);
+  const ago = (t: number) => {
+    const sec = Math.max(0, Math.round((now - t) / 1000));
+    return sec < 60 ? `${sec}초 전` : `${Math.floor(sec / 60)}분 전`;
+  };
+  return `<div class="box"><h2>지금 접속 중 — 최근 5분 <b style="color:#7657d6">${live.length}명</b> · 최근 30분 ${all.length}명</h2>
+<p class="note">마지막 페이지를 연 지 5분이 안 된 사람입니다(같은 날 같은 기기·브라우저를 한 사람으로 셈). 지역은 Cloudflare 가 IP 로 추정한 도시라 실제와 다를 수 있습니다. 새로고침하면 갱신됩니다.</p>
+${live.length === 0 ? `<p class="empty">지금은 접속 중인 사람이 없습니다.</p>` : `<p style="margin:0 0 10px">${[...places.entries()].sort((a, b) => b[1] - a[1]).map(([p, n]) => `<span style="display:inline-block;margin:0 6px 6px 0;padding:5px 10px;border-radius:99px;background:#f1ecff;color:#4b3d99;font-size:13px">${esc(p)} <b>${n}</b></span>`).join("")}</p>
+<div class="scroll"><table><thead><tr><th>지역</th><th>기기</th><th>유입</th><th>지금 보는 페이지</th><th>본 페이지</th><th>마지막 활동</th></tr></thead><tbody>
+${live.slice(0, 50).map((v) => `<tr><td>${esc(v.place)}</td><td>${v.device === "mobile" ? "모바일" : v.device === "tablet" ? "태블릿" : "PC"}</td><td>${esc(SOURCE_LABELS[v.source] ?? v.source)}</td><td>${esc(v.path)}</td><td>${v.views}</td><td>${ago(v.last)}</td></tr>`).join("")}
+</tbody></table></div>`}
+</div>`;
+}
+
 async function dashboard(
   db: D1Database,
   days: number,
@@ -296,6 +351,7 @@ async function dashboard(
   // 하루 집계(worker/rollup.ts)만 읽습니다. 지난 날은 저장된 한 행, 오늘만 10분마다 새로 만듭니다.
   // 예전처럼 쿼리마다 page_views 기간 전체를 훑으면 30일 조회 한 번에 약 150만 행을 읽습니다.
   const { days: rollups, pending } = await loadRollups(db, from, to, seoulDay());
+  const liveBox = await liveNow(db);
   const all = mergeRollups(rollups);
   const rowsOf = (map: Record<string, number>, limit?: number) => {
     const list = Object.entries(map).map(([key, views]) => ({ key, views })).sort((a, b) => b.views - a.views);
@@ -459,6 +515,8 @@ async function dashboard(
 <div class="head"><div><h1>접속 현황</h1><p>${from} ~ ${to} (KST)</p></div><nav class="ranges">${ranges}<a href="/admin/report/">리포트 판매</a><a href="/admin/trends/">트렌드</a><a href="/admin/keywords/">키워드 조회</a><a href="/admin/coupang/">쿠팡</a></nav></div>
 ${rangeForm}
 ${pending > 0 ? `<p class="note">지난 ${pending}일 집계가 아직 없습니다. 한 번에 7일씩 채우므로 새로고침하면 이어서 채웁니다.</p>` : ""}
+
+${liveBox}
 
 <div class="cards">
 <div><b>${total.views.toLocaleString()}</b><span>페이지뷰</span></div>

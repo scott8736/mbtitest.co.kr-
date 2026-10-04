@@ -308,3 +308,8 @@
 .tarot-hub-icon { width: 56px; height: 56px; padding: 0; overflow: hidden; border-radius: 16px; background: #f3eeff; box-shadow: 0 6px 14px rgba(91, 69, 176, .14); }
 .tarot-hub-icon img { width: 100%; height: 100%; object-fit: cover; }
 .tarot-other-mori { width: 28px; height: 28px; border-radius: 9px; object-fit: cover; vertical-align: middle; }
+
+/* 2026-10-05 다시 뽑기 */
+.tarot-again { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; border: 1px solid #e6def8; background: linear-gradient(135deg, #f3eeff, #fff4ee); color: #4f5872; }
+.tarot-again p { margin: 0; }
+.tarot-again .primary-button { min-width: 240px; }

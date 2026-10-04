@@ -6,7 +6,6 @@ import { moriImage } from "../lib/mori";
 import type { TarotCard, TarotFortune } from "../lib/tarot";
 import {
   dailyCandidates,
-  tarotCardByNo,
   tarotFortunes,
   tarotTypeLabels,
   todayKst,
@@ -27,15 +26,13 @@ import { markTestCompleted, recordCompletionOnce, recordTestEvent } from "../lib
  * 운세로 읽히지 않고, 마음에 드는 카드가 나올 때까지 돌리게 됩니다. 그러면
  * 내일 다시 올 이유도 사라집니다.
  *
- * 그래서 두 겹으로 고정합니다. 후보 다섯 장은 날짜·방문자·운세 종류를 시드로
- * 만들고(lib/tarot.ts), 뽑은 카드는 날짜별 키로 localStorage 에 저장합니다.
- * 자정(KST)이 지나면 키가 달라져 자동으로 새 카드를 뽑게 됩니다.
+ * 2026-10-05 사용자 결정으로 「하루 한 번」 고정을 없앴습니다. 뽑은 카드를 저장하지 않고,
+ * 결과 화면의 「다시 뽑기」로 몇 번이든 새 후보 다섯 장을 섞습니다(라운드 번호를 시드에 더함).
  *
  * 서버가 없어도 됩니다. 전부 브라우저 안에서 끝납니다.
  */
 
 const VISITOR_KEY = "tarot-visitor";
-const pickKey = (slug: string, date: string) => `tarot-pick:${slug}:${date}`;
 
 function getVisitorId(): string {
   try {
@@ -55,33 +52,28 @@ export default function TarotDaily({ fortune }: { fortune: TarotFortune }) {
   const [candidates, setCandidates] = useState<TarotCard[]>([]);
   const [picked, setPicked] = useState<TarotCard | null>(null);
   const [ready, setReady] = useState(false);
+  const [round, setRound] = useState(0);
 
+  // localStorage 는 붙은 뒤에만 읽을 수 있어 한 박자 늦게 채웁니다(정적 렌더와 어긋나지 않게).
   useEffect(() => {
-    const date = todayKst();
-    const visitor = getVisitorId();
-    setDateKey(date);
-    setCandidates(dailyCandidates(date, visitor, fortune.type));
+    const id = setTimeout(() => {
+      const date = todayKst();
+      setDateKey(date);
+      setCandidates(dailyCandidates(date, `${getVisitorId()}-${round}`, fortune.type));
+      setReady(true);
+    }, 0);
+    return () => clearTimeout(id);
+  }, [fortune.slug, fortune.type, round]);
 
-    try {
-      const saved = localStorage.getItem(pickKey(fortune.slug, date));
-      if (saved) {
-        const card = tarotCardByNo(Number(saved));
-        if (card) setPicked(card);
-      }
-    } catch {
-      // 저장이 막혀 있으면 오늘 다시 뽑게 됩니다.
-    }
-    setReady(true);
-  }, [fortune.slug, fortune.type]);
+  const again = () => {
+    setPicked(null);
+    setRound((n) => n + 1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const choose = (card: TarotCard) => {
     recordTestEvent(fortune.slug, "answered");
     setPicked(card);
-    try {
-      localStorage.setItem(pickKey(fortune.slug, dateKey), String(card.no));
-    } catch {
-      // 저장 실패해도 이번 화면에서는 결과가 보입니다.
-    }
     markTestCompleted(fortune.slug);
     recordCompletionOnce(fortune.slug);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -102,7 +94,7 @@ export default function TarotDaily({ fortune }: { fortune: TarotFortune }) {
         <p>{fortune.description}</p>
         <div className="generic-meta">
           <span>{dateKey || "오늘"}</span>
-          <span>하루 한 번</span>
+          <span>몇 번이든 무료</span>
           <span>가입 없음</span>
         </div>
       </section>
@@ -117,7 +109,7 @@ export default function TarotDaily({ fortune }: { fortune: TarotFortune }) {
         <section className="tarot-pick">
           <Mascot className="tarot-mascot" type="INFJ" size={104} />
           <p className="tarot-guide">
-            마음이 가는 카드를 한 장 고르세요. <b>오늘은 한 번만 뽑을 수 있습니다.</b>
+            마음속 질문을 하나 떠올리고, <b>마음이 가는 카드를 한 장</b> 고르세요.
           </p>
           <div className="tarot-deck">
             {candidates.map((card, i) => (
@@ -194,9 +186,10 @@ export default function TarotDaily({ fortune }: { fortune: TarotFortune }) {
           <ReportCrossSell from="tarot" />
           <SajuLabBanner placement="tarot" />
 
-          <p className="tarot-again">
-            오늘의 카드는 자정까지 그대로입니다. <b>내일 다시 오시면</b> 새 카드를 뽑을 수 있어요.
-          </p>
+          <div className="tarot-again">
+            <p>다른 질문이 떠올랐다면 <b>카드를 다시 뽑아</b> 보세요.</p>
+            <button type="button" className="primary-button" onClick={again}>🔄 카드 다시 뽑기</button>
+          </div>
 
           <div className="tarot-others">
             <h2>다른 운세도 오늘 것으로 볼 수 있어요</h2>
