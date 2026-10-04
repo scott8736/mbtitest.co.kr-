@@ -16,10 +16,11 @@ const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const { outputFiles } = await build({
   stdin: {
     contents: `
-      export { markStep2Reached, recordStep2Once, markTestCompleted, recordCompletionOnce, remainingMinutes, recordTestEventOnce, recordVisitOnce, recordAnswered } from "./lib/test-events";
+      export { markStep2Reached, recordStep2Once, markTestCompleted, recordCompletionOnce, onResultLinkClick, remainingMinutes, recordTestEventOnce, recordVisitOnce, recordAnswered } from "./lib/test-events";
       export { parseRange, cleanKey } from "./worker/admin";
       export { isKnownEvent } from "./worker/test-events";
       export { SAJULAB_PLACEMENT_KEYS } from "./lib/sajulab";
+      export { RESULT_CLICK_PLACEMENT_KEYS } from "./lib/result-clicks";
     `,
     resolveDir: repoRoot,
     loader: "ts",
@@ -157,5 +158,28 @@ test("사주랩 배너 이벤트는 배너 자리로만 받고, 탭당 한 번�
   assert.deepEqual(sent, [
     "/api/event?slug=tarot&name=saju_seen",
     "/api/event?slug=tarot&name=saju_click",
+  ]);
+});
+
+test("결과 화면 링크 묶음 클릭은 묶음 이름으로만 받고, 카드를 눌렀을 때만 탭당 한 번 센다", () => {
+  for (const key of mod.RESULT_CLICK_PLACEMENT_KEYS) {
+    assert.ok(mod.isKnownEvent(key, "result_click"), `${key} 클릭이 워커에서 버려진다`);
+  }
+  assert.equal(mod.isKnownEvent("mbti", "result_click"), false, "테스트 slug 는 묶음 이름이 아니다");
+  assert.equal(mod.isKnownEvent("mbti-next", "completed"), false, "묶음 이름은 테스트 slug 가 아니다");
+
+  // 클릭 대상 대역: closest("a[href]") 로 카드 안인지 판단합니다.
+  const onCard = { target: { closest: (sel) => (sel === "a[href]" ? {} : null) } };
+  const onGap = { target: { closest: () => null } };
+
+  reset();
+  const handler = mod.onResultLinkClick("mbti-next");
+  handler(onGap);
+  handler(onCard);
+  handler(onCard); // 뒤로 와서 또 누름
+  mod.onResultLinkClick("mbti-type")(onCard);
+  assert.deepEqual(sent, [
+    "/api/event?slug=mbti-next&name=result_click",
+    "/api/event?slug=mbti-type&name=result_click",
   ]);
 });

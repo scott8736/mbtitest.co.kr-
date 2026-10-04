@@ -7,7 +7,7 @@ import MbtiResultPick from "./MbtiResultPick";
 import ReportTeaser from "./ReportTeaser";
 import SajuLabBanner from "./SajuLabBanner";
 import { questions, typeData, typeDetails, type Axis } from "../lib/mbti-data";
-import { recordCompletionOnce } from "../lib/test-events";
+import { onResultLinkClick, recordCompletionOnce } from "../lib/test-events";
 
 const TEST_PATH = "/tests/mbti/";
 const STORAGE_KEY = "mbti-test-result";
@@ -116,7 +116,7 @@ export default function MbtiResult() {
       <MbtiResultPick code={result} />
       <div className="result-actions"><button className="primary-button" onClick={share}>결과 공유하기 <span>↗</span></button><button className="secondary-button" onClick={downloadResult}>결과 이미지 저장</button><button className="secondary-button" onClick={start}>다시 검사하기</button></div>
       <p className="disclaimer">본 테스트는 자기이해를 위한 간이 성격 테스트이며, 전문적인 심리 진단을 대신하지 않습니다.</p>
-      <div className="related-results result-deep-link">
+      <div className="related-results result-deep-link" onClick={onResultLinkClick("mbti-type")}>
         <span className="eyebrow">MORE ABOUT {result}</span>
         <h2>{result} 유형을 더 자세히 알아보기</h2>
         <div>
@@ -124,7 +124,7 @@ export default function MbtiResult() {
           <a href={`/compatibility/${result.toLowerCase()}/`}><span>궁합</span><strong>{result} MBTI 궁합</strong><small>잘 맞는 유형과 소통 방법</small><i>{result} 궁합 보기 →</i></a>
         </div>
       </div>
-      <div className="related-results result-fortune-cta">
+      <div className="related-results result-fortune-cta" onClick={onResultLinkClick("mbti-fortune")}>
         <span className="eyebrow">TODAY&apos;S FORTUNE</span>
         <h2>성격을 봤다면, 오늘의 흐름도</h2>
         <div>
@@ -134,7 +134,7 @@ export default function MbtiResult() {
         </div>
       </div>
       <AdUnit key={`result-bottom-${result}`} position="resultBottom" label="MBTI 결과 하단 광고" />
-      <div className="related-results mbti-related">
+      <div className="related-results mbti-related" onClick={onResultLinkClick("mbti-next")}>
         <span className="eyebrow">NEXT TEST</span><h2>지금 결과와 이어서 해보세요</h2>
         <div>
           <a href="/tests/adult-attachment/"><span>연애</span><strong>성인 애착유형 테스트</strong><small>24문항 · 약 3분</small><i>내 애착유형 확인하기 →</i></a>

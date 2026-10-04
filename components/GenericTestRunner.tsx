@@ -5,7 +5,7 @@ import type { GenericTest, ScoreMap } from "../lib/generic-tests";
 import { evaluateTest, type Picks } from "../lib/generic-eval";
 import { testCatalog } from "../lib/test-catalog";
 import AdUnit from "./AdUnit";
-import { markStep2Reached, markTestCompleted, recordAnswered, recordCompletionOnce, recordStep2Once, recordVisitOnce, remainingMinutes } from "../lib/test-events";
+import { markStep2Reached, markTestCompleted, onResultLinkClick, recordAnswered, recordCompletionOnce, recordStep2Once, recordVisitOnce, remainingMinutes } from "../lib/test-events";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
 import CrossPromo from "./CrossPromo";
@@ -297,7 +297,7 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
           <div className="result-actions"><button className="primary-button" onClick={share}>결과 공유하기 <span>↗</span></button><button className="secondary-button" onClick={downloadCard}>결과 이미지 저장</button><button className="secondary-button" onClick={start}>다시 검사하기</button></div>
           <p className="disclaimer">{test.disclaimer}</p>
           <AdUnit key={`result-bottom-${resultKey}`} position="resultBottom" label={`${test.title} 결과 하단 광고`} />
-          <div className="related-results"><span className="eyebrow">NEXT TEST</span><h2>나를 더 알아보는 다음 테스트</h2><div>{related.map((item) => item && <a href={item.href} key={item.slug}><span>{item.category}</span><strong>{item.title}</strong><small>{item.duration} · {item.questionCount}문항</small><i>시작하기 →</i></a>)}</div></div>
+          <div className="related-results" onClick={onResultLinkClick("test-next")}><span className="eyebrow">NEXT TEST</span><h2>나를 더 알아보는 다음 테스트</h2><div>{related.map((item) => item && <a href={item.href} key={item.slug}><span>{item.category}</span><strong>{item.title}</strong><small>{item.duration} · {item.questionCount}문항</small><i>시작하기 →</i></a>)}</div></div>
           <CrossPromo variant="fortune" />
         </section>
       )}

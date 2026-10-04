@@ -10,6 +10,7 @@
  * 저장하지 않는 것: IP 원본, 쿠키, 쿼리스트링.
  */
 import { SAJULAB_PLACEMENTS, SAJULAB_PLACEMENT_KEYS } from "../lib/sajulab";
+import { RESULT_CLICK_PLACEMENTS, RESULT_CLICK_PLACEMENT_KEYS } from "../lib/result-clicks";
 import { SOURCE_LABELS } from "../lib/analytics";
 import {
   DEFAULT_TREND_KEYWORDS,
@@ -245,6 +246,15 @@ const SAJULAB_SINCE = "2026-10-04";
  *  「방문」(페이지뷰)은 새로고침·재방문이 섞여 응답 시작률이 낮게 나온다. */
 const VISIT_SINCE = "2026-10-04";
 
+/** 결과 화면 링크 묶음 클릭(result_click)을 세기 시작한 날. 배포한 10-04 는 반나절만 섞여 다음 날부터 냅니다. */
+const RESULT_CLICK_SINCE = "2026-10-05";
+
+/**
+ * 검사 첫 화면 주소. /tests/<slug>/ 와 /check/<slug>/ 만 세고 그 아래(step2·result·공유 r/…)는 뺍니다.
+ * 「1인당 검사 수」와 「MBTI 다음 검사 전환」이 같은 기준을 쓰도록 한 곳에 둡니다.
+ */
+const TEST_INTRO_SQL = `((path LIKE '/tests/%/' AND path NOT LIKE '/tests/%/%/') OR (path LIKE '/check/%/' AND path NOT LIKE '/check/%/%/'))`;
+
 /** 이보다 표본이 작으면 비율을 내지 않습니다. 몇 건짜리 비율은 뜻이 없습니다. */
 const MIN_SAMPLE = 20;
 
@@ -378,6 +388,69 @@ async function dashboard(
     return ((part / whole) * 100).toFixed(1) + "%";
   };
 
+  // 체류·회유. 새로 모으는 값 없이 page_views 만으로 냅니다. visitor_hash 는 날짜마다
+  // 바뀌므로 「방문자」는 하루 단위 사람입니다. 체류 시간은 첫 조회 ~ 마지막 조회 사이라
+  // 마지막 페이지에서 머문 시간은 빠집니다(1페이지만 보고 나간 사람은 따로 셉니다).
+  // MBTI 완료자는 2단계와 결과 화면을 둘 다 본 사람입니다 — 공유받은 결과 링크만 연 사람을 빼려고요.
+  const journeyDays = await q<{
+    day: string; visitors: number; views: number; multi: number; mbti_done: number; mbti_next: number;
+    b0: number; b1: number; b2: number; b3: number; b4: number;
+  }>(
+    `WITH v AS (
+       SELECT day, visitor_hash, COUNT(*) AS views,
+              (julianday(MAX(created_at)) - julianday(MIN(created_at))) * 86400 AS span,
+              COUNT(DISTINCT CASE WHEN ${TEST_INTRO_SQL} THEN path END) AS tests,
+              MAX(CASE WHEN path = '/tests/mbti/step2/' THEN 1 ELSE 0 END) AS took_mbti,
+              MIN(CASE WHEN path = '/mbti-result/' THEN created_at END) AS mbti_at,
+              MAX(CASE WHEN ${TEST_INTRO_SQL} AND path <> '/tests/mbti/' THEN created_at END) AS other_at
+         FROM page_views WHERE day BETWEEN ? AND ?
+        GROUP BY day, visitor_hash
+     )
+     SELECT day, COUNT(*) AS visitors, SUM(views) AS views,
+            SUM(tests >= 2) AS multi,
+            SUM(took_mbti = 1 AND mbti_at IS NOT NULL) AS mbti_done,
+            SUM(took_mbti = 1 AND mbti_at IS NOT NULL AND other_at > mbti_at) AS mbti_next,
+            SUM(views = 1) AS b0,
+            SUM(views > 1 AND span < 60) AS b1,
+            SUM(views > 1 AND span >= 60 AND span < 180) AS b2,
+            SUM(views > 1 AND span >= 180 AND span < 600) AS b3,
+            SUM(views > 1 AND span >= 600) AS b4
+       FROM v GROUP BY day ORDER BY day`, from, to);
+  const journey = journeyDays.reduce(
+    (sum, d) => {
+      for (const key of ["visitors", "views", "multi", "mbti_done", "mbti_next", "b0", "b1", "b2", "b3", "b4"] as const) sum[key] += d[key] ?? 0;
+      return sum;
+    },
+    { visitors: 0, views: 0, multi: 0, mbti_done: 0, mbti_next: 0, b0: 0, b1: 0, b2: 0, b3: 0, b4: 0 },
+  );
+  const pct = (part: number, whole: number) =>
+    whole < MIN_SAMPLE ? "표본 부족" : ((part / whole) * 100).toFixed(1) + "%";
+  const dwellRows = [
+    { key: "1페이지만 보고 나감", views: journey.b0 },
+    { key: "1분 미만", views: journey.b1 },
+    { key: "1~3분", views: journey.b2 },
+    { key: "3~10분", views: journey.b3 },
+    { key: "10분 이상", views: journey.b4 },
+  ];
+  // MBTI 결과 화면에서 바로 이어서 연 페이지. 같은 사이트 안 이동만 봅니다.
+  const afterMbtiWhere = `day BETWEEN ? AND ? AND source = 'internal' AND referrer LIKE '%/mbti-result/%' AND path <> '/mbti-result/'`;
+  const afterMbti = await q<{ key: string; views: number }>(
+    `SELECT path AS key, COUNT(*) AS views FROM page_views WHERE ${afterMbtiWhere}
+      GROUP BY path ORDER BY views DESC LIMIT 12`, from, to);
+  const afterMbtiTotal =
+    (await db.prepare(`SELECT COUNT(*) AS n FROM page_views WHERE ${afterMbtiWhere}`).bind(from, to).first<{ n: number }>())?.n ?? 0;
+  const clickRows = await q<{ slug: string; count: number }>(
+    `SELECT slug, COUNT(*) AS count FROM test_events
+      WHERE day BETWEEN ? AND ? AND name = 'result_click' GROUP BY slug`, from, to);
+  const clicksFor = (key: string) => clickRows.find((row) => row.slug === key)?.count ?? 0;
+  const mbtiCompleted = completedBySlug.get("mbti") ?? 0;
+  const otherCompleted = [...completedBySlug].filter(([slug]) => slug !== "mbti").reduce((sum, [, n]) => sum + n, 0);
+  const clickRate = (click: number, whole: number) => {
+    if (from < RESULT_CLICK_SINCE) return "-";
+    if (whole < MIN_SAMPLE) return "표본 부족";
+    return ((click / whole) * 100).toFixed(1) + "%";
+  };
+
   const peak = Math.max(1, ...daily.map((d) => d.views));
   const ranges = [1, 7, 30, 90]
     .map((d) => `<a href="/admin/?days=${d}" class="${!range && d === days ? "on" : ""}">${d === 1 ? "오늘" : `${d}일`}</a>`)
@@ -444,6 +517,43 @@ ${rangeForm}
             })
             .join("")}</tbody></table></div>`
     }</div>
+
+<div class="box"><h2>체류·회유</h2>
+<p class="note">
+MBTI 하나만 하고 나가는지, 다른 검사로 이어 가며 머무는지를 봅니다. 새로 모으는 값 없이 접속 기록으로 계산합니다.
+「방문자」는 하루 단위 사람(날짜가 바뀌면 다른 사람으로 셈)입니다. 「검사 2개+」는 서로 다른 검사 첫 화면(/tests/…, /check/…)을 2개 이상 연 사람입니다.
+<b>「MBTI → 다른 검사」 = MBTI를 끝낸 사람(2단계와 결과를 모두 본 사람) 중 그 뒤에 다른 검사를 연 비율</b> — 회유 개선의 핵심 숫자입니다.
+체류 시간은 첫 조회부터 마지막 조회까지라 마지막 페이지에 머문 시간은 빠집니다. 화면을 바꾼 날 전·후를 기간 조회로 나눠 비교하세요.
+</p>
+<div class="cards">
+<div><b>${journey.visitors ? (journey.views / journey.visitors).toFixed(2) : "0"}</b><span>방문자당 페이지</span></div>
+<div><b>${pct(journey.multi, journey.visitors)}</b><span>검사 2개 이상 한 방문자</span></div>
+<div><b>${pct(journey.mbti_next, journey.mbti_done)}</b><span>MBTI → 다른 검사 (${journey.mbti_next.toLocaleString()} / ${journey.mbti_done.toLocaleString()})</span></div>
+<div><b>${pct(journey.b3 + journey.b4, journey.visitors)}</b><span>3분 이상 머문 방문자</span></div>
+</div>
+${journeyDays.length === 0 ? `<p class="empty">아직 기록이 없습니다.</p>` : `<div class="scroll"><table><thead><tr><th>날짜</th><th>방문자</th><th>방문자당 페이지</th><th>검사 2개+</th><th>MBTI 완료자</th><th>→ 다른 검사</th><th>전환율</th><th>3분 이상</th></tr></thead><tbody>
+${journeyDays.map((d) => `<tr><td>${d.day.slice(5)}</td><td>${d.visitors.toLocaleString()}</td><td>${d.visitors ? (d.views / d.visitors).toFixed(2) : "-"}</td><td>${pct(d.multi, d.visitors)}</td><td>${d.mbti_done}</td><td>${d.mbti_next}</td><td><b>${pct(d.mbti_next, d.mbti_done)}</b></td><td>${pct(d.b3 + d.b4, d.visitors)}</td></tr>`).join("")}
+</tbody></table></div>`}
+</div>
+
+<div class="grid">
+<div class="box"><h2>체류 시간 분포</h2>${bars(dwellRows, journey.visitors)}</div>
+<div class="box"><h2>MBTI 결과 다음에 연 페이지</h2><p class="note">결과 화면에서 바로 이어서 연 페이지입니다(합계 ${afterMbtiTotal.toLocaleString()}). 「/」 는 다시 검사하기나 로고를 누른 경우입니다.</p>${bars(afterMbti, afterMbtiTotal)}</div>
+</div>
+
+<div class="box"><h2>결과 화면 링크 묶음 클릭</h2>
+<p class="note">
+결과 화면의 링크 묶음 중 어느 것이 사람을 붙잡는지 봅니다. 묶음 안의 카드를 누른 사람을 탭당 묶음마다 한 번만 셉니다.
+<b>클릭률 = 클릭 ÷ 완주</b> (MBTI 묶음은 MBTI 완주, 「다음 테스트」는 MBTI를 뺀 테스트 완주). 쿠팡 카드·사주랩 배너·유료 리포트는 각 표에 따로 있습니다.
+비율은 ${RESULT_CLICK_SINCE} 부터 냅니다.
+</p>
+<div class="scroll"><table><thead><tr><th>묶음</th><th>클릭</th><th>분모(완주)</th><th>클릭률</th></tr></thead><tbody>
+${RESULT_CLICK_PLACEMENT_KEYS.map((key) => {
+  const whole = key.startsWith("mbti-") ? mbtiCompleted : otherCompleted;
+  return `<tr><td>${esc(RESULT_CLICK_PLACEMENTS[key])}</td><td>${clicksFor(key)}</td><td>${whole || "-"}</td><td>${clickRate(clicksFor(key), whole)}</td></tr>`;
+}).join("")}
+</tbody></table></div>
+</div>
 
 <div class="box"><h2>유료 리포트 수요 측정 (MBTI)</h2>
 <p class="note">

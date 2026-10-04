@@ -1,3 +1,5 @@
+import type { ResultClickPlacement } from "./result-clicks";
+
 /**
  * 검사 진행 이벤트.
  *
@@ -15,6 +17,9 @@
  *   click 은 「내 리포트 받기」, follow 는 그다음 스레드 팔로우 링크입니다.
  * saju_*: 결과 화면 「프리미엄 사주」 배너(2026-10-04~). slug 자리에 테스트가 아니라
  *   배너 자리(lib/sajulab.ts 의 SAJULAB_PLACEMENTS)를 넣습니다.
+ * result_click: 결과 화면 링크 묶음을 누름(2026-10-05~). slug 자리에 묶음 이름
+ *   (lib/result-clicks.ts 의 RESULT_CLICK_PLACEMENTS)을 넣습니다. 결과 다음에 어디로 가서
+ *   사이트에 더 머무는지 보려고 셉니다.
  */
 export type TestEventName =
   | "visited"
@@ -26,7 +31,8 @@ export type TestEventName =
   | "report_click"
   | "report_follow"
   | "saju_seen"
-  | "saju_click";
+  | "saju_click"
+  | "result_click";
 
 /**
  * 2단계 도착. 완주와 같은 방식입니다 — 2단계 화면 조회수를 쓰면 새로고침과
@@ -129,6 +135,22 @@ export function recordAnswered(slug: string): void {
   } catch {
     // 저장이 막힌 브라우저에서는 방문이 한 번만 세어질 뿐입니다.
   }
+}
+
+/** 결과 화면 링크 묶음 클릭. 탭당 묶음마다 한 번만 세어 「클릭 ÷ 완주」를 사람 비율로 읽게 합니다. */
+export function recordResultClick(placement: ResultClickPlacement): void {
+  recordTestEventOnce(placement, "result_click");
+}
+
+/**
+ * 링크 묶음을 감싼 요소의 onClick 에 붙입니다. 카드 하나하나에 달지 않아도 되고,
+ * 묶음 안의 빈 곳을 누른 것은 세지 않습니다.
+ */
+export function onResultLinkClick(placement: ResultClickPlacement) {
+  return (event: { target: EventTarget | null }): void => {
+    const target = event.target as { closest?: (selector: string) => unknown } | null;
+    if (target?.closest?.("a[href]")) recordResultClick(placement);
+  };
 }
 
 export function recordTestEvent(slug: string, name: TestEventName): void {

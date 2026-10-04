@@ -9,6 +9,7 @@
  */
 import { testCatalog } from "../lib/test-catalog";
 import { SAJULAB_PLACEMENT_KEYS } from "../lib/sajulab";
+import { RESULT_CLICK_PLACEMENT_KEYS } from "../lib/result-clicks";
 import { isBot, RETENTION_DAYS, seoulDay } from "../lib/analytics";
 import { ensureSchema } from "./schema";
 
@@ -35,14 +36,20 @@ const KNOWN_NAMES = new Set([
   "report_follow",
   "saju_seen",
   "saju_click",
+  "result_click",
 ]);
 
 /** 사주랩 배너는 테스트가 아니라 배너 자리로 셉니다. 자리 목록 밖의 값은 버립니다. */
 const SAJULAB_SLUGS = new Set<string>(SAJULAB_PLACEMENT_KEYS);
 
+/** 결과 화면 링크 묶음도 테스트가 아니라 묶음 이름으로 셉니다. */
+const RESULT_CLICK_SLUGS = new Set<string>(RESULT_CLICK_PLACEMENT_KEYS);
+
 export function isKnownEvent(slug: string, name: string): boolean {
   if (!KNOWN_NAMES.has(name)) return false;
-  return name.startsWith("saju_") ? SAJULAB_SLUGS.has(slug) : KNOWN_SLUGS.has(slug);
+  if (name.startsWith("saju_")) return SAJULAB_SLUGS.has(slug);
+  if (name === "result_click") return RESULT_CLICK_SLUGS.has(slug);
+  return KNOWN_SLUGS.has(slug);
 }
 
 /**
