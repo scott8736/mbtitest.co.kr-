@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { moriImage } from "../../lib/mori";
 import SiteFooter from "../../components/SiteFooter";
 import SiteHeader from "../../components/SiteHeader";
 import AdUnit from "../../components/AdUnit";
@@ -27,7 +28,7 @@ export default function TarotHubPage() {
       <SiteHeader active="/tarot" />
 
       <section className="generic-intro">
-        <span className="eyebrow">DAILY TAROT</span>
+        <span className="eyebrow">🔮 오늘의 타로</span>
         <h1>오늘의 타로 운세</h1>
         <p>
           보고 싶은 운세를 고르고 카드를 한 장 뽑으세요. 여섯 가지 모두 각각 볼 수 있고,
@@ -38,8 +39,9 @@ export default function TarotHubPage() {
       <section className="tarot-hub">
         {tarotFortunes.map((fortune) => (
           <Link key={fortune.slug} href={`/tarot/${fortune.slug}/`}>
-            <span className="tarot-hub-icon" style={{ background: fortune.color }}>
-              {fortune.icon}
+            <span className="tarot-hub-icon">
+              {/* eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기라 next/image 최적화를 쓰지 않습니다 */}
+              <img src={moriImage(fortune.mori)} alt="" width={56} height={56} loading="lazy" />
             </span>
             <b>{tarotTypeLabels[fortune.type]}</b>
             <span className="tarot-hub-desc">{fortune.description}</span>

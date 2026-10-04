@@ -27,7 +27,7 @@ export default function Page() {
     <main>
       <ContentHeader active="/compatibility" />
       <section className="content-hero">
-        <span className="eyebrow">MBTI COMPATIBILITY</span>
+        <span className="eyebrow">💞 MBTI 궁합</span>
         <h1>
           MBTI 궁합,
           <br />

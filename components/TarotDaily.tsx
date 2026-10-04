@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { moriImage } from "../lib/mori";
 import type { TarotCard, TarotFortune } from "../lib/tarot";
 import {
   dailyCandidates,
@@ -114,7 +115,7 @@ export default function TarotDaily({ fortune }: { fortune: TarotFortune }) {
 
       {ready && !picked && (
         <section className="tarot-pick">
-          <Mascot className="tarot-mascot" mood="excited" size={104} accent={fortune.color} />
+          <Mascot className="tarot-mascot" type="INFJ" size={104} />
           <p className="tarot-guide">
             마음이 가는 카드를 한 장 고르세요. <b>오늘은 한 번만 뽑을 수 있습니다.</b>
           </p>
@@ -203,7 +204,8 @@ export default function TarotDaily({ fortune }: { fortune: TarotFortune }) {
               {others.map((f) => (
                 <li key={f.slug}>
                   <Link href={`/tarot/${f.slug}/`} style={{ borderColor: f.color }}>
-                    <span style={{ color: f.color }}>{f.icon}</span>
+                    {/* eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기라 next/image 최적화를 쓰지 않습니다 */}
+                    <img className="tarot-other-mori" src={moriImage(f.mori)} alt="" width={28} height={28} loading="lazy" />
                     <b>{tarotTypeLabels[f.type]}</b>
                   </Link>
                 </li>

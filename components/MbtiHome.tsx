@@ -7,21 +7,26 @@ import MoriLoopVideo from "./MoriLoopVideo";
 import { typeData } from "../lib/mbti-data";
 import { moriImage } from "../lib/mori";
 
+/** 첫 화면 모리 타일 순서. 색이 고르게 섞이도록 4그룹을 엇갈려 둡니다. */
+const MORI_ORDER = ["ENFP", "ISTJ", "INFJ", "ESTP", "ISFP", "ENTJ", "ESFJ", "INTP", "INFP", "ESTJ", "ENFJ", "ISTP", "ESFP", "INTJ", "ISFJ", "ENTP"];
+
 export default function MbtiHome() {
   return (
     <>
-          <section className="hero wellness-hero">
+          {/* 2026-10-05 어두운 추상 그림 → 모리 마음숲 파스텔. 시작 버튼·제목 문구는 그대로(시작률·검색어). */}
+          <section className="hero wellness-hero mori-hero">
             <div className="hero-copy">
-              <span className="eyebrow">FREE PERSONALITY TEST</span>
-              <h1>무료 MBTI 검사<br /><em>나를 이해하는 가장 선명한 질문</em></h1>
-              <p>40개의 일상적인 질문으로 알아보는 무료 MBTI 검사. <br />지금의 나와 더 가까운 문장을 골라보세요.</p>
+              <span className="eyebrow">🌿 16모리 마음숲 · 무료 성격검사</span>
+              <h1>무료 MBTI 검사<br /><em>나는 어떤 모리일까?</em></h1>
+              <p>40개의 일상적인 질문에 답하면 16가지 모리 중 나와 닮은 캐릭터와 성격 유형을 알려 드려요.</p>
               <a className="primary-button" href="/tests/mbti/">무료 MBTI 검사 시작 <span>→</span></a>
-              <div className="trust-chips"><span>✓ 가입 없음</span><span>⚡ 결과 즉시 확인</span></div>
+              <div className="trust-chips"><span>✓ 가입 없음</span><span>⏱ 약 4분</span><span>⚡ 결과 즉시 확인</span></div>
             </div>
-            <div className="hero-floating-card" aria-label="검사 특징">
-              <span>PERSONALITY SIGNAL</span>
-              <strong>16가지 유형</strong>
-              <div><i>E · I</i><i>S · N</i><i>T · F</i><i>J · P</i></div>
+            <div className="mori-hero-grid" aria-hidden="true">
+              {MORI_ORDER.map((code, i) => (
+                // eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기라 next/image 최적화를 쓰지 않습니다
+                <img key={code} src={moriImage(code)} alt="" width={120} height={120} loading={i < 8 ? "eager" : "lazy"} decoding="async" style={{ animationDelay: `${(i % 4) * 0.35 + Math.floor(i / 4) * 0.2}s` }} />
+              ))}
             </div>
           </section>
           {/* 검사가 끝나면 무엇을 받는지(16가지 모리 중 내 캐릭터) 15초로 보여 줍니다 (2026-10-04).

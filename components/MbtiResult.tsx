@@ -100,7 +100,7 @@ export default function MbtiResult() {
       <SajuLabBanner placement="mbti" />
       {/* 다음 검사를 쿠팡 카드 위로 올렸습니다(2026-10-04). 맨 아래 광고 밑에 있을 때 MBTI → 다른 검사 전환이 5.2%였습니다. */}
       <div className="related-results mbti-related" onClick={onResultLinkClick("mbti-next")}>
-        <span className="eyebrow">NEXT TEST</span><h2>지금 결과와 이어서 해보세요</h2>
+        <span className="eyebrow">다음 테스트</span><h2>지금 결과와 이어서 해보세요</h2>
         <div>
           <a href="/tests/adult-attachment/"><span>연애</span><strong>성인 애착유형 테스트</strong><small>24문항 · 약 3분</small><i>내 애착유형 확인하기 →</i></a>
           <a href="/tests/egen-teto/"><span>성격</span><strong>에겐·테토 성향 테스트</strong><small>20문항 · 약 2~3분</small><i>에겐·테토 비율 보기 →</i></a>

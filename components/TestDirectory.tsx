@@ -2,7 +2,18 @@
 
 import { useMemo, useState } from "react";
 import { testCatalog, testCategories, type TestCategory } from "../lib/test-catalog";
-import Mascot, { moodForKey } from "./Mascot";
+import Mascot from "./Mascot";
+
+/**
+ * 카드마다 고정된 모리(2026-10-05). 전체 목록 순서대로 16모리를 돌려 이웃한 카드가 겹치지 않게 하고,
+ * 필터를 눌러도 같은 테스트에는 같은 모리가 나오게 목록 순서(필터 전)로 정합니다.
+ */
+const MORI16 = ["ENFP", "ISTJ", "INFJ", "ESTP", "ISFP", "ENTJ", "ESFJ", "INTP", "INFP", "ESTJ", "ENFJ", "ISTP", "ESFP", "INTJ", "ISFJ", "ENTP"];
+const moriForSlug = (slug: string) => {
+  if (slug === "mbti") return "ENFP";
+  const i = testCatalog.findIndex((item) => item.slug === slug);
+  return MORI16[(i < 0 ? 0 : i) % MORI16.length];
+};
 
 /**
  * 홈의 4칸. 목록 앞 4개를 그대로 쓰면 홈 자체인 MBTI 가 한 칸을 차지해서,
@@ -66,7 +77,7 @@ export default function TestDirectory({ compact = false }: { compact?: boolean }
                 목록이 색깔 사각형의 나열로 보였습니다. 마스코트는 테스트 색을
                 따라가므로 카드마다 다른 그림이 됩니다. */}
             <div className="catalog-icon" style={{ "--test-accent": item.color } as React.CSSProperties}>
-              <Mascot mood={moodForKey(item.slug)} size={58} accent={item.color} />
+              <Mascot type={moriForSlug(item.slug)} size={58} />
             </div>
             <div className="catalog-badges">
               <span>{item.category}</span>

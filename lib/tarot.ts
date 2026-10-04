@@ -307,6 +307,8 @@ export type TarotFortune = {
   eyebrow: string;
   description: string;
   icon: string;
+  /** 아이콘 자리에 보여 줄 모리 유형(2026-10-05~) */
+  mori: string;
   color: string;
   keywords: string[];
   intro: string[];
@@ -319,7 +321,7 @@ export const tarotFortunes: TarotFortune[] = [
     heading: "오늘의 타로 운세 · 종합운",
     eyebrow: "DAILY TAROT · TOTAL",
     description: "카드 한 장으로 오늘 하루의 전체 흐름을 봅니다.",
-    icon: "☀", color: "#c98a3f",
+    icon: "☀", mori: "ENFJ", color: "#c98a3f",
     keywords: ["오늘의 타로", "오늘의 운세", "타로 운세", "무료 타로", "종합운"],
     intro: [
       "오늘의 종합운은 하루 전체의 흐름을 봅니다. 일과 관계, 돈과 건강 중 어디에 힘을 실어야 할지 방향을 잡는 데 쓰세요.",
@@ -332,7 +334,7 @@ export const tarotFortunes: TarotFortune[] = [
     heading: "오늘의 타로 운세 · 연애운",
     eyebrow: "DAILY TAROT · LOVE",
     description: "카드 한 장으로 오늘의 연애와 관계 흐름을 봅니다.",
-    icon: "♡", color: "#d4657f",
+    icon: "♡", mori: "INFP", color: "#d4657f",
     keywords: ["오늘의 연애운", "타로 연애운", "연애 타로", "무료 연애운", "짝사랑 타로"],
     intro: [
       "오늘의 연애운은 지금 관계에서 무엇을 하면 좋고 무엇을 미루면 좋은지를 봅니다. 연인이 있든 없든, 짝사랑 중이든 같은 카드로 읽을 수 있습니다.",
@@ -345,7 +347,7 @@ export const tarotFortunes: TarotFortune[] = [
     heading: "오늘의 타로 운세 · 금전운",
     eyebrow: "DAILY TAROT · MONEY",
     description: "카드 한 장으로 오늘의 돈 흐름과 지출 판단을 봅니다.",
-    icon: "₩", color: "#8f9f4f",
+    icon: "₩", mori: "ESTJ", color: "#8f9f4f",
     keywords: ["오늘의 금전운", "타로 금전운", "재물운 타로", "무료 금전운", "돈 운세"],
     intro: [
       "오늘의 금전운은 수입과 지출, 결정의 타이밍을 봅니다. 큰 결제를 앞두고 있다면 참고 삼아 한 번 보세요.",
@@ -358,7 +360,7 @@ export const tarotFortunes: TarotFortune[] = [
     heading: "오늘의 타로 운세 · 건강운",
     eyebrow: "DAILY TAROT · HEALTH",
     description: "카드 한 장으로 오늘 몸을 어떻게 쓰면 좋을지 봅니다.",
-    icon: "✚", color: "#5f9f8f",
+    icon: "✚", mori: "ISFJ", color: "#5f9f8f",
     keywords: ["오늘의 건강운", "타로 건강운", "건강 운세", "무료 건강운"],
     intro: [
       "오늘의 건강운은 병을 점치는 것이 아닙니다. 오늘 몸을 어떻게 쓰면 좋을지, 무엇을 챙기면 좋을지를 한 줄로 제안합니다.",
@@ -371,7 +373,7 @@ export const tarotFortunes: TarotFortune[] = [
     heading: "오늘의 타로 운세 · 직장운",
     eyebrow: "DAILY TAROT · WORK",
     description: "카드 한 장으로 오늘의 업무 흐름과 대인관계를 봅니다.",
-    icon: "▣", color: "#5f7fa8",
+    icon: "▣", mori: "ENTJ", color: "#5f7fa8",
     keywords: ["오늘의 직장운", "타로 직장운", "취업운 타로", "무료 직장운", "사업운"],
     intro: [
       "오늘의 직장운은 일의 속도와 사람 관계를 함께 봅니다. 중요한 보고나 면담을 앞두고 있다면 타이밍을 잡는 데 참고하세요.",
@@ -384,7 +386,7 @@ export const tarotFortunes: TarotFortune[] = [
     heading: "오늘의 타로 운세 · 학업운",
     eyebrow: "DAILY TAROT · STUDY",
     description: "카드 한 장으로 오늘의 집중력과 공부 방향을 봅니다.",
-    icon: "✎", color: "#7f6fb5",
+    icon: "✎", mori: "INTP", color: "#7f6fb5",
     keywords: ["오늘의 학업운", "타로 학업운", "시험운 타로", "공부 운세", "수능 운세"],
     intro: [
       "오늘의 학업운은 오늘 어떤 방식으로 공부하면 잘 들어올지를 봅니다. 새 진도를 뺄 날인지 복습할 날인지 정하는 데 쓰세요.",

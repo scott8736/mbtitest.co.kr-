@@ -1,8 +1,11 @@
 /**
  * 사이트 마스코트 "모리".
  *
- * 검사 화면·CTA·결과 카드에 쓰는 캐릭터 스티커입니다. 이미지 파일이 아니라
- * SVG 를 코드로 그립니다. 이유가 셋 있습니다.
+ * 2026-10-05: 코드로 그리던 뇌 모양 캐릭터를 16모리 그림(public/characters)으로 바꿨습니다 —
+ * 첫 화면·결과·유료 리포트가 모두 16모리라 마스코트만 다른 캐릭터였습니다. 표정(mood)마다
+ * 성격이 맞는 모리를 고릅니다. 문항마다 다른 모리가 나와 "넘어갔다"는 감각은 그대로입니다.
+ *
+ * 아래는 처음 코드 그림을 고른 이유입니다(지금은 1·2번만 유효 — 그림이 장당 11~17KB 자체 파일).
  *
  * 1. 저작권이 우리 것입니다. GIPHY 는 약관상 상업적 이용과 자체 호스팅을
  *    금지하고(2026-09-13 확인), 무료 일러스트 사이트는 표기 조건이 제각각이라
@@ -69,343 +72,47 @@ export function moodForKey(key: string): MascotMood {
   return moodForQuestion(sum);
 }
 
-type Face = {
-  /** 왼쪽·오른쪽 눈 */
-  eyes: React.ReactNode;
-  mouth: React.ReactNode;
-  /** 팔 두 개 */
-  arms: React.ReactNode;
-  /** 캐릭터 옆에 붙는 작은 장식 */
-  prop?: React.ReactNode;
-  /** 몸통을 살짝 기울입니다 */
-  tilt?: number;
+const MORI_FOR: Record<MascotMood, string> = {
+  hello: "ENFJ", // 깃발 들고 맞이
+  think: "INTP", // 전구
+  confused: "ENTP", // 질문왕
+  surprise: "ESTP",
+  happy: "ENFP", // 풍선
+  shy: "ISFP",
+  tired: "ISTP",
+  calm: "INFP",
+  worried: "INFJ", // 등불
+  excited: "ESFP", // 마이크·꽃가루
+  celebrate: "ESFJ", // 컵케이크
+  heart: "ISFJ", // 코코아
 };
-
-const openEyes = (
-  <>
-    <circle cx="50" cy="52" r="4" />
-    <circle cx="70" cy="52" r="4" />
-  </>
-);
-
-const wideEyes = (
-  <>
-    <circle cx="50" cy="52" r="6" />
-    <circle cx="70" cy="52" r="6" />
-  </>
-);
-
-const closedEyes = (
-  <g fill="none" strokeWidth="2.6" strokeLinecap="round">
-    <path d="M45 53q5 -4 10 0" />
-    <path d="M65 53q5 -4 10 0" />
-  </g>
-);
-
-const sleepyEyes = (
-  <g fill="none" strokeWidth="2.6" strokeLinecap="round">
-    <path d="M45 52q5 4 10 0" />
-    <path d="M65 52q5 4 10 0" />
-  </g>
-);
-
-function faceFor(mood: MascotMood): Face {
-  switch (mood) {
-    case "hello":
-      return {
-        eyes: openEyes,
-        mouth: <path d="M54 63q6 6 12 0" fill="none" strokeWidth="2.6" strokeLinecap="round" />,
-        arms: (
-          <g fill="none" strokeWidth="4" strokeLinecap="round">
-            <path d="M33 62 L22 52" />
-            <path d="M87 62 L95 68" />
-          </g>
-        ),
-      };
-    case "think":
-      return {
-        tilt: -7,
-        eyes: (
-          <>
-            <circle cx="50" cy="52" r="4" />
-            <circle cx="70" cy="52" r="4" />
-          </>
-        ),
-        mouth: <path d="M55 64h9" fill="none" strokeWidth="2.6" strokeLinecap="round" />,
-        arms: (
-          <g fill="none" strokeWidth="4" strokeLinecap="round">
-            <path d="M33 64 L26 74" />
-            <path d="M84 66 L74 64" />
-          </g>
-        ),
-        prop: (
-          <g fill="none" strokeWidth="2.4" strokeLinecap="round" opacity="0.7">
-            <circle cx="97" cy="30" r="3" fill="currentColor" stroke="none" />
-            <circle cx="103" cy="20" r="4.5" fill="currentColor" stroke="none" />
-          </g>
-        ),
-      };
-    case "confused":
-      return {
-        tilt: 6,
-        eyes: (
-          <>
-            <circle cx="50" cy="52" r="4" />
-            <circle cx="70" cy="53" r="3" />
-          </>
-        ),
-        mouth: <path d="M54 65q6 -4 12 1" fill="none" strokeWidth="2.6" strokeLinecap="round" />,
-        arms: (
-          <g fill="none" strokeWidth="4" strokeLinecap="round">
-            <path d="M33 60 L23 54" />
-            <path d="M87 60 L97 54" />
-          </g>
-        ),
-        prop: (
-          <g strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.75">
-            <path d="M94 26q0 -6 5 -6t5 5q0 4 -5 6v3" />
-            <circle cx="99" cy="41" r="1.6" fill="currentColor" stroke="none" />
-          </g>
-        ),
-      };
-    case "surprise":
-      return {
-        eyes: wideEyes,
-        mouth: <ellipse cx="60" cy="65" rx="4.5" ry="5.5" />,
-        arms: (
-          <g fill="none" strokeWidth="4" strokeLinecap="round">
-            <path d="M32 58 L20 50" />
-            <path d="M88 58 L100 50" />
-          </g>
-        ),
-        prop: (
-          <g strokeWidth="3.4" strokeLinecap="round" opacity="0.8">
-            <path d="M98 18 L98 32" />
-            <circle cx="98" cy="40" r="2" stroke="none" fill="currentColor" />
-          </g>
-        ),
-      };
-    case "happy":
-      return {
-        eyes: closedEyes,
-        mouth: <path d="M52 62q8 9 16 0" fill="none" strokeWidth="2.8" strokeLinecap="round" />,
-        arms: (
-          <g fill="none" strokeWidth="4" strokeLinecap="round">
-            <path d="M33 58 L23 47" />
-            <path d="M87 58 L97 47" />
-          </g>
-        ),
-      };
-    case "shy":
-      return {
-        tilt: 5,
-        eyes: closedEyes,
-        mouth: <path d="M56 64q4 3 8 0" fill="none" strokeWidth="2.6" strokeLinecap="round" />,
-        arms: (
-          <g fill="none" strokeWidth="4" strokeLinecap="round">
-            <path d="M36 64 L46 70" />
-            <path d="M84 64 L74 70" />
-          </g>
-        ),
-        prop: (
-          <g opacity="0.5" stroke="none" fill="currentColor">
-            <ellipse cx="40" cy="60" rx="5" ry="3.2" />
-            <ellipse cx="80" cy="60" rx="5" ry="3.2" />
-          </g>
-        ),
-      };
-    case "tired":
-      return {
-        tilt: -5,
-        eyes: sleepyEyes,
-        mouth: <path d="M55 65q5 -3 9 1" fill="none" strokeWidth="2.6" strokeLinecap="round" />,
-        arms: (
-          <g fill="none" strokeWidth="4" strokeLinecap="round">
-            <path d="M32 64 L26 76" />
-            <path d="M88 64 L94 76" />
-          </g>
-        ),
-        prop: (
-          <g fill="currentColor" stroke="none" opacity="0.7">
-            <text x="92" y="30" fontSize="14" fontWeight="700">z</text>
-            <text x="102" y="20" fontSize="10" fontWeight="700">z</text>
-          </g>
-        ),
-      };
-    case "calm":
-      return {
-        eyes: closedEyes,
-        mouth: <path d="M56 64h8" fill="none" strokeWidth="2.6" strokeLinecap="round" />,
-        arms: (
-          <g fill="none" strokeWidth="4" strokeLinecap="round">
-            <path d="M33 66 L24 70" />
-            <path d="M87 66 L96 70" />
-          </g>
-        ),
-      };
-    case "worried":
-      return {
-        eyes: (
-          <>
-            <circle cx="50" cy="53" r="4" />
-            <circle cx="70" cy="53" r="4" />
-            <g fill="none" strokeWidth="2.4" strokeLinecap="round" opacity="0.85">
-              <path d="M44 44q5 -3 10 -1" />
-              <path d="M76 44q-5 -3 -10 -1" />
-            </g>
-          </>
-        ),
-        mouth: <path d="M54 66q6 -5 12 0" fill="none" strokeWidth="2.6" strokeLinecap="round" />,
-        arms: (
-          <g fill="none" strokeWidth="4" strokeLinecap="round">
-            <path d="M36 63 L48 69" />
-            <path d="M84 63 L72 69" />
-          </g>
-        ),
-      };
-    case "excited":
-      return {
-        eyes: (
-          <>
-            <circle cx="50" cy="52" r="5" />
-            <circle cx="70" cy="52" r="5" />
-            <g fill="#fff" stroke="none">
-              <circle cx="52" cy="50" r="1.7" />
-              <circle cx="72" cy="50" r="1.7" />
-            </g>
-          </>
-        ),
-        mouth: <path d="M53 62q7 8 14 0" fill="none" strokeWidth="2.8" strokeLinecap="round" />,
-        arms: (
-          <g fill="none" strokeWidth="4" strokeLinecap="round">
-            <path d="M32 57 L21 45" />
-            <path d="M88 57 L99 45" />
-          </g>
-        ),
-        prop: (
-          <g stroke="none" fill="currentColor" opacity="0.8">
-            <path d="M100 22 l2.2 5 5 2.2 -5 2.2 -2.2 5 -2.2 -5 -5 -2.2 5 -2.2z" />
-            <path d="M16 30 l1.6 3.6 3.6 1.6 -3.6 1.6 -1.6 3.6 -1.6 -3.6 -3.6 -1.6 3.6 -1.6z" />
-          </g>
-        ),
-      };
-    case "celebrate":
-      return {
-        eyes: closedEyes,
-        mouth: <path d="M52 61q8 10 16 0" fill="none" strokeWidth="2.8" strokeLinecap="round" />,
-        arms: (
-          <g fill="none" strokeWidth="4" strokeLinecap="round">
-            <path d="M32 55 L19 42" />
-            <path d="M88 55 L101 42" />
-          </g>
-        ),
-        prop: (
-          <g stroke="none" fill="currentColor" opacity="0.75">
-            <rect x="22" y="20" width="5" height="7" rx="1.5" transform="rotate(-20 24 23)" />
-            <rect x="58" y="12" width="5" height="7" rx="1.5" transform="rotate(12 60 15)" />
-            <rect x="94" y="22" width="5" height="7" rx="1.5" transform="rotate(28 96 25)" />
-            <circle cx="40" cy="16" r="2.4" />
-            <circle cx="78" cy="20" r="2.4" />
-          </g>
-        ),
-      };
-    case "heart":
-      return {
-        eyes: closedEyes,
-        mouth: <path d="M55 63q5 5 10 0" fill="none" strokeWidth="2.6" strokeLinecap="round" />,
-        arms: (
-          <g fill="none" strokeWidth="4" strokeLinecap="round">
-            <path d="M36 62 L47 66" />
-            <path d="M84 62 L73 66" />
-          </g>
-        ),
-        prop: (
-          <path
-            d="M60 14c-3.4 -4.6 -11 -3.4 -11 3 0 5.4 7.2 9.6 11 12.4 3.8 -2.8 11 -7 11 -12.4 0 -6.4 -7.6 -7.6 -11 -3z"
-            stroke="none"
-            fill="currentColor"
-            opacity="0.85"
-          />
-        ),
-      };
-    default:
-      return {
-        eyes: openEyes,
-        mouth: <path d="M55 63q5 4 10 0" fill="none" strokeWidth="2.6" strokeLinecap="round" />,
-        arms: (
-          <g fill="none" strokeWidth="4" strokeLinecap="round">
-            <path d="M33 62 L24 68" />
-            <path d="M87 62 L96 68" />
-          </g>
-        ),
-      };
-  }
-}
 
 export default function Mascot({
   mood = "hello",
   size = 128,
-  accent,
+  type,
   className,
 }: {
   mood?: MascotMood;
   size?: number;
-  /** 없으면 부모의 --test-accent 를 씁니다. 테스트마다 색이 달라집니다 */
+  /** 모리를 직접 고를 때(예: 타로는 등불 든 INFJ). 없으면 mood 로 고릅니다 */
+  type?: string;
+  /** 예전 코드 그림의 몸통 색. 그림으로 바뀌어 쓰지 않지만 부르는 쪽을 그대로 두려고 받습니다 */
   accent?: string;
   className?: string;
 }) {
-  const face = faceFor(mood);
-  const fill = accent || "var(--test-accent, #738b6d)";
-
+  const code = (type ?? MORI_FOR[mood]).toLowerCase();
   return (
-    <svg
-      className={className}
+    // eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기라 next/image 최적화를 쓰지 않습니다
+    <img
+      className={`mori-mascot${className ? ` ${className}` : ""}`}
+      src={`/characters/mori-${code}.webp`}
       width={size}
       height={size}
-      viewBox="0 0 120 120"
-      role="img"
+      alt=""
       aria-hidden="true"
-      focusable="false"
-    >
-      {/* 장식은 몸통 기울기를 따라가지 않게 바깥에 둡니다 */}
-      <g stroke="#15372f" color="#15372f">
-        {face.prop}
-      </g>
-
-      <g transform={face.tilt ? `rotate(${face.tilt} 60 60)` : undefined}>
-        {/* 다리 */}
-        <g stroke="#15372f" strokeWidth="4.5" strokeLinecap="round" fill="none">
-          <path d="M51 82 L49 97" />
-          <path d="M69 82 L71 97" />
-        </g>
-
-        {/* 몸통 — 로고의 뇌 모양 */}
-        <path
-          d="M60 20c-15 0 -28 10 -28 25 0 6 2 11 5 15 -1 3 0 7 3 9 5 4 12 6 20 6s15 -2 20 -6c3 -2 4 -6 3 -9 3 -4 5 -9 5 -15 0 -15 -13 -25 -28 -25z"
-          fill={fill}
-          stroke="#15372f"
-          strokeWidth="3.4"
-          strokeLinejoin="round"
-        />
-
-        {/* 뇌 주름 */}
-        <g fill="none" stroke="#15372f" strokeWidth="2.2" strokeLinecap="round" opacity="0.45">
-          <path d="M60 22v10" />
-          <path d="M44 30q6 4 4 10" />
-          <path d="M76 30q-6 4 -4 10" />
-        </g>
-
-        {/* 팔 */}
-        <g stroke="#15372f">{face.arms}</g>
-
-        {/* 얼굴 */}
-        <g fill="#15372f" stroke="#15372f">
-          {face.eyes}
-        </g>
-        <g stroke="#15372f" fill="#15372f">
-          {face.mouth}
-        </g>
-      </g>
-    </svg>
+      loading="lazy"
+      decoding="async"
+    />
   );
 }

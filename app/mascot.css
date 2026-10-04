@@ -77,3 +77,12 @@
     margin-left: 0;
   }
 }
+
+/* 2026-10-05 마스코트가 16모리 그림(파스텔 바탕 정사각)이 되어 둥근 타일로 보여 줍니다 */
+.mori-mascot {
+  border-radius: 24%;
+  object-fit: cover;
+  box-shadow: 0 6px 16px rgba(91, 69, 176, .14);
+}
+.intro-mascot.mori-mascot,
+.result-mascot.mori-mascot { margin-left: 0; }

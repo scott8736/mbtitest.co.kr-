@@ -69,8 +69,13 @@ export const metadata: Metadata = {
     "google-adsense-account": adsenseClient,
   },
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    // 2026-10-05 시작 템플릿 기본 아이콘 → 모리. ico 는 svg 를 못 읽는 수집기(네이버 등)용.
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "48x48" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
   verification: {
     other: {
