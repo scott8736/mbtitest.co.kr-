@@ -43,7 +43,7 @@ export async function generateMetadata({
       url: `/fortune/zodiac/${zodiac.slug}/`,
       type: "article",
     
-      images: [{ url: "/images/og/mbti-mori-share.jpg", width: 1200, height: 630 }],
+      images: [{ url: "/images/og/mbti-mori-og.jpg", width: 1200, height: 630 }],
     },
   };
 }

@@ -6,6 +6,10 @@
 홈·MBTI 검사·유형 페이지 등 27곳이 쓰는 이미지라, 카톡·스레드의 옛 미리보기 캐시를 피하려고
 새 파일 이름(mbti-mori-share.jpg)으로 만든다.
 
+안전 영역: 카톡·네이버 미리보기는 1.91:1 이미지를 약 1.67:1(네이버 블로그 링크 카드)까지 좌우로 잘라 보여 준다.
+첫 판은 글자를 x=66, 모리를 x=1200 끝까지 붙여 양옆이 잘렸다(10-04 사용자 지적). 모든 글자·모리를
+가운데 x 150~1050 안에 둔다 — 1.4:1 까지 잘려도 안 깨진다.
+
   python scripts/make_mori_og.py
 """
 import os
@@ -14,7 +18,10 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CHAR = os.path.join(ROOT, "public", "characters")
-OUT = os.path.join(ROOT, "public", "images", "og", "mbti-mori-share.jpg")
+# 10-04 둘째 판(안전 영역)부터 mbti-mori-og.jpg. 첫 판 이름(mbti-mori-share.jpg)에도 같은 그림을 써서
+# 이미 퍼진 미리보기가 다시 읽힐 때 고쳐지게 한다.
+OUT = os.path.join(ROOT, "public", "images", "og", "mbti-mori-og.jpg")
+OLD = os.path.join(ROOT, "public", "images", "og", "mbti-mori-share.jpg")
 FONT = os.path.join(ROOT, "scripts", "fonts", "NotoSansKR-Bold.ttf")
 W, H = 1200, 630
 INK = (28, 32, 52)
@@ -40,10 +47,13 @@ def tile(code, size, angle):
 
 
 def paste_with_shadow(canvas, im, x, y):
-    shadow = Image.new("RGBA", im.size, (0, 0, 0, 0))
-    shadow.putalpha(im.getchannel("A").point(lambda a: int(a * 0.28)))
-    shadow = shadow.filter(ImageFilter.GaussianBlur(12))
-    canvas.alpha_composite(shadow, (x + 6, y + 14))
+    # 그림자 판을 여백(pad)만큼 키워서 흐린다 — 타일 크기 그대로 흐리면 가장자리가 네모로 잘려 얼룩이 된다
+    pad = 40
+    alpha = Image.new("L", (im.width + pad * 2, im.height + pad * 2), 0)
+    alpha.paste(im.getchannel("A").point(lambda a: int(a * 0.28)), (pad, pad))
+    shadow = Image.new("RGBA", alpha.size, (40, 30, 90, 0))
+    shadow.putalpha(alpha.filter(ImageFilter.GaussianBlur(12)))
+    canvas.alpha_composite(shadow, (x + 6 - pad, y + 14 - pad))
     canvas.alpha_composite(im, (x, y))
 
 
@@ -54,31 +64,33 @@ for yy in range(H):
     t = yy / H
     ImageDraw.Draw(bg).line([(0, yy), (W, yy)], fill=tuple(round(a + (b - a) * t) for a, b in zip(top, bottom)) + (255,))
 deco = ImageDraw.Draw(bg)
-deco.ellipse((760, -160, 1320, 400), fill=(226, 216, 255, 255))
+deco.ellipse((700, -180, 1240, 360), fill=(226, 216, 255, 255))
 deco.ellipse((-120, 470, 180, 770), fill=(255, 221, 205, 255))
 
 # 오른쪽: 가운데 큰 모리 + 둘레 작은 모리들
-layout = [
-    ("INFP", 250, -4, 805, 150),
-    ("ENFP", 150, 8, 660, 40),
-    ("ISTJ", 140, -9, 1035, 30),
-    ("ESFP", 140, 7, 1050, 380),
-    ("INTJ", 130, -6, 655, 400),
-    ("ISFJ", 120, 10, 935, 470),
+layout = [  # (유형, 크기, 기울기, x, y) — 기울인 뒤 바깥 끝이 1050 을 넘지 않게
+    ("INFP", 240, -4, 760, 170),
+    ("ENFP", 140, 8, 625, 50),
+    ("ISTJ", 130, -9, 890, 40),
+    ("ESFP", 130, 7, 895, 400),
+    ("INTJ", 125, -6, 615, 405),
+    ("ISFJ", 110, 10, 770, 475),
 ]
 for code, size, angle, x, y in layout[1:] + layout[:1]:  # 큰 것을 맨 위에
     paste_with_shadow(bg, tile(code, size, angle), x, y)
 
 d = ImageDraw.Draw(bg)
 # 왼쪽 글
-d.rounded_rectangle((70, 92, 432, 148), radius=28, fill=(255, 255, 255, 255))
-d.text((251, 120), "40문항 · 약 4분 · 무료", font=font(28, 800), fill=VIOLET, anchor="mm")
-d.text((66, 172), "무료", font=font(96, 900), fill=INK)
-d.text((276, 172), "MBTI", font=font(96, 900), fill=VIOLET)
-d.text((66, 290), "검사", font=font(96, 900), fill=INK)
-d.text((70, 430), "16가지 모리 중", font=font(40, 800), fill=INK)
-d.text((70, 482), "나는 누구일까?", font=font(40, 800), fill=INK)
-d.text((70, 560), "mbtitest.co.kr", font=font(28, 700), fill=(98, 104, 120))
+L = 160
+d.rounded_rectangle((L, 100, L + 330, 152), radius=26, fill=(255, 255, 255, 255))
+d.text((L + 165, 126), "40문항 · 약 4분 · 무료", font=font(26, 800), fill=VIOLET, anchor="mm")
+d.text((L - 4, 176), "무료", font=font(84, 900), fill=INK)
+d.text((L + 180, 176), "MBTI", font=font(84, 900), fill=VIOLET)
+d.text((L - 4, 280), "검사", font=font(84, 900), fill=INK)
+d.text((L, 412), "16가지 모리 중", font=font(36, 800), fill=INK)
+d.text((L, 460), "나는 누구일까?", font=font(36, 800), fill=INK)
+d.text((L, 530), "mbtitest.co.kr", font=font(26, 700), fill=(98, 104, 120))
 
-bg.convert("RGB").save(OUT, "JPEG", quality=88)
+for path in (OUT, OLD):
+    bg.convert("RGB").save(path, "JPEG", quality=88)
 print(OUT)

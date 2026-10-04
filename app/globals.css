@@ -1355,6 +1355,16 @@ main:not(.screener) .result-card-image {
 .mori-landing-tagline { margin:0 0 24px; color:var(--muted); font-size:16px; word-break:keep-all; }
 .mori-landing-meta { margin:12px 0 18px; color:var(--muted); font-size:14px; }
 .mori-landing-more { color:var(--violet); font-weight:800; text-decoration:none; }
+/* 모리 15초 영상 카드 (홈 히어로 아래 · 공유 페이지) */
+.mori-video { display:flex; align-items:center; gap:22px; max-width:640px; margin:28px auto; padding:16px 22px 16px 16px; border-radius:26px; background:linear-gradient(135deg,#f1ecff,#fff0e8); box-shadow:0 12px 30px rgba(34,40,70,.08); }
+.mori-video video { flex:0 0 auto; width:150px; height:auto; aspect-ratio:9/16; border-radius:18px; background:#efeaff; object-fit:cover; }
+.mori-video-copy { min-width:0; text-align:left; }
+.mori-video-copy strong { display:block; margin-bottom:6px; color:#1c2034; font-size:20px; letter-spacing:-.03em; word-break:keep-all; }
+.mori-video-copy p { margin:0 0 14px; color:var(--muted); font-size:14px; line-height:1.6; word-break:keep-all; }
+.mori-video-copy a { color:var(--violet); font-weight:800; text-decoration:none; }
+.mori-video.is-home { margin:28px 16px; }
+@media (min-width:700px) { .mori-video.is-home { margin:32px auto; } }
+@media (max-width:380px) { .mori-video { gap:14px; padding:12px; } .mori-video video { width:120px; } .mori-video-copy strong { font-size:17px; } }
 .mori-dex { max-width:900px; margin:0 auto 50px; padding:0 16px; text-align:center; }
 .mori-dex h2 { font-size:22px; margin:10px 0 16px; }
 .mori-dex > div { display:grid; grid-template-columns:repeat(8,1fr); gap:10px; }

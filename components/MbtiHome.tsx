@@ -2,6 +2,7 @@ import TestDirectory from "./TestDirectory";
 import SeasonStrip from "./SeasonStrip";
 import TrendingTests from "./TrendingTests";
 import AdUnit from "./AdUnit";
+import MoriLoopVideo from "./MoriLoopVideo";
 import { typeData } from "../lib/mbti-data";
 
 export default function MbtiHome() {
@@ -21,6 +22,9 @@ export default function MbtiHome() {
               <div><i>E · I</i><i>S · N</i><i>T · F</i><i>J · P</i></div>
             </div>
           </section>
+          {/* 검사가 끝나면 무엇을 받는지(16가지 모리 중 내 캐릭터) 15초로 보여 줍니다 (2026-10-04).
+              시작 버튼은 히어로에 그대로 두고, 그 바로 아래 작게 둡니다 — 시작률을 밀지 않게. */}
+          <MoriLoopVideo variant="home" />
           <SeasonStrip />
           <TrendingTests />
           <AdUnit key="home-start-ad" position="testIntro" label="검사 시작 전 광고" />

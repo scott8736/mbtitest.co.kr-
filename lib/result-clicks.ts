@@ -15,6 +15,7 @@ export const RESULT_CLICK_PLACEMENTS = {
   "test-next": "성향 테스트 결과 · 다음 테스트",
   "home-trending": "홈 · 요즘 뜨는 심리테스트",
   "test-mori-cta": "다른 테스트 결과 · MBTI로 내 모리 찾기",
+  "home-mori-video": "홈 · 모리 영상 카드 → 검사 시작",
 } as const;
 
 export type ResultClickPlacement = keyof typeof RESULT_CLICK_PLACEMENTS;

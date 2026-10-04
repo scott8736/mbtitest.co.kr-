@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     url: "https://mbtitest.co.kr/tests/iq/",
     title: "IQ 테스트 무료 | 20문제 두뇌 퍼즐",
     description: "수열·언어·논리·수리 20문제. 몇 문제나 맞힐 수 있을까요?",
-    images: [{ url: "/images/og/mbti-mori-share.jpg", width: 1200, height: 630, alt: "IQ 테스트" }],
+    images: [{ url: "/images/og/mbti-mori-og.jpg", width: 1200, height: 630, alt: "IQ 테스트" }],
   },
 };
 

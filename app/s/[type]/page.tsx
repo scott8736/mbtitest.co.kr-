@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import SiteFooter from "../../../components/SiteFooter";
+import MoriLoopVideo from "../../../components/MoriLoopVideo";
 import SiteHeader from "../../../components/SiteHeader";
 import { mbtiCodes } from "../../../lib/mbti-content";
 import { typeData } from "../../../lib/mbti-data";
@@ -57,6 +58,7 @@ export default async function MoriSharePage({ params }: { params: Promise<{ type
         <p className="mori-landing-meta">40문항 · 약 4분 · 가입 없이 무료</p>
         <a className="mori-landing-more" href={`/types/${type.toLowerCase()}/`}>{code} 특징 자세히 보기 →</a>
       </section>
+      <MoriLoopVideo variant="share" />
       <section className="mori-dex" aria-labelledby="mori-dex-title">
         <h2 id="mori-dex-title">16가지 모리</h2>
         <div>

@@ -489,7 +489,7 @@ ${journeyDays.map((d) => `<tr><td>${d.day.slice(5)}</td><td>${d.visitors.toLocal
 </p>
 <div class="scroll"><table><thead><tr><th>묶음</th><th>클릭</th><th>분모</th><th>클릭률</th></tr></thead><tbody>
 ${RESULT_CLICK_PLACEMENT_KEYS.map((key) => {
-  const whole = key.startsWith("mbti-") ? mbtiCompleted : key === "home-trending" ? homeViews : otherCompleted;
+  const whole = key.startsWith("mbti-") ? mbtiCompleted : key.startsWith("home-") ? homeViews : otherCompleted;
   return `<tr><td>${esc(RESULT_CLICK_PLACEMENTS[key])}</td><td>${clicksFor(key)}</td><td>${whole || "-"}</td><td>${clickRate(clicksFor(key), whole)}</td></tr>`;
 }).join("")}
 </tbody></table></div>

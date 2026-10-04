@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   keywords: ["별자리 운세", "별자리 성격", "별자리 궁합", "별자리 날짜", "12별자리"],
   alternates: { canonical: "/fortune/star-sign/" },
   openGraph: { title: "별자리 운세 | 12별자리 성격과 궁합", url: "/fortune/star-sign/", type: "website", 
-    images: [{ url: "/images/og/mbti-mori-share.jpg", width: 1200, height: 630 }],
+    images: [{ url: "/images/og/mbti-mori-og.jpg", width: 1200, height: 630 }],
   },
 };
 
