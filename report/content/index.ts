@@ -2,10 +2,12 @@
 import saju from "./saju.json";
 import ISTJ from "./ISTJ.json";
 import ISFJ from "./ISFJ.json";
+import INFJ from "./INFJ.json";
 import INTJ from "./INTJ.json";
 import ISTP from "./ISTP.json";
+import ISFP from "./ISFP.json";
 import INFP from "./INFP.json";
 
 export type Sealed = { iv: string; ct: string };
-export const REPORT_SEALED: Record<string, Sealed> = { ISTJ, ISFJ, INTJ, ISTP, INFP };
+export const REPORT_SEALED: Record<string, Sealed> = { ISTJ, ISFJ, INFJ, INTJ, ISTP, ISFP, INFP };
 export const REPORT_SAJU_SEALED: Sealed = saju;
