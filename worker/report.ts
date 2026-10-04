@@ -5,7 +5,7 @@
  *   POST /api/report/payapp   페이앱 결과 통보(feedbackurl). 검증 후 본문 "SUCCESS"
  *   GET  /api/report/status   ?o=열쇠 → 결제 상태 (결제 직후 화면이 기다릴 때)
  *   GET  /api/report/book     ?o=열쇠 → 결제된 주문의 원고(JSON). 첫 열람 시각을 남긴다
- *   POST /api/report/find     주문번호 + 휴대폰 뒤 4자리 → 열쇠 (다시 찾기)
+ *   POST /api/report/find     휴대폰 번호 → 결제된 주문 목록, 또는 주문번호 + 휴대폰 뒤 4자리 → 열쇠 (다시 찾기)
  *
  * 보안 원칙 (사용자 지시 "해킹·백도어 조심"):
  *   - 금액은 서버가 정한다. 브라우저 값은 쓰지 않는다.
@@ -13,7 +13,7 @@
  *     같은 통보가 여러 번 와도 상태가 한 방향으로만 바뀌게(멱등) UPDATE … WHERE status = … 로 건다.
  *   - 열쇠는 256비트 난수. 주문번호만으로는 열리지 않는다.
  *   - 우회 경로·시험용 무료 열기는 두지 않는다. 시험 결제도 진짜 결제(1,000원)를 거친다.
- *   - 휴대폰 번호는 결제창에 넘기기만 하고 뒤 4자리만 저장한다.
+ *   - 휴대폰 번호 원문은 저장하지 않는다. 뒤 4자리와 되돌릴 수 없는 HMAC 값(phone_hash)만 둔다.
  */
 import {
   isSellerInfoComplete,
@@ -166,6 +166,9 @@ export function ensureReportSchema(db: D1Database): Promise<void> {
   if (!ready) {
     ready = db
       .batch(REPORT_SCHEMA.map((sql) => db.prepare(sql)))
+      // 휴대폰 번호로 다시 찾기(2026-10-04 추가). 이미 만든 표에는 열을 붙이고, 있으면 오류를 그냥 넘깁니다.
+      .then(() => db.prepare("ALTER TABLE report_orders ADD COLUMN phone_hash text DEFAULT '' NOT NULL").run().catch(() => undefined))
+      .then(() => db.prepare("CREATE INDEX IF NOT EXISTS report_orders_phone_idx ON report_orders (phone_hash)").run())
       .then(() => undefined)
       .catch((error) => {
         schemaReady.delete(db);
@@ -174,6 +177,24 @@ export function ensureReportSchema(db: D1Database): Promise<void> {
     schemaReady.set(db, ready);
   }
   return ready;
+}
+
+/**
+ * 휴대폰 번호 → 되돌릴 수 없는 HMAC-SHA256 값. 번호 원문은 저장하지 않고 이 값으로만 대조합니다.
+ * 비밀 소금은 처음 쓸 때 만들어 D1 에 두며(report_phone_salt), 화면 어디에도 내보내지 않습니다.
+ */
+export async function phoneHash(db: D1Database, digits: string): Promise<string> {
+  let salt = await readSetting(db, "report_phone_salt");
+  if (!salt) {
+    salt = hex(crypto.getRandomValues(new Uint8Array(32)));
+    await db
+      .prepare("INSERT INTO app_settings (key, value) VALUES ('report_phone_salt', ?) ON CONFLICT(key) DO NOTHING")
+      .bind(salt)
+      .run();
+    salt = await readSetting(db, "report_phone_salt"); // 동시에 두 요청이 만들었으면 먼저 저장된 값을 씁니다
+  }
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(salt), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return hex(new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`phone:${digits}`))));
 }
 
 export async function logEvent(db: D1Database, orderNo: string, kind: string, detail: string): Promise<void> {
@@ -219,11 +240,11 @@ export async function createOrder(
       await db
         .prepare(
           `INSERT INTO report_orders
-             (token, order_no, type, scores, name, birth, bt, start_month, phone_last4, price, test, consent_version, consent_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             (token, order_no, type, scores, name, birth, bt, start_month, phone_last4, phone_hash, price, test, consent_version, consent_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .bind(token, candidate, order.type, order.scores.join(","), order.name, order.birth, order.bt, today.slice(0, 7),
-          order.phone.slice(-4), opts.price, opts.test ? 1 : 0, REPORT_CONSENT_VERSION, now.toISOString())
+          order.phone.slice(-4), await phoneHash(db, order.phone), opts.price, opts.test ? 1 : 0, REPORT_CONSENT_VERSION, now.toISOString())
         .run();
       orderNo = candidate;
     } catch {
@@ -382,11 +403,27 @@ export function handleReport(request: Request, url: URL, env: Env, ctx: Ctx): Pr
 
     if (path === "/api/report/find" && request.method === "POST") {
       if (!(await allowAttempt(db, await whoHash(request), "find", 8))) return json({ error: "시도가 너무 많아요. 한 시간 뒤 다시 시도해 주세요." }, 429);
-      let raw: { orderNo?: string; last4?: string };
+      let raw: { orderNo?: string; last4?: string; phone?: string };
       try {
         raw = await request.json();
       } catch {
         return json({ error: "입력을 읽지 못했어요." }, 400);
+      }
+      // 휴대폰 번호만으로 찾기(손님은 주문번호를 기억하지 못합니다). 결제된 주문만, 최근 10건.
+      if (raw.phone !== undefined) {
+        const digits = String(raw.phone).replace(/\D/g, "");
+        if (!/^01[016789]\d{7,8}$/.test(digits)) return json({ error: "휴대폰 번호를 다시 확인해 주세요." }, 400);
+        const rows = (
+          await db
+            .prepare(
+              `SELECT token, order_no, type, paid_at FROM report_orders
+               WHERE phone_hash = ? AND status IN ('paid', 'partial') ORDER BY created_at DESC LIMIT 10`,
+            )
+            .bind(await phoneHash(db, digits))
+            .all<{ token: string; order_no: string; type: string; paid_at: string }>()
+        ).results ?? [];
+        if (!rows.length) return json({ error: "이 번호로 결제된 리포트가 없어요. 결제할 때 쓴 번호인지 확인해 주세요." }, 404);
+        return json({ orders: rows.map((r) => ({ token: r.token, orderNo: r.order_no, type: r.type, paidAt: r.paid_at })) });
       }
       const orderNo = String(raw.orderNo ?? "").trim().toUpperCase();
       const last4 = String(raw.last4 ?? "").replace(/\D/g, "");

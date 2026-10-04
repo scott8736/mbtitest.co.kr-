@@ -316,6 +316,13 @@ p.body.center { text-align: center; font-size: 8.2pt; }
       window.PARAMS = q.toString();
       window.BOOK = res.j.book;
       document.getElementById("vorder").textContent = "주문번호 " + res.j.orderNo;
+      // 이 기기에 기억 — /report/find/ 의 「이 기기에서 연 리포트」(components/ReportDone.tsx 와 같은 열쇠 이름)
+      try {
+        var KEY = "mori-reports", list = JSON.parse(localStorage.getItem(KEY) || "[]");
+        if (!Array.isArray(list)) list = [];
+        list = [{ token: token, orderNo: res.j.orderNo, type: p.type, at: new Date().toISOString() }].concat(list.filter(function (r) { return r && r.token !== token; })).slice(0, 10);
+        localStorage.setItem(KEY, JSON.stringify(list));
+      } catch (e) { /* 기억 못 해도 휴대폰 번호로 찾을 수 있다 */ }
       ["1", "2", "3"].forEach(function (n) {
         var a = document.getElementById("vw" + n);
         a.href = "walls/" + p.type + "-" + n + ".jpg";

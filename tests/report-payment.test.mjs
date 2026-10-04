@@ -166,6 +166,30 @@ test("다시 찾기: 주문번호 + 뒤 4자리가 맞고 결제된 주문만", 
   assert.equal((await ok.json()).token, made.token);
 });
 
+test("휴대폰 번호만으로 결제된 리포트를 찾는다 (번호 원문은 저장 안 함)", async () => {
+  fetchCalls = [];
+  const db = await setup();
+  const a = await R.createOrder(db, order, { price: 9900, test: false });
+  const b = await R.createOrder(db, { ...order, type: "ISTJ", scores: [38, 73, 69, 64] }, { price: 9900, test: false });
+  await R.createOrder(db, { ...order, phone: "01099998888" }, { price: 9900, test: false });
+  const rowOf = (t) => db.sql.prepare("SELECT * FROM report_orders WHERE token = ?").get(t);
+  assert.ok(rowOf(a.token).phone_hash.length === 64 && !rowOf(a.token).phone_hash.includes("12345678"));
+  assert.ok(!JSON.stringify(rowOf(a.token)).includes("01012345678"));
+  const find = async (body) => {
+    const u = new URL("https://x/api/report/find");
+    const res = await R.handleReport(new Request(u, { method: "POST", body: JSON.stringify(body), headers: { "cf-connecting-ip": "9.9.9.9" } }), u, { DB: db }, ctx);
+    return { status: res.status, body: await res.json() };
+  };
+  assert.equal((await find({ phone: "010-1234-5678" })).status, 404, "결제 전에는 안 나온다");
+  await R.handleFeedback(db, fb(rowOf(a.token)));
+  await R.handleFeedback(db, fb(rowOf(b.token)));
+  const hit = await find({ phone: "010-1234-5678" });
+  assert.equal(hit.status, 200);
+  assert.deepEqual(hit.body.orders.map((o) => o.type).sort(), ["INFP", "ISTJ"], "같은 번호의 결제된 주문만, 다른 번호 주문은 안 섞임");
+  assert.equal((await find({ phone: "01000000000" })).status, 404);
+  assert.equal((await find({ phone: "abc" })).status, 400);
+});
+
 test("공개 저장소에 평문 원고가 없다 (report/content 는 전부 암호문)", () => {
   const dir = fileURLToPath(new URL("../report/content/", import.meta.url));
   for (const f of readdirSync(dir).filter((x) => x.endsWith(".json"))) {

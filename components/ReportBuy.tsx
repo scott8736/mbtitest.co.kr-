@@ -102,7 +102,7 @@ export default function ReportBuy() {
         </label>
       ) : null}
       <label>
-        <span>휴대폰 번호 (결제창 필수 · 주문 다시 찾기에 뒤 4자리만 보관)</span>
+        <span>휴대폰 번호 (결제창 필수 · 나중에 이 번호로 리포트를 다시 찾아요)</span>
         <input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="numeric" placeholder="01012345678" required autoComplete="tel" />
       </label>
       <label className="rp-agree">

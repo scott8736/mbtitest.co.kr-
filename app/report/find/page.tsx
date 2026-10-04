@@ -15,7 +15,7 @@ export default function ReportFindPage() {
       <article className="info-article rp">
         <span className="eyebrow">MORI REPORT</span>
         <h1>주문 다시 찾기</h1>
-        <p>결제 완료 화면의 주문번호와, 결제할 때 쓴 휴대폰 번호 뒤 4자리를 넣어 주세요.</p>
+        <p>결제할 때 쓴 휴대폰 번호를 넣으면 그 번호로 결제한 리포트를 찾아 드려요. 이 기기에서 연 적이 있으면 아래에 바로 보여요.</p>
         <ReportFind />
       </article>
       <SiteFooter ads={false} />

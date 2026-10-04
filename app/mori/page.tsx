@@ -30,7 +30,7 @@ export default function MoriWorldPage() {
   const codes = Object.keys(MORI_WORLD);
   return (
     <main>
-      <ContentHeader active="/types" />
+      <ContentHeader active="/mori" />
       <section className="world-hero">
         <span className="eyebrow">MORI · 마음숲 안내서</span>
         <h1>
