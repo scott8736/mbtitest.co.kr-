@@ -332,8 +332,30 @@ async function dashboard(
   const pickBySlug = countsFor("pick_click");
   const reportSeen = eventCount("report_seen", "mbti");
   const reportClick = eventCount("report_click", "mbti");
-  const reportFollow = eventCount("report_follow", "mbti");
   const reportCompleted = completedBySlug.get("mbti") ?? 0;
+  // 유료 리포트 판매(2026-10-04~). created_at 은 UTC 라 한국 날짜로 바꿔 기간을 자릅니다. 표가 없으면 0.
+  const sales = { orders: 0, paid: 0, won: 0, viewed: 0, refunded: 0, bySource: [] as { src: string; n: number; won: number }[] };
+  try {
+    const where = "test = 0 AND date(created_at, '+9 hours') BETWEEN ? AND ?";
+    const row = await db
+      .prepare(
+        `SELECT COUNT(*) AS orders,
+           SUM(CASE WHEN status IN ('paid','partial','refunded') THEN 1 ELSE 0 END) AS paid,
+           SUM(CASE WHEN status IN ('paid','partial') THEN price ELSE 0 END) AS won,
+           SUM(CASE WHEN first_viewed_at != '' THEN 1 ELSE 0 END) AS viewed,
+           SUM(CASE WHEN status = 'refunded' THEN 1 ELSE 0 END) AS refunded
+         FROM report_orders WHERE ${where}`,
+      )
+      .bind(from, to)
+      .first<{ orders: number; paid: number; won: number; viewed: number; refunded: number }>();
+    Object.assign(sales, { orders: row?.orders ?? 0, paid: row?.paid ?? 0, won: row?.won ?? 0, viewed: row?.viewed ?? 0, refunded: row?.refunded ?? 0 });
+    sales.bySource = ((await db
+      .prepare(`SELECT src, COUNT(*) AS n, SUM(price) AS won FROM report_orders WHERE ${where} AND status IN ('paid','partial') GROUP BY src ORDER BY n DESC`)
+      .bind(from, to)
+      .all<{ src: string; n: number; won: number }>()).results ?? []);
+  } catch {
+    // 리포트 표가 아직 없으면(판매 전) 0 으로 둡니다.
+  }
 
   // 사주랩 배너: slug 자리에 배너 자리 이름이 들어 있습니다(lib/sajulab.ts).
   const sajuTable = SAJULAB_PLACEMENT_KEYS.map((key) => ({
@@ -564,16 +586,22 @@ ${shareClicks.map((row) => `<tr><td>${esc(row.label)}</td><td>${row.clicks}</td>
 </tbody></table></div>
 </div>
 
-<div class="box"><h2>유료 리포트 수요 측정 (MBTI)</h2>
+<div class="box"><h2>유료 리포트 판매 깔때기 (MBTI) · <a href="/admin/report/">주문 관리 →</a></h2>
 <p class="note">
-MBTI 결과 화면의 「정밀 리포트」 카드입니다. 상품은 아직 없고, 목차와 가격(출시가 6,900원)을 보여 주고 몇 명이 받으려 하는지 셉니다.
-「노출」은 카드가 화면에 절반 이상 들어온 사람, 「클릭」은 「내 리포트 받기」를 누른 사람, 「팔로우」는 그다음 스레드 링크를 누른 사람입니다. 모두 탭당 한 번만 셉니다.
-<b>관심률 = 클릭 ÷ 완주</b> 가 합격 판단에 쓰는 숫자입니다. 노출률이 낮으면 카드까지 내려오지 않는다는 뜻이라 자리를 옮길 문제이고, 노출 대비 클릭이 낮으면 상품 매력 문제입니다.
-비율은 ${REPORT_SINCE} 부터 냅니다.
+결과 화면 리포트 카드 → 판매 페이지 → 주문(결제창) → 결제 → 열람 순서입니다. 손님 주문만 셉니다(관리자 시험 결제 제외).
+카드 「노출」·「클릭」은 탭당 한 번, 판매 페이지는 조회수입니다. <b>결제 ÷ 완주</b>가 최종 전환율이고,
+어느 단계에서 가장 많이 떨어지는지 보고 그 단계만 고칩니다(개선 기록: 리포트_디자인/리포트_판매_개선기록.md).
+10-04 판매 시작 전 수요 측정 기간(카드 가격 6,900원 표시)의 클릭은 같은 칸에 섞여 있으니 날짜를 10-05 부터로 잡아 보세요.
 </p>
-<div class="scroll"><table><thead><tr><th>완주</th><th>노출</th><th>클릭</th><th>팔로우</th><th>노출률</th><th>관심률</th><th>노출 대비 클릭</th></tr></thead><tbody>
-<tr><td>${reportCompleted || "-"}</td><td>${reportSeen}</td><td>${reportClick}</td><td>${reportFollow}</td><td>${reportRate(reportSeen, reportCompleted)}</td><td><b>${reportRate(reportClick, reportCompleted)}</b></td><td>${reportRate(reportClick, reportSeen)}</td></tr>
+<div class="scroll"><table><thead><tr><th>완주</th><th>카드 노출</th><th>카드 클릭</th><th>판매 페이지</th><th>결제창 열기</th><th>결제</th><th>매출</th><th>열람</th><th>환불</th></tr></thead><tbody>
+<tr><td>${reportCompleted || "-"}</td><td>${reportSeen}</td><td>${reportClick}</td><td>${all.paths["/report/"] ?? 0}</td>
+<td>${sales.orders}</td><td><b>${sales.paid}</b></td><td>${sales.won.toLocaleString()}원</td><td>${sales.viewed}</td><td>${sales.refunded}</td></tr>
+<tr class="muted"><td>비율</td><td>${reportRate(reportSeen, reportCompleted)}</td><td>${reportRate(reportClick, reportSeen)}</td><td>-</td>
+<td>${reportRate(sales.orders, all.paths["/report/"] ?? 0)}</td><td>${reportRate(sales.paid, sales.orders)}</td><td><b>완주 대비 ${reportRate(sales.paid, reportCompleted)}</b></td><td>${reportRate(sales.viewed, sales.paid)}</td><td>${reportRate(sales.refunded, sales.paid)}</td></tr>
 </tbody></table></div>
+${sales.bySource.length ? `<div class="scroll"><table><thead><tr><th>유입 경로(결제된 주문)</th><th>결제</th><th>매출</th></tr></thead><tbody>
+${sales.bySource.map((r) => `<tr><td>${esc(SOURCE_LABELS[r.src] ?? (r.src || "기록 전"))}</td><td>${r.n}</td><td>${r.won.toLocaleString()}원</td></tr>`).join("")}
+</tbody></table></div>` : ""}
 </div>
 
 <div class="box"><h2>사주랩 배너 클릭 (결과 화면)</h2>

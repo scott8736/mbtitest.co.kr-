@@ -1,5 +1,6 @@
 "use client";
 
+import ReportQuizStrip from "./ReportQuizStrip";
 import { useEffect, useState } from "react";
 import AdUnit from "./AdUnit";
 import Mascot, { moodForQuestion } from "./Mascot";
@@ -113,6 +114,7 @@ export default function MbtiQuiz({ step = 1 }: { step?: number }) {
       </div>
       <div className="progress"><i style={{ width: `${progressPercent}%` }} /></div>
       <p className="step-badge">{step}단계 / 총 {TOTAL_STEPS}단계</p>
+      {step === 1 && index === 0 && <ReportQuizStrip />}
       {step > 1 && index === 0 && (
         <p className="step-cheer">
           절반 왔어요 · 남은 {questions.length - answeredBefore}문항, 약 {remainingMinutes(questions.length - answeredBefore)}분

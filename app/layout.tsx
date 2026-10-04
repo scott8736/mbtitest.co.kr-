@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import TouchRecorder from "../components/TouchRecorder";
 import "./globals.css";
 import "./mascot.css";
 
@@ -105,6 +106,7 @@ export default function RootLayout({
         />
       </head>
       <body>
+        <TouchRecorder />
         {children}
       </body>
     </html>

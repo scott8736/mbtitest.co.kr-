@@ -26,6 +26,7 @@ import {
   type CleanOrder,
 } from "../lib/report-config";
 import { SITE_ORIGIN } from "../lib/site-urls";
+import { classifyDevice, classifySource } from "../lib/analytics";
 import { hasBook, loadBook } from "./report-books";
 import { readSetting } from "./naver";
 
@@ -92,6 +93,12 @@ export type OrderRow = {
   payurl: string;
   pay_type: string;
   paid_at: string;
+  src?: string;
+  ref_host?: string;
+  landing?: string;
+  utm?: string;
+  entry?: string;
+  device?: string;
   first_viewed_at: string;
   view_count: number;
   created_at: string;
@@ -168,6 +175,9 @@ export function ensureReportSchema(db: D1Database): Promise<void> {
       .batch(REPORT_SCHEMA.map((sql) => db.prepare(sql)))
       // 휴대폰 번호로 다시 찾기(2026-10-04 추가). 이미 만든 표에는 열을 붙이고, 있으면 오류를 그냥 넘깁니다.
       .then(() => db.prepare("ALTER TABLE report_orders ADD COLUMN phone_hash text DEFAULT '' NOT NULL").run().catch(() => undefined))
+      // 유입 경로(2026-10-04): 어디서 왔고(src·ref_host·utm), 처음 연 페이지(landing), 어느 버튼으로 주문 화면에 왔는지(entry)
+      .then(() => Promise.all(["src", "ref_host", "landing", "utm", "entry", "device"].map((c) =>
+        db.prepare(`ALTER TABLE report_orders ADD COLUMN ${c} text DEFAULT '' NOT NULL`).run().catch(() => undefined))))
       .then(() => db.prepare("CREATE INDEX IF NOT EXISTS report_orders_phone_idx ON report_orders (phone_hash)").run())
       .then(() => undefined)
       .catch((error) => {
@@ -228,7 +238,7 @@ export async function payappPost(params: Record<string, string>): Promise<Record
 export async function createOrder(
   db: D1Database,
   order: CleanOrder,
-  opts: { price: number; test: boolean },
+  opts: { price: number; test: boolean; meta?: OrderMeta },
 ): Promise<{ ok: true; payurl: string; orderNo: string; token: string } | { ok: false; error: string }> {
   const token = newToken();
   const now = new Date();
@@ -278,8 +288,38 @@ export async function createOrder(
     return { ok: false, error: "결제창을 열지 못했어요. 잠시 뒤 다시 시도해 주세요." };
   }
   await db.prepare("UPDATE report_orders SET mul_no = ?, payurl = ?, updated_at = CURRENT_TIMESTAMP WHERE token = ?").bind(res.mul_no, res.payurl.slice(0, 300), token).run();
+  if (opts.meta) {
+    const m = opts.meta;
+    await db
+      .prepare("UPDATE report_orders SET src = ?, ref_host = ?, landing = ?, utm = ?, entry = ?, device = ? WHERE token = ?")
+      .bind(m.src, m.refHost, m.landing, m.utm, m.entry, m.device, token)
+      .run();
+  }
   await logEvent(db, orderNo, "payrequest", `mul_no=${res.mul_no} price=${opts.price}${opts.test ? " test" : ""}`);
   return { ok: true, payurl: res.payurl, orderNo, token };
+}
+
+export type OrderMeta = { src: string; refHost: string; landing: string; utm: string; entry: string; device: string };
+
+/** 브라우저가 보낸 유입 정보를 정리합니다. 표시용 기록일 뿐 결제·열람 판단에는 쓰지 않습니다. */
+export function orderMeta(raw: unknown, request: Request): OrderMeta {
+  const t = ((raw as { touch?: Record<string, unknown> })?.touch ?? {}) as Record<string, unknown>;
+  const clean = (v: unknown, n: number) => String(v ?? "").replace(/[^\w\-./:?=&%#가-힣 ]/g, "").slice(0, n);
+  const ref = clean(t.ref, 300);
+  let refHost = "";
+  try {
+    refHost = ref ? new URL(ref).hostname.slice(0, 80) : "";
+  } catch {
+    refHost = "";
+  }
+  return {
+    src: classifySource(ref, "mbtitest.co.kr"),
+    refHost,
+    landing: clean(t.landing, 120),
+    utm: clean(t.utm, 120),
+    entry: clean(t.entry, 40),
+    device: classifyDevice(request.headers.get("user-agent") ?? ""),
+  };
 }
 
 /** 결제 상태 → 주문 상태. 바뀌는 방향만 허용합니다(이미 결제된 주문이 다시 대기로 가지 않게). */
@@ -368,7 +408,7 @@ export function handleReport(request: Request, url: URL, env: Env, ctx: Ctx): Pr
       const checked = validateOrder(raw as Record<string, never>, seoulToday());
       if (!checked.ok) return json({ error: checked.error }, 400);
       if (!hasBook(checked.value.type)) return json({ error: "이 유형의 리포트는 준비 중이에요." }, 503);
-      const made = await createOrder(db, checked.value, { price: REPORT_PRICE, test: false });
+      const made = await createOrder(db, checked.value, { price: REPORT_PRICE, test: false, meta: orderMeta(raw, request) });
       return made.ok ? json({ payurl: made.payurl, orderNo: made.orderNo }) : json({ error: made.error }, 502);
     }
 

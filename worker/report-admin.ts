@@ -17,6 +17,7 @@ import {
 } from "../lib/report-config";
 import { bookTypes, hasBook, keyWorks } from "./report-books";
 import { readSetting, writeSetting } from "./naver";
+import { SOURCE_LABELS } from "../lib/analytics";
 import { createOrder, ensureReportSchema, logEvent, payappKeys, payappPost, salesOpen, type OrderRow } from "./report";
 
 type Helpers = {
@@ -35,6 +36,22 @@ export function kst(value: string): string {
   const at = new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(value) ? value : `${value.replace(" ", "T")}Z`);
   if (Number.isNaN(at.getTime())) return value;
   return new Date(at.getTime() + 9 * 3600_000).toISOString().replace("T", " ").slice(0, 19);
+}
+
+/**
+ * 유입 경로 칸: 어디서 왔는지(스레드·네이버 검색…) + 리퍼러 주소 + utm + 처음 연 페이지 + 어느 버튼으로 주문 화면에 왔는지.
+ * 페이스북·스레드 앱은 리퍼러를 안 보내는 일이 많아 「직접 유입」으로 잡힙니다 — 링크에 utm 을 붙이면 메뉴·게시물까지 갈립니다.
+ */
+const ENTRY_KO: Record<string, string> = { "result-card": "결과 화면 카드", "report-cta": "글·검사 안내 링크" };
+function sourceCell(o: OrderRow, esc: (v: unknown) => string): string {
+  if (!o.src && !o.entry) return `<small class="muted">기록 전 주문</small>`;
+  const parts = [
+    `<b>${esc(SOURCE_LABELS[o.src ?? ""] ?? o.src ?? "")}</b>${o.ref_host ? ` <small>${esc(o.ref_host)}</small>` : ""}`,
+    o.utm ? `<small>utm ${esc(o.utm)}</small>` : "",
+    o.landing ? `<small>첫 페이지 ${esc(o.landing)}</small>` : "",
+    `<small>${esc(ENTRY_KO[o.entry ?? ""] ?? (o.entry || "주문 화면 직접"))} · ${o.device === "mobile" ? "모바일" : "PC"}</small>`,
+  ];
+  return parts.filter(Boolean).join("<br>");
 }
 
 const STATUS_KO: Record<string, string> = {
@@ -168,11 +185,12 @@ ${testBox}
 <p class="note">사주 시험값: 1995-01-20 ${esc(BIRTH_TIME_SLOTS[7])}</p></div>
 
 <div class="box"><h2>주문 (최근 60건)</h2><div class="scroll"><table><thead><tr>
-<th>주문번호</th><th>유형</th><th>금액</th><th>상태</th><th>결제</th><th>첫 열람</th><th>열람</th><th></th></tr></thead><tbody>
+<th>주문번호</th><th>유형</th><th>금액</th><th>상태</th><th>휴대폰</th><th>유입 경로</th><th>결제</th><th>첫 열람</th><th>열람</th><th></th></tr></thead><tbody>
 ${orders
   .map(
     (o) => `<tr><td>${esc(o.order_no)}${o.test ? " <small>(시험)</small>" : ""}<br><small class="muted">${esc(kst(o.created_at))}</small></td>
 <td>${esc(o.type)}</td><td>${o.price.toLocaleString()}</td><td>${esc(STATUS_KO[o.status] ?? o.status)}</td>
+<td><small>***-${esc(o.phone_last4)}</small></td><td>${sourceCell(o, esc)}</td>
 <td><small>${esc(o.paid_at)}</small></td><td><small>${esc(o.first_viewed_at ? kst(o.first_viewed_at) : "-")}</small></td><td>${o.view_count}</td>
 <td>${o.status === "pending" && o.payurl ? `<a href="${esc(o.payurl)}" target="_blank" rel="noopener">결제창</a> ` : ""}${
       // 열람 링크는 시험 주문에만 둡니다. 손님 주문을 관리자가 열면 「첫 열람」이 찍혀 환불 판단 근거가 흐려집니다.

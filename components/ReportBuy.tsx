@@ -12,6 +12,17 @@ import { BIRTH_TIME_SLOTS, REPORT_CONSENT_TEXT, REPORT_CONSENT_VERSION, REPORT_P
 type Stored = { result: string; scores: Record<Axis, number> };
 const AXES: Axis[] = ["EI", "SN", "TF", "JP"];
 
+/** 유입 경로(components/TouchRecorder) + 어느 버튼으로 들어왔는지(?from=). 관리자 주문 표에만 쓰입니다. */
+function readTouch(): Record<string, string> {
+  const entry = new URLSearchParams(location.search).get("from") ?? "";
+  try {
+    const t = JSON.parse(localStorage.getItem("mori-touch") ?? "{}") as Record<string, string>;
+    return { ref: String(t.ref ?? ""), landing: String(t.landing ?? ""), utm: String(t.utm ?? ""), entry };
+  } catch {
+    return { ref: "", landing: "", utm: "", entry };
+  }
+}
+
 function readStored(): Stored | null {
   try {
     const parsed = JSON.parse(sessionStorage.getItem("mbti-test-result") ?? "null") as Stored | null;
@@ -67,7 +78,7 @@ export default function ReportBuy() {
       const response = await fetch("/api/report/order", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ type: stored.result, scores: percents, name, birth, bt: birth ? bt : 0, phone, agree, consentVersion: REPORT_CONSENT_VERSION }),
+        body: JSON.stringify({ type: stored.result, scores: percents, name, birth, bt: birth ? bt : 0, phone, agree, consentVersion: REPORT_CONSENT_VERSION, touch: readTouch() }),
       });
       const data = (await response.json()) as { payurl?: string; error?: string };
       if (!response.ok || !data.payurl) throw new Error(data.error || "결제창을 열지 못했어요.");
@@ -117,7 +128,7 @@ export default function ReportBuy() {
   );
 }
 
-/** 무료 미리보기 세 쪽. 내 검사 결과가 있으면 내 유형 견본을, 없거나 아직 없는 유형이면 INFP 견본을 보여 줍니다. */
+/** 무료 미리보기 여섯 쪽(표지·내 모리·내 점수·16모리·연애 장·13개월 달력). 내 검사 결과가 있으면 내 유형 견본을, 없거나 아직 없는 유형이면 INFP 견본을 보여 줍니다. */
 export function ReportPreview() {
   const [type, setType] = useState("INFP");
   useEffect(() => {
@@ -129,7 +140,7 @@ export function ReportPreview() {
   }, []);
   return (
     <div className="rp-preview">
-      {[1, 2, 3].map((n) => (
+      {[1, 2, 3, 4, 5, 6].map((n) => (
         // eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기(output: export)라 next/image 최적화를 쓰지 않습니다
         <img
           key={`${type}-${n}`}

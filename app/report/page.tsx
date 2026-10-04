@@ -41,6 +41,10 @@ export default function ReportPage() {
           생년월일을 넣으면 사주 이야기가 한 장 더해집니다.
         </p>
 
+        {/* 무료 미리보기 6쪽을 맨 위에(2026-10-04 사용자 요청). 아래 주문까지 내려가기 전에 실물을 먼저 보여 줍니다. */}
+        <ReportPreview />
+        <p className="rp-muted">무료 미리보기 6쪽 · 견본 이름 「하늘」 · 내 유형·점수로 만들어지는 나머지 쪽은 결제 후에 열립니다.</p>
+
         <div className="rp-price">
           {REPORT_EVENT.label ? (
             <span className="rp-event">
@@ -50,10 +54,6 @@ export default function ReportPage() {
           <b>{REPORT_PRICE.toLocaleString()}원</b>
           <small>A5 104쪽(생년월일을 넣으면 110쪽) · PDF 저장 · 휴대폰 배경화면 3종 · 결제 후 바로 열람</small>
         </div>
-
-        <h2>무료 미리보기</h2>
-        <p>실제 리포트의 앞부분 세 쪽입니다(견본 이름 「하늘」). 내 유형·점수로 만들어지는 쪽은 결제 후에 열립니다.</p>
-        <ReportPreview />
 
         <h2>들어 있는 것</h2>
         <ol className="rp-topics">
