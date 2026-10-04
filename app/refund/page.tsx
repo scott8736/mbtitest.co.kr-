@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import SiteFooter from "../../components/SiteFooter";
-import { REPORT_CONSENT_TEXT, REPORT_CONSENT_VERSION, REPORT_PRODUCT } from "../../lib/report-config";
+import { REPORT_CONSENT_TEXT, REPORT_CONSENT_VERSION, REPORT_PRODUCT, SELLER } from "../../lib/report-config";
 
 export const metadata: Metadata = {
   title: "환불 안내",
@@ -27,9 +27,10 @@ export default function RefundPage() {
           <li>리포트가 열리지 않거나 내용이 깨져 정상적으로 볼 수 없을 때</li>
           <li>주문한 유형·점수와 다른 리포트가 나왔을 때</li>
           <li>같은 주문이 실수로 두 번 결제됐을 때(중복 결제분)</li>
+          <li>리포트 내용이 판매 페이지의 설명·광고와 다를 때 — 리포트를 받은 날부터 3개월, 다르다는 것을 안 날부터 30일 안에 청약철회할 수 있습니다(같은 법 제17조 제3항)</li>
         </ul>
         <h2>4. 환불 방법</h2>
-        <p>문의하기의 오픈채팅으로 주문번호와 사유를 알려 주세요. 카드·간편결제는 결제 취소로, 휴대폰 결제는 결제한 당일에만 취소할 수 있어, 다음 날부터는 계좌로 환불해 드립니다. 취소 후 카드사 사정에 따라 3~7영업일이 걸릴 수 있습니다.</p>
+        <p>문의하기의 오픈채팅, 전화·이메일({SELLER.contact}) 중 편한 곳으로 주문번호(또는 주문한 휴대폰 번호 뒤 4자리)와 사유를 알려 주세요. 카드·간편결제는 결제 취소로 환불합니다. 휴대폰 결제는 통신사의 취소 가능 기간이 지나면 결제 취소 대신 계좌로 환불해 드립니다. 취소 후 카드사 사정에 따라 3~7영업일이 걸릴 수 있습니다.</p>
         <p><Link href="/contact/">문의하기</Link> · <Link href="/report/find/">주문 다시 찾기</Link></p>
       </article>
       <SiteFooter ads={false} />

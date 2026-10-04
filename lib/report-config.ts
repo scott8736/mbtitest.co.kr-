@@ -14,8 +14,21 @@ export const REPORT_PRODUCT = "모리 마음숲 안내서";
 export const REPORT_PRICE = 9900;
 /** 관리자 시험 결제 금액. 페이앱 최소 금액입니다. */
 export const REPORT_TEST_PRICE = 1000;
-/** 이벤트 기간 — 화면에 그대로 나갑니다. 비워 두면 「이벤트」 문구 없이 가격만 보입니다. */
+/** 이벤트 기간. 비워 두면 「이벤트」 문구 없이 가격만 보입니다. */
 export const REPORT_EVENT = { label: "오픈 기념 특별 이벤트", from: "2026-10-05", to: "2026-10-31" };
+
+/**
+ * 지금(한국 시각) 이벤트 기간인가. 기간이 지나면 화면에서 이벤트 문구가 저절로 빠집니다
+ * (2026-10-05 판매 문구 검수: 지난 기한을 계속 띄우면 틀린 표시가 됩니다).
+ * 정적 페이지라 빌드 시각이 아니라 방문자 브라우저에서 판단합니다 — useReportEvent() 를 쓰세요.
+ */
+export function reportEventOn(now: Date = new Date()): boolean {
+  if (!REPORT_EVENT.label) return false;
+  const kst = new Date(now.getTime() + 9 * 3600_000).toISOString().slice(0, 10);
+  return kst >= REPORT_EVENT.from && kst <= REPORT_EVENT.to;
+}
+
+export const fmtEventDate = (d: string) => d.replace(/^\d{4}-(\d{2})-(\d{2})$/, (_, m, dd) => `${Number(m)}월 ${Number(dd)}일`);
 
 /** 환불 동의 문구 판. 문구를 바꾸면 판을 올립니다 — 주문마다 어느 판에 동의했는지 남깁니다. */
 export const REPORT_CONSENT_VERSION = "2026-10-04";

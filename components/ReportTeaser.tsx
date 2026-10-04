@@ -5,7 +5,8 @@ import { useEffect, useRef } from "react";
 import { recordTestEventOnce } from "../lib/test-events";
 import { moriImage } from "../lib/mori";
 import { MORI_WORLD } from "../lib/mori-world";
-import { REPORT_EVENT, REPORT_PRICE } from "../lib/report-config";
+import { REPORT_EVENT, REPORT_PRICE, fmtEventDate as fmt } from "../lib/report-config";
+import { useReportEvent } from "./ReportEvent";
 import { REPORT_READY_TYPES } from "../report/content/ready";
 
 /**
@@ -26,12 +27,11 @@ const HOOKS = [
   ["13개월", "이번 달부터 마음 달력 + 배경화면 3종"],
 ];
 
-const fmt = (d: string) => d.replace(/^\d{4}-(\d{2})-(\d{2})$/, (_, m, dd) => `${Number(m)}월 ${Number(dd)}일`);
-
 export default function ReportTeaser({ code, slug = "mbti" }: { code: string; slug?: string }) {
   const ref = useRef<HTMLElement>(null);
   const ready = REPORT_READY_TYPES.includes(code);
   const says = MORI_WORLD[code]?.says ?? "";
+  const eventOn = useReportEvent();
 
   // 카드가 화면에 절반 이상 들어왔을 때 한 번 셉니다. 클릭이 적을 때
   // "안 눌렀다"와 "거기까지 내려오지 않았다"를 가르기 위해서입니다.
@@ -64,7 +64,7 @@ export default function ReportTeaser({ code, slug = "mbti" }: { code: string; sl
           <h2 id="report-teaser-title">
             내 점수로 만든
             <br />
-            <em>100쪽짜리 {code} 안내서</em>
+            <em>104쪽짜리 {code} 안내서</em>
           </h2>
           <p className="report-teaser-lead">
             결과 화면이 한 장이라면, 이건 한 권이에요. 방금 푼 40문항 점수로 같은 {code} 안에서도 내 성향의 농도에 맞는 글만 골라
@@ -90,12 +90,12 @@ export default function ReportTeaser({ code, slug = "mbti" }: { code: string; sl
       ) : null}
       <div className="report-teaser-buy">
         <p className="report-teaser-price">
-          {REPORT_EVENT.label ? <small>{REPORT_EVENT.label} · {fmt(REPORT_EVENT.to)}까지</small> : null}
+          {eventOn ? <small>{REPORT_EVENT.label} · {fmt(REPORT_EVENT.to)}까지</small> : null}
           <strong>{REPORT_PRICE.toLocaleString()}원</strong>
         </p>
         {ready ? (
           <Link href="/report/?from=result-card" className="primary-button" onClick={() => recordTestEventOnce(slug, "report_click")}>
-            내 100쪽 리포트 미리보기 <span>→</span>
+            내 104쪽 리포트 미리보기 <span>→</span>
           </Link>
         ) : (
           <p className="report-teaser-soon" role="status">

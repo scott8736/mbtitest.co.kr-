@@ -25,7 +25,7 @@ export default function SiteFooter({
         </div>
         <nav aria-label="사이트 안내">
           <a href="/tests/mbti/">MBTI 검사</a>
-          <a href="/report/?from=footer">100쪽 리포트</a>
+          <a href="/report/?from=footer">104쪽 리포트</a>
           <a href="/tests/">심리테스트</a>
           <a href="/types/">16가지 유형</a>
           <a href="/mori/">16모리 마음숲</a>

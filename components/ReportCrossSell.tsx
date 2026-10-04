@@ -13,13 +13,13 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { readLastResult } from "../lib/my-mori";
 import { moriImage } from "../lib/mori";
-import { REPORT_EVENT, REPORT_PRICE } from "../lib/report-config";
+import { REPORT_EVENT, REPORT_PRICE, fmtEventDate as fmt } from "../lib/report-config";
+import { useReportEvent } from "./ReportEvent";
 import { REPORT_READY_TYPES } from "../report/content/ready";
-
-const fmt = (d: string) => d.replace(/^\d{4}-(\d{2})-(\d{2})$/, (_, m, dd) => `${Number(m)}월 ${Number(dd)}일`);
 
 export default function ReportCrossSell({ from, pageType }: { from: string; pageType?: string }) {
   const [mine, setMine] = useState<string | null>(null);
+  const eventOn = useReportEvent();
   useEffect(() => {
     const id = setTimeout(() => setMine(readLastResult()?.result ?? null), 0);
     return () => clearTimeout(id);
@@ -29,25 +29,25 @@ export default function ReportCrossSell({ from, pageType }: { from: string; page
   const showType = ready ? mine : pageType && REPORT_READY_TYPES.includes(pageType) ? pageType : REPORT_READY_TYPES[0] ?? "INFP";
   const href = ready ? `/report/?from=${from}` : "/tests/mbti/";
   const title = ready
-    ? `내 점수로 만든 ${mine} 100쪽 안내서`
+    ? `내 점수로 만든 ${mine} 104쪽 안내서`
     : pageType
-      ? `${pageType}라도 다 같지 않아요 — 내 점수로 만든 100쪽 안내서`
-      : "결과 한 장 말고, 내 점수로 만든 100쪽 안내서";
+      ? `${pageType}라도 다 같지 않아요 — 내 점수로 만든 104쪽 안내서`
+      : "결과 한 장 말고, 내 점수로 만든 104쪽 안내서";
   const sub = ready
     ? "내 검사 점수 그대로 · 연애·일·돈·관계 11가지 주제 · 미리보기 6쪽 무료"
-    : "40문항 무료 검사를 마치면 내 성향 농도에 맞춘 104쪽 리포트를 미리 볼 수 있어요";
+    : "40문항 검사는 무료 · 검사를 마치면 내 성향 농도에 맞춘 유료 리포트를 미리 볼 수 있어요(일부 유형은 준비 중)";
 
   return (
     <aside className="report-xsell">
       {/* eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기(output: export)라 next/image 최적화를 쓰지 않습니다 */}
       <img className="report-xsell-mori" src={moriImage(showType)} alt="" width={88} height={88} loading="lazy" />
       <div className="report-xsell-text">
-        <span>MORI REPORT{REPORT_EVENT.label ? ` · ${REPORT_EVENT.label} ${fmt(REPORT_EVENT.to)}까지 ${REPORT_PRICE.toLocaleString()}원` : ""}</span>
+        <span>MORI REPORT · {eventOn ? `${REPORT_EVENT.label} ${fmt(REPORT_EVENT.to)}까지 ` : ""}{REPORT_PRICE.toLocaleString()}원</span>
         <strong>{title}</strong>
         <small>{sub}</small>
       </div>
       <Link className="report-xsell-button" href={href}>
-        {ready ? "미리보기 6쪽 보기" : "무료 검사하고 받기"} →
+        {ready ? "미리보기 6쪽 보기" : "무료 검사부터 하기"} →
       </Link>
     </aside>
   );
