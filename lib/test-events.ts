@@ -36,7 +36,10 @@ export type TestEventName =
   | "saju_seen"
   | "saju_click"
   | "result_click"
-  | "share_click";
+  | "share_click"
+  // MBTI 결과 유형 분포(2026-10-04~): slug 자리에 유형(소문자), 동점 축은 mbti_tie 에 축 이름(ei·sn·tf·jp)
+  | "mbti_type"
+  | "mbti_tie";
 
 /**
  * 2단계 도착. 완주와 같은 방식입니다 — 2단계 화면 조회수를 쓰면 새로고침과
@@ -95,11 +98,13 @@ export function markTestCompleted(slug: string): void {
 }
 
 /** 결과 화면에서 호출합니다. 표시가 있을 때만 한 번 기록하고 지웁니다. */
-export function recordCompletionOnce(slug: string): void {
+export function recordCompletionOnce(slug: string, alsoRecord?: () => void): void {
   try {
     if (sessionStorage.getItem(COMPLETION_PENDING(slug)) !== "1") return;
     sessionStorage.removeItem(COMPLETION_PENDING(slug));
     recordTestEvent(slug, "completed");
+    // 완주와 같은 순간에 한 번만 — 새로고침으로 결과를 다시 봐도 두 번 세지 않습니다.
+    alsoRecord?.();
   } catch {
     // 위와 같습니다.
   }

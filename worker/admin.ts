@@ -257,6 +257,7 @@ const RESULT_CLICK_SINCE = "2026-10-05";
  * 그날은 D1 무료 한도를 넘겨 다음 날 09:00 까지 기록이 쌓이지 않아 10-05 부터 냅니다.
  */
 const SHARE_SINCE = "2026-10-05";
+const TYPE_SINCE = "2026-10-04";
 
 /** 이보다 표본이 작으면 비율을 내지 않습니다. 몇 건짜리 비율은 뜻이 없습니다. */
 const MIN_SAMPLE = 20;
@@ -378,6 +379,10 @@ async function dashboard(
   const otherCompleted = [...completedBySlug].filter(([slug]) => slug !== "mbti" && !tarotSet.has(slug)).reduce((sum, [, n]) => sum + n, 0);
   const share = all.share ?? { views: 0, visitors: 0, toTest: 0 };
   const shareTest = all.shareTest ?? { views: 0, visitors: 0, toTest: 0 };
+  const typeRows = ["ISTJ", "ISFJ", "INFJ", "INTJ", "ISTP", "ISFP", "INFP", "INTP", "ESTP", "ESFP", "ENFP", "ENTP", "ESTJ", "ESFJ", "ENFJ", "ENTJ"]
+    .map((code) => ({ code, n: eventCount("mbti_type", code.toLowerCase()) }))
+    .sort((a, b) => b.n - a.n);
+  const typeTotal = typeRows.reduce((s, r) => s + r.n, 0);
   const shareClicks = SHARE_CHANNEL_KEYS.map((key) => ({ key, label: SHARE_CHANNELS[key], clicks: eventCount("share_click", key) }));
   const sumClicks = (prefix: string) => shareClicks.filter((row) => row.key.startsWith(prefix)).reduce((sum, row) => sum + row.clicks, 0);
   const shareClickTotal = sumClicks("mori-");
@@ -503,6 +508,18 @@ ${RESULT_CLICK_PLACEMENT_KEYS.map((key) => {
   return `<tr><td>${esc(RESULT_CLICK_PLACEMENTS[key])}</td><td>${clicksFor(key)}</td><td>${whole || "-"}</td><td>${clickRate(clicksFor(key), whole)}</td></tr>`;
 }).join("")}
 </tbody></table></div>
+</div>
+
+<div class="box"><h2>MBTI 결과 분포</h2>
+<p class="note">${TYPE_SINCE} 부터 기록합니다(그 전에는 유형을 남기지 않았습니다). 「동점」은 그 축이 5:5 로 끝난 완주 — 지금 채점은 동점을 E·S·T·J 로 보내므로
+동점 비율이 높을수록 E·S·T·J 쪽이 부풀려져 있다는 뜻입니다. 16유형이 1/16씩 나와야 공평한 것은 아니고, 보기 위치·동점 때문에 결과가 바뀌지 않아야 공평합니다.</p>
+${typeTotal === 0 ? `<p class="empty">아직 기록이 없습니다.</p>` : `<div class="scroll"><table><thead><tr><th>축</th><th>왼쪽</th><th>오른쪽</th><th>동점(→왼쪽으로 감)</th></tr></thead><tbody>
+${(["EI", "SN", "TF", "JP"] as const).map((ax) => { const l = typeRows.filter((r) => r.code.includes(ax[0])).reduce((s, r) => s + r.n, 0); const tie = eventCount("mbti_tie", ax.toLowerCase()); return `<tr><td>${ax}</td><td>${ax[0]} ${l} (${((l / typeTotal) * 100).toFixed(1)}%)</td><td>${ax[1]} ${typeTotal - l} (${(((typeTotal - l) / typeTotal) * 100).toFixed(1)}%)</td><td>${tie} (${((tie / typeTotal) * 100).toFixed(1)}%)</td></tr>`; }).join("")}
+</tbody></table></div>
+<div class="scroll"><table><thead><tr><th>유형</th><th>완주</th><th>비율</th></tr></thead><tbody>
+${typeRows.map((r) => `<tr><td>${r.code}</td><td>${r.n}</td><td>${((r.n / typeTotal) * 100).toFixed(1)}%</td></tr>`).join("")}
+<tr><td><b>합계</b></td><td><b>${typeTotal}</b></td><td></td></tr>
+</tbody></table></div>`}
 </div>
 
 <div class="box"><h2>모리 카드 공유</h2>

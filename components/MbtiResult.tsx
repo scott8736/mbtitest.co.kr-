@@ -9,7 +9,7 @@ import MbtiResultPick from "./MbtiResultPick";
 import ReportTeaser from "./ReportTeaser";
 import SajuLabBanner from "./SajuLabBanner";
 import { questions, typeData, typeDetails, type Axis } from "../lib/mbti-data";
-import { onResultLinkClick, recordCompletionOnce } from "../lib/test-events";
+import { onResultLinkClick, recordCompletionOnce, recordTestEvent } from "../lib/test-events";
 import { MORI_BEST } from "../lib/mori";
 
 const TEST_PATH = "/tests/mbti/";
@@ -32,7 +32,13 @@ export default function MbtiResult() {
       const parsed = JSON.parse(saved) as StoredResult;
       if (!typeData[parsed.result] || !parsed.scores) throw new Error("invalid result");
       setStored(parsed);
-      recordCompletionOnce("mbti");
+      // 결과 유형 분포와 동점 축을 함께 남깁니다. 동점(5:5)은 지금 E·S·T·J 쪽으로 가므로 쏠림을 재려는 기록입니다.
+      recordCompletionOnce("mbti", () => {
+        recordTestEvent(parsed.result.toLowerCase(), "mbti_type");
+        for (const axis of ["EI", "SN", "TF", "JP"] as const) {
+          if (parsed.scores[axis] === 0) recordTestEvent(axis.toLowerCase(), "mbti_tie");
+        }
+      });
     } catch {
       sessionStorage.removeItem(STORAGE_KEY);
       location.replace(TEST_PATH);

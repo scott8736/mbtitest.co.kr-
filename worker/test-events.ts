@@ -39,7 +39,12 @@ const KNOWN_NAMES = new Set([
   "saju_click",
   "result_click",
   "share_click",
+  "mbti_type",
+  "mbti_tie",
 ]);
+
+const MBTI_TYPE_SLUGS = new Set(["istj", "isfj", "infj", "intj", "istp", "isfp", "infp", "intp", "estp", "esfp", "enfp", "entp", "estj", "esfj", "enfj", "entj"]);
+const MBTI_TIE_SLUGS = new Set(["ei", "sn", "tf", "jp"]);
 
 /** 사주랩 배너는 테스트가 아니라 배너 자리로 셉니다. 자리 목록 밖의 값은 버립니다. */
 const SAJULAB_SLUGS = new Set<string>(SAJULAB_PLACEMENT_KEYS);
@@ -55,6 +60,8 @@ export function isKnownEvent(slug: string, name: string): boolean {
   if (name.startsWith("saju_")) return SAJULAB_SLUGS.has(slug);
   if (name === "result_click") return RESULT_CLICK_SLUGS.has(slug);
   if (name === "share_click") return SHARE_SLUGS.has(slug);
+  if (name === "mbti_type") return MBTI_TYPE_SLUGS.has(slug);
+  if (name === "mbti_tie") return MBTI_TIE_SLUGS.has(slug);
   return KNOWN_SLUGS.has(slug);
 }
 

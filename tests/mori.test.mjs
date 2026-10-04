@@ -100,6 +100,11 @@ test("다른 테스트 결과 전용 모리: 적힌 결과는 실제 결과이�
   }
   assert.equal(mod.testMoriImage("hsp", "depth"), null, "그림을 아직 안 만든 테스트는 기본 카드");
   for (const key of ["test-image", "test-link", "test-threads", "test-copy"]) assert.ok(mod.isKnownEvent(key, "share_click"), key);
+  // MBTI 결과 유형·동점 축 (2026-10-04)
+  assert.ok(mod.isKnownEvent("infp", "mbti_type"));
+  assert.ok(mod.isKnownEvent("ei", "mbti_tie"));
+  assert.equal(mod.isKnownEvent("xxxx", "mbti_type"), false);
+  assert.equal(mod.isKnownEvent("infp", "mbti_tie"), false);
   // 운세·타로 공유는 따로 셉니다 (2026-10-04)
   for (const key of ["fortune-image", "fortune-link", "fortune-threads", "fortune-copy", "tarot-image", "tarot-link", "tarot-threads", "tarot-copy"])
     assert.ok(mod.isKnownEvent(key, "share_click"), key);
