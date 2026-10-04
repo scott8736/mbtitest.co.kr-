@@ -7,7 +7,10 @@ import INTJ from "./INTJ.json";
 import ISTP from "./ISTP.json";
 import ISFP from "./ISFP.json";
 import INFP from "./INFP.json";
+import INTP from "./INTP.json";
+import ESTP from "./ESTP.json";
+import ESFP from "./ESFP.json";
 
 export type Sealed = { iv: string; ct: string };
-export const REPORT_SEALED: Record<string, Sealed> = { ISTJ, ISFJ, INFJ, INTJ, ISTP, ISFP, INFP };
+export const REPORT_SEALED: Record<string, Sealed> = { ISTJ, ISFJ, INFJ, INTJ, ISTP, ISFP, INFP, INTP, ESTP, ESFP };
 export const REPORT_SAJU_SEALED: Sealed = saju;
