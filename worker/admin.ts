@@ -373,8 +373,12 @@ async function dashboard(
   const homeViews = all.paths["/"] ?? 0;
   const otherCompleted = [...completedBySlug].filter(([slug]) => slug !== "mbti").reduce((sum, [, n]) => sum + n, 0);
   const share = all.share ?? { views: 0, visitors: 0, toTest: 0 };
+  const shareTest = all.shareTest ?? { views: 0, visitors: 0, toTest: 0 };
   const shareClicks = SHARE_CHANNEL_KEYS.map((key) => ({ key, label: SHARE_CHANNELS[key], clicks: eventCount("share_click", key) }));
-  const shareClickTotal = shareClicks.reduce((sum, row) => sum + row.clicks, 0);
+  const sumClicks = (prefix: string) => shareClicks.filter((row) => row.key.startsWith(prefix)).reduce((sum, row) => sum + row.clicks, 0);
+  const shareClickTotal = sumClicks("mori-");
+  const testShareClickTotal = sumClicks("test-");
+  const perShare = (starts: number, clicks: number) => (from < SHARE_SINCE || clicks < MIN_SAMPLE ? "-" : (starts / clicks).toFixed(2));
   const shareRate = (part: number, whole: number) => {
     if (from < SHARE_SINCE) return "-";
     if (whole < MIN_SAMPLE) return "표본 부족";
@@ -493,16 +497,19 @@ ${RESULT_CLICK_PLACEMENT_KEYS.map((key) => {
 
 <div class="box"><h2>모리 카드 공유</h2>
 <p class="note">
-MBTI 결과 화면의 캐릭터 카드 공유 버튼입니다. 「공유」는 버튼을 누른 사람(탭당 수단마다 한 번), 비율은 MBTI 완주 대비입니다.
+MBTI 결과 화면의 캐릭터 카드와 다른 테스트 결과 카드(내 모리 × 결과, 2026-10-04~)의 공유 버튼입니다. 「공유」는 버튼을 누른 사람(탭당 수단마다 한 번),
+비율은 MBTI 카드는 MBTI 완주, 다른 테스트 카드는 MBTI 를 뺀 테스트 완주 대비입니다.
 「공유 페이지」는 친구가 받은 링크(/s/유형/)를 연 사람, 「→ 검사 시작」은 그중 MBTI 검사 화면까지 간 사람입니다.
 <b>공유 1번당 새 검사 = 검사 시작 ÷ 공유 합계</b> — 1을 넘으면 공유만으로 사람이 늘어납니다. 비율은 ${SHARE_SINCE} 부터 냅니다.
 </p>
-<div class="scroll"><table><thead><tr><th>공유 수단</th><th>공유</th><th>÷ MBTI 완주</th></tr></thead><tbody>
-${shareClicks.map((row) => `<tr><td>${esc(row.label)}</td><td>${row.clicks}</td><td>${shareRate(row.clicks, mbtiCompleted)}</td></tr>`).join("")}
-<tr><td><b>합계</b></td><td><b>${shareClickTotal}</b></td><td><b>${shareRate(shareClickTotal, mbtiCompleted)}</b></td></tr>
+<div class="scroll"><table><thead><tr><th>공유 수단</th><th>공유</th><th>÷ 완주</th></tr></thead><tbody>
+${shareClicks.map((row) => `<tr><td>${esc(row.label)}</td><td>${row.clicks}</td><td>${shareRate(row.clicks, row.key.startsWith("test-") ? otherCompleted : mbtiCompleted)}</td></tr>`).join("")}
+<tr><td><b>MBTI 카드 합계</b></td><td><b>${shareClickTotal}</b></td><td><b>${shareRate(shareClickTotal, mbtiCompleted)}</b></td></tr>
+<tr><td><b>다른 테스트 카드 합계</b></td><td><b>${testShareClickTotal}</b></td><td><b>${shareRate(testShareClickTotal, otherCompleted)}</b></td></tr>
 </tbody></table></div>
-<div class="scroll"><table><thead><tr><th>공유 페이지 조회</th><th>공유 페이지 방문자</th><th>→ 검사 시작</th><th>시작률</th><th>공유 1번당 새 검사</th></tr></thead><tbody>
-<tr><td>${share.views}</td><td>${share.visitors}</td><td>${share.toTest}</td><td>${shareRate(share.toTest, share.visitors)}</td><td><b>${from < SHARE_SINCE || shareClickTotal < MIN_SAMPLE ? "-" : (share.toTest / shareClickTotal).toFixed(2)}</b></td></tr>
+<div class="scroll"><table><thead><tr><th>받은 링크</th><th>조회</th><th>방문자</th><th>→ 검사 시작</th><th>시작률</th><th>공유 1번당 새 검사</th></tr></thead><tbody>
+<tr><td>MBTI 모리 (/s/…)</td><td>${share.views}</td><td>${share.visitors}</td><td>${share.toTest}</td><td>${shareRate(share.toTest, share.visitors)}</td><td><b>${perShare(share.toTest, shareClickTotal)}</b></td></tr>
+<tr><td>다른 테스트 (/tests/…/r/…)</td><td>${shareTest.views}</td><td>${shareTest.visitors}</td><td>${shareTest.toTest}</td><td>${shareRate(shareTest.toTest, shareTest.visitors)}</td><td><b>${perShare(shareTest.toTest, testShareClickTotal)}</b></td></tr>
 </tbody></table></div>
 </div>
 

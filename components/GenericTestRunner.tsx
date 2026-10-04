@@ -13,6 +13,7 @@ import TestGuide from "./TestGuide";
 import { leadFacts } from "../lib/test-lead";
 import TestResultPick from "./TestResultPick";
 import SajuLabBanner from "./SajuLabBanner";
+import TestShareCard from "./TestShareCard";
 import Mascot, { moodForQuestion } from "./Mascot";
 
 const PROGRESS_KEY = (slug: string) => `test-progress:${slug}`;
@@ -134,66 +135,6 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
     location.assign(`/tests/${test.slug}/result/`);
   };
 
-  const share = async () => {
-    // location.href 를 쓰면 안 됩니다. 지금 주소(/tests/{slug}/result/)는 방금
-    // 검사한 사람의 sessionStorage 를 읽는 개인 화면이라, 링크를 받은 사람에게는
-    // 빈 화면이 열리고 카카오톡 썸네일에도 사이트 로고가 뜹니다. 결과마다 따로
-    // 있는 공유용 주소로 보냅니다.
-    const url = `${location.origin}/tests/${test.slug}/r/${resultKey}/`;
-    const text = `나는 ${displayName}! ${result.shareText} 당신의 결과도 확인해 보세요.`;
-    if (navigator.share) await navigator.share({ title: test.title, text, url });
-    else {
-      await navigator.clipboard.writeText(`${text} ${url}`);
-      alert("결과 링크를 복사했습니다.");
-    }
-  };
-
-  const downloadCard = () => {
-    const canvas = document.createElement("canvas");
-    canvas.width = 1080;
-    canvas.height = 1080;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const gradient = ctx.createLinearGradient(0, 0, 1080, 1080);
-    gradient.addColorStop(0, "#172A46");
-    gradient.addColorStop(0.55, "#302268");
-    gradient.addColorStop(1, result.color);
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 1080, 1080);
-    ctx.fillStyle = "rgba(255,255,255,.1)";
-    ctx.beginPath(); ctx.arc(900, 140, 260, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(100, 980, 330, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "#DCD4FF";
-    ctx.font = "700 30px sans-serif";
-    ctx.fillText(test.eyebrow, 90, 120);
-    ctx.fillStyle = "#FFFFFF";
-    ctx.font = "900 78px sans-serif";
-    ctx.fillText(displayName, 90, 310);
-    ctx.font = "600 38px sans-serif";
-    wrapText(ctx, result.tagline, 90, 385, 850, 56);
-    ctx.fillStyle = "rgba(255,255,255,.88)";
-    ctx.font = "500 31px sans-serif";
-    result.traits.forEach((trait, i) => {
-      ctx.fillStyle = "rgba(255,255,255,.13)";
-      roundRect(ctx, 90 + i * 290, 620, 250, 74, 37);
-      ctx.fill();
-      ctx.fillStyle = "#FFFFFF";
-      ctx.textAlign = "center";
-      ctx.fillText(trait, 215 + i * 290, 668);
-    });
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#FFFFFF";
-    ctx.font = "700 30px sans-serif";
-    ctx.fillText("나도 테스트하기", 90, 920);
-    ctx.fillStyle = "rgba(255,255,255,.68)";
-    ctx.font = "500 25px sans-serif";
-    ctx.fillText(location.host, 90, 968);
-    const link = document.createElement("a");
-    link.download = `${test.slug}-${result.key}.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-  };
-
   return (
     <main className="generic-test" style={{ "--test-accent": result?.color || "#7657D6" } as React.CSSProperties}>
       <SiteHeader active="/tests" />
@@ -284,6 +225,7 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
           <p className="rich-tagline">{result.tagline}</p>
           <p className="rich-summary">{result.summary}</p>
           <div className="trait-pills">{result.traits.map((trait) => <span key={trait}>{trait}</span>)}</div>
+          <TestShareCard slug={test.slug} resultKey={resultKey} testTitle={test.title} displayName={displayName} tagline={result.tagline} traits={result.traits} color={result.color} shareText={result.shareText} />
           <div className="rich-result-grid">
             <article><span>01</span><h2>빛나는 강점</h2>{result.strengths.map((x) => <p key={x}>✦ {x}</p>)}</article>
             <article><span>02</span><h2>주의할 패턴</h2>{result.cautions.map((x) => <p key={x}>○ {x}</p>)}</article>
@@ -294,7 +236,7 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
           <div className="growth-plan"><span>나를 위한 작은 실천</span><h2>오늘부터 이렇게 해보세요</h2>{result.growth.map((x, i) => <p key={x}><b>{String(i + 1).padStart(2, "0")}</b>{x}</p>)}</div>
           <SajuLabBanner placement="test" />
           <TestResultPick slug={test.slug} resultKey={resultKey} />
-          <div className="result-actions"><button className="primary-button" onClick={share}>결과 공유하기 <span>↗</span></button><button className="secondary-button" onClick={downloadCard}>결과 이미지 저장</button><button className="secondary-button" onClick={start}>다시 검사하기</button></div>
+          <div className="result-actions"><button className="secondary-button" onClick={start}>다시 검사하기</button></div>
           <p className="disclaimer">{test.disclaimer}</p>
           <AdUnit key={`result-bottom-${resultKey}`} position="resultBottom" label={`${test.title} 결과 하단 광고`} />
           <div className="related-results" onClick={onResultLinkClick("test-next")}><span className="eyebrow">NEXT TEST</span><h2>나를 더 알아보는 다음 테스트</h2><div>{related.map((item) => item && <a href={item.href} key={item.slug}><span>{item.category}</span><strong>{item.title}</strong><small>{item.duration} · {item.questionCount}문항</small><i>시작하기 →</i></a>)}</div></div>
@@ -304,23 +246,4 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
       <SiteFooter />
     </main>
   );
-}
-
-function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) {
-  const words = text.split(" ");
-  let line = "";
-  words.forEach((word) => {
-    const testLine = `${line}${word} `;
-    if (ctx.measureText(testLine).width > maxWidth && line) {
-      ctx.fillText(line, x, y);
-      line = `${word} `;
-      y += lineHeight;
-    } else line = testLine;
-  });
-  ctx.fillText(line, x, y);
-}
-
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
-  ctx.beginPath();
-  ctx.roundRect(x, y, width, height, radius);
 }

@@ -37,7 +37,20 @@ export const MORI_BEST: Record<string, string> = {
   ISTJ: "ESFP", ISFJ: "ESTP", ESTJ: "ISFP", ESFJ: "ISTP", ISTP: "ESFJ", ISFP: "ENFJ", ESTP: "ISFJ", ESFP: "ISTJ",
 };
 
-export const moriImage =(code: string) => `/characters/mori-${code.toLowerCase()}.webp`;
+/**
+ * 다른 테스트 결과 전용 모리 그림(A, 2026-10-04 상위 3개 테스트로 시험). 있는 결과만 적습니다.
+ * 파일은 public/characters/tests/<slug>-<결과키>.webp (scripts/make_mori_assets.py).
+ */
+export const TEST_MORI: Record<string, string[]> = {
+  "egen-teto": ["egen", "teto", "balance"],
+  "adult-attachment": ["secure", "anxious", "avoidant", "fearful"],
+  "mental-age": ["teen", "twenties", "thirties", "forties", "wise"],
+};
+
+export const testMoriImage = (slug: string, resultKey: string): string | null =>
+  TEST_MORI[slug]?.includes(resultKey) ? `/characters/tests/${slug}-${resultKey}.webp` : null;
+
+export const moriImage = (code: string) => `/characters/mori-${code.toLowerCase()}.webp`;
 export const moriOgImage = (code: string) => `/images/og/mori/${code.toLowerCase()}.jpg`;
 /** 공유 링크가 여는 주소. 결과 화면(/mbti-result/)은 검사한 사람 탭에만 결과가 있어 남에게 보낼 수 없습니다. */
 export const moriSharePath = (code: string) => `/s/${code.toLowerCase()}/`;
@@ -51,6 +64,11 @@ export const SHARE_CHANNELS = {
   "mori-link": "링크 공유 (카톡·문자 등 공유창)",
   "mori-threads": "스레드 글쓰기",
   "mori-copy": "링크 복사",
+  // 다른 테스트 결과 카드(2026-10-04~). MBTI 와 분모(완주)가 달라 따로 셉니다.
+  "test-image": "다른 테스트 · 카드 이미지",
+  "test-link": "다른 테스트 · 링크 공유",
+  "test-threads": "다른 테스트 · 스레드",
+  "test-copy": "다른 테스트 · 링크 복사",
 } as const;
 
 export type ShareChannel = keyof typeof SHARE_CHANNELS;

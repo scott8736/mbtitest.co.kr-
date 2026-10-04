@@ -17,7 +17,8 @@ const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const { outputFiles } = await build({
   stdin: {
     contents: `
-      export { MORI, MORI_BEST, SHARE_CHANNEL_KEYS, moriImage, moriOgImage } from "./lib/mori";
+      export { MORI, MORI_BEST, SHARE_CHANNEL_KEYS, TEST_MORI, moriImage, moriOgImage, testMoriImage } from "./lib/mori";
+      export { genericTests } from "./lib/generic-tests";
       export { profiles, mbtiCodes } from "./lib/mbti-content";
       export { isKnownEvent } from "./worker/test-events";
       export { buildRollup, mergeRollups, isSharePage } from "./worker/rollup";
@@ -87,4 +88,26 @@ test("공유 페이지는 사이트맵에 없고, 빌드 결과에 noindex 와 �
   assert.match(page, /<meta name="robots" content="noindex/);
   assert.match(page, /\/images\/og\/mori\/infp\.jpg/);
   assert.match(page, /href="\/tests\/mbti\/"/);
+});
+
+test("다른 테스트 결과 전용 모리: 적힌 결과는 실제 결과이고 그림 파일이 있으며, 안 적힌 결과는 그림 없이 간다", () => {
+  for (const [slug, keys] of Object.entries(mod.TEST_MORI)) {
+    for (const key of keys) {
+      assert.ok(mod.genericTests[slug]?.results?.[key], `${slug}/${key} 는 없는 결과`);
+      const url = mod.testMoriImage(slug, key);
+      assert.ok(url && fs.existsSync(path.join(repoRoot, "public", url)), `${url} 없음`);
+    }
+  }
+  assert.equal(mod.testMoriImage("hsp", "depth"), null, "그림을 아직 안 만든 테스트는 기본 카드");
+  for (const key of ["test-image", "test-link", "test-threads", "test-copy"]) assert.ok(mod.isKnownEvent(key, "share_click"), key);
+});
+
+test("다른 테스트 공유 페이지 → 검사 시작: 받은 결과 링크를 연 뒤 아무 검사 첫 화면을 연 사람만", () => {
+  const row = (visitor_hash, p, time) => ({ path: p, referrer: "", source: "direct", device: "mobile", country: "KR", visitor_hash, created_at: `2026-10-12 ${time}` });
+  const r = mod.buildRollup("2026-10-12", [
+    row("A", "/tests/egen-teto/r/teto/", "10:00:00"), row("A", "/tests/egen-teto/", "10:00:30"),
+    row("B", "/tests/hsp/r/depth/", "11:00:00"), row("B", "/", "11:00:10"),
+    row("C", "/tests/mental-age/", "12:00:00"), row("C", "/tests/mental-age/r/teen/", "12:05:00"),
+  ], []);
+  assert.deepEqual(r.shareTest, { views: 3, visitors: 3, toTest: 1 });
 });

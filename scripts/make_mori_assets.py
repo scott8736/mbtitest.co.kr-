@@ -9,6 +9,7 @@ INFP 견본을 기준 이미지로 넣어 그림체를 맞췄습니다). 원본�
 출력
   public/characters/mori-<code>.webp   720px, 결과 화면·공유 페이지·카드 합성용
   public/images/og/mori/<code>.jpg      1200x630, 공유 링크 미리보기(카톡·스레드)
+  public/characters/tests/<slug>-<key>.webp   다른 테스트 결과 전용 모리(A 시험, 원본 폴더 옆 테스트_A/)
 
 글꼴은 scripts/fonts/NotoSansKR-Bold.ttf (make-og.mjs 와 같은 것)를 씁니다.
 """
@@ -73,3 +74,14 @@ for code, (color, name) in TYPES.items():
     og.save(os.path.join(OG_DIR, f"{code.lower()}.jpg"), "JPEG", quality=86)
     print(code)
 print("done")
+
+# 다른 테스트 결과 전용 모리(A, 2026-10-04 상위 3개 테스트 12장). lib/mori.ts 의 TEST_MORI 와 짝입니다.
+TEST_SRC = os.path.join(os.path.dirname(SRC), "테스트_A")
+TEST_DIR = os.path.join(CHAR_DIR, "tests")
+if os.path.isdir(TEST_SRC):
+    os.makedirs(TEST_DIR, exist_ok=True)
+    for f in sorted(os.listdir(TEST_SRC)):
+        if f.endswith(".png"):
+            Image.open(os.path.join(TEST_SRC, f)).convert("RGB").resize((720, 720), Image.LANCZOS).save(
+                os.path.join(TEST_DIR, f[:-4] + ".webp"), "WEBP", quality=82, method=6)
+            print("test", f[:-4])
