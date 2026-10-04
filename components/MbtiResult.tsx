@@ -113,6 +113,15 @@ export default function MbtiResult() {
       <AdUnit key={`result-middle-${result}`} position="resultMiddle" label="MBTI 결과 본문 광고" />
       <div className="growth-plan mbti-growth"><span>GROWTH POINT</span><h2>나를 더 편안하게 만드는 실천</h2>{typeDetails[result].growth.map((x, i) => <p key={x}><b>{String(i + 1).padStart(2, "0")}</b>{x}</p>)}</div>
       <SajuLabBanner placement="mbti" />
+      {/* 다음 검사를 쿠팡 카드 위로 올렸습니다(2026-10-04). 맨 아래 광고 밑에 있을 때 MBTI → 다른 검사 전환이 5.2%였습니다. */}
+      <div className="related-results mbti-related" onClick={onResultLinkClick("mbti-next")}>
+        <span className="eyebrow">NEXT TEST</span><h2>지금 결과와 이어서 해보세요</h2>
+        <div>
+          <a href="/tests/adult-attachment/"><span>연애</span><strong>성인 애착유형 테스트</strong><small>24문항 · 약 3분</small><i>내 애착유형 확인하기 →</i></a>
+          <a href="/tests/egen-teto/"><span>성격</span><strong>에겐·테토 성향 테스트</strong><small>20문항 · 약 2~3분</small><i>에겐·테토 비율 보기 →</i></a>
+          <a href="/tests/mental-age/"><span>재미</span><strong>정신연령 테스트</strong><small>15문항 · 약 2분</small><i>내 마음 나이 확인하기 →</i></a>
+        </div>
+      </div>
       <MbtiResultPick code={result} />
       <div className="result-actions"><button className="primary-button" onClick={share}>결과 공유하기 <span>↗</span></button><button className="secondary-button" onClick={downloadResult}>결과 이미지 저장</button><button className="secondary-button" onClick={start}>다시 검사하기</button></div>
       <p className="disclaimer">본 테스트는 자기이해를 위한 간이 성격 테스트이며, 전문적인 심리 진단을 대신하지 않습니다.</p>
@@ -134,14 +143,6 @@ export default function MbtiResult() {
         </div>
       </div>
       <AdUnit key={`result-bottom-${result}`} position="resultBottom" label="MBTI 결과 하단 광고" />
-      <div className="related-results mbti-related" onClick={onResultLinkClick("mbti-next")}>
-        <span className="eyebrow">NEXT TEST</span><h2>지금 결과와 이어서 해보세요</h2>
-        <div>
-          <a href="/tests/adult-attachment/"><span>연애</span><strong>성인 애착유형 테스트</strong><small>24문항 · 약 3분</small><i>내 애착유형 확인하기 →</i></a>
-          <a href="/tests/egen-teto/"><span>성격</span><strong>에겐·테토 성향 테스트</strong><small>20문항 · 약 2~3분</small><i>에겐·테토 비율 보기 →</i></a>
-          <a href="/tests/mental-age/"><span>재미</span><strong>정신연령 테스트</strong><small>15문항 · 약 2분</small><i>내 마음 나이 확인하기 →</i></a>
-        </div>
-      </div>
     </section>
   );
 }

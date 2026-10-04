@@ -19,11 +19,16 @@ export default function MbtiResultPick({ code }: { code: string }) {
     <aside className="mbti-pick">
       <span className="mbti-pick-eyebrow">{code} 유형에게 추천</span>
       <a href={pick.coupangUrl} target="_blank" rel="nofollow sponsored noreferrer noopener" onClick={() => recordTestEvent("mbti", "pick_click")}>
-        {pick.image ? <img src={pick.image} alt="" loading="lazy" decoding="async" /> : null}
+        {pick.image ? (
+          <img src={pick.image} alt="" loading="lazy" decoding="async" />
+        ) : (
+          // 키링 스톡 사진이 마땅치 않아(Pexels 검색 결과가 가방·열쇠 사진) 유형 네 글자를 키링 태그로 그립니다.
+          <span className="mbti-pick-tag" aria-hidden="true">{code}</span>
+        )}
         <span>
           <strong>{pick.label}</strong>
           <small>{pick.reason}</small>
-          <i>자세히 보기 →</i>
+          <i>쿠팡에서 {pick.label} 보기 →</i>
         </span>
       </a>
     </aside>

@@ -1,65 +1,70 @@
 /**
- * MBTI 결과 화면에 다는 추천 카드. 유형마다 하나씩, lib/mbti-data.ts 의
- * stress·growth 문구에서 실제로 도움이 될 만한 물건 하나를 골랐습니다.
+ * MBTI 결과 화면에 다는 쿠팡 추천 카드. 유형마다 하나씩.
+ *
+ * 2026-10-04 에 상품을 바꿨습니다. 예전에는 stress·growth 문구에서 "도움이 될 물건"
+ * (플래너·멀티툴·스탠딩 데스크·마사지건 …)을 골랐는데, 30일간 MBTI 완주 9,456명 중
+ * 클릭이 4건(0.04%)이었습니다. 방금 내 유형을 알게 된 사람에게는 쓸모보다 **내 유형이
+ * 적힌 물건**이 끌린다고 보고 「{유형} 키링」으로 바꿨습니다. 쿠팡 검색 API 로 「INFP 키링」
+ * 「ESTJ 굿즈」 「MBTI 키링」을 확인해 유형 키링·스티커·딸깍이 키링이 3천~1만 원대로 실제로
+ * 나오는 것을 보고 정했습니다. 효과는 관리자 「쿠팡 클릭」 열로 봅니다.
  *
  * 개별 상품이 아니라 쿠팡 검색 결과로 링크를 겁니다. 품절·단종으로 링크가
- * 죽지 않고, "이런 종류가 도움이 되는 유형이다"라는 만큼의 주장만 하게 됩니다.
- * coupangUrl 은 scripts/coupang-links.mjs 가 채웁니다 — 처음에는 비어 있고,
+ * 죽지 않고, "이런 종류가 있다"는 만큼의 주장만 하게 됩니다.
+ * label 이 곧 쿠팡 검색어입니다. coupangUrl 은 scripts/coupang-links.mjs 가 채웁니다 —
  * 링크가 없는 유형은 MbtiResultPick 이 그냥 숨깁니다.
  *
- * image 는 scripts/pexels-images.mjs 가 검색어로 찾은 예시 사진입니다. 쿠팡
- * 상품 사진이 아니라 Pexels 스톡 사진이라 — 상품 검색 API 를 안 불러 한도를
- * 아끼고, 품절되어도 사진이 안 죽습니다. 없으면 카드는 사진 없이 나갑니다.
+ * image 는 Pexels 스톡 사진(키링)입니다. 쿠팡 상품 사진이 아니라 예시 사진이라 상품 검색
+ * API 한도를 아끼고, 품절되어도 사진이 안 죽습니다. 없으면 카드는 사진 없이 나갑니다.
  */
 export type MbtiPick = { label: string; reason: string; coupangUrl?: string; image?: string };
 
 export const mbtiPicks: Record<string, MbtiPick> = {
   ISTJ: {
-    label: "위클리 플래너",
-    reason: "예측 가능한 하루를 눈으로 확인할 때 마음이 편해지는 유형이라, 일정을 손으로 정리하는 플래너가 잘 맞습니다.", coupangUrl: "https://link.coupang.com/a/gSmOeKKcfI", image: "https://images.pexels.com/photos/5946167/pexels-photo-5946167.jpeg?auto=compress&cs=tinysrgb&h=350" },
+    label: "ISTJ 키링",
+    reason: "말보다 행동으로 보여 주는 ISTJ, 가방에 단 네 글자가 나를 대신 소개해 줘요.", coupangUrl: "https://link.coupang.com/a/hzl3KndQKO" },
   ISFJ: {
-    label: "핸드크림 선물세트",
-    reason: "남을 챙기느라 정작 자신은 뒤로 미루기 쉬운 유형이라, 가끔은 스스로에게 주는 작은 선물이 필요합니다.", coupangUrl: "https://link.coupang.com/a/gSmOgX17AG", image: "https://images.pexels.com/photos/38821127/pexels-photo-38821127.jpeg?auto=compress&cs=tinysrgb&h=350" },
+    label: "ISFJ 키링",
+    reason: "늘 남을 먼저 챙기는 ISFJ, 이번엔 나를 위한 작은 키링 하나 어때요?", coupangUrl: "https://link.coupang.com/a/hzl3MIgSdM" },
   INFJ: {
-    label: "화이트노이즈 스피커",
-    reason: "감정적인 소음이 많으면 쉽게 지치는 유형이라, 혼자만의 조용한 시간을 만들어 주는 물건이 도움이 됩니다.", coupangUrl: "https://link.coupang.com/a/gSmOjlcgbQ", image: "https://images.pexels.com/photos/29581125/pexels-photo-29581125.jpeg?auto=compress&cs=tinysrgb&h=350" },
+    label: "INFJ 키링",
+    reason: "속마음을 쉽게 꺼내지 않는 INFJ, 키링 하나로 은근히 나를 알려 보세요.", coupangUrl: "https://link.coupang.com/a/hzl3O2bvau" },
   INTJ: {
-    label: "시스템 다이어리",
-    reason: "쉬는 시간도 계획에 넣어야 마음이 편한 유형이라, 하루를 구조화할 수 있는 다이어리가 잘 맞습니다.", coupangUrl: "https://link.coupang.com/a/gSmOlt2w32", image: "https://images.pexels.com/photos/26834974/pexels-photo-26834974.jpeg?auto=compress&cs=tinysrgb&h=350" },
+    label: "INTJ 키링",
+    reason: "계획은 철저하게, 취향은 확실하게. 내 유형을 조용히 표시해 두세요.", coupangUrl: "https://link.coupang.com/a/hzl3Rbu6WO" },
   ISTP: {
-    label: "멀티툴",
-    reason: "직접 손으로 문제를 해결할 때 만족감을 느끼는 유형이라, 실용적인 도구 하나가 든든한 취미가 됩니다.", coupangUrl: "https://link.coupang.com/a/gSmOnGvWJo", image: "https://images.pexels.com/photos/35841357/pexels-photo-35841357.jpeg?auto=compress&cs=tinysrgb&h=350" },
+    label: "ISTP 키링",
+    reason: "군더더기 없는 걸 좋아하는 ISTP, 심플한 유형 키링이면 충분해요.", coupangUrl: "https://link.coupang.com/a/hzl3TjuAqO" },
   ISFP: {
-    label: "디퓨저",
-    reason: "감각과 분위기에 예민한 유형이라, 공간의 느낌을 편안하게 바꿔주는 작은 소품이 힐링이 됩니다.", coupangUrl: "https://link.coupang.com/a/gSmOpNZRQW", image: "https://images.pexels.com/photos/28912723/pexels-photo-28912723.jpeg?auto=compress&cs=tinysrgb&h=350" },
+    label: "ISFP 키링",
+    reason: "예쁜 것에 약한 ISFP, 내 유형이 새겨진 키링으로 가방을 꾸며 보세요.", coupangUrl: "https://link.coupang.com/a/hzl3VvPUdN" },
   INFP: {
-    label: "필사 노트",
-    reason: "머릿속 생각을 글로 옮길 때 정리가 되는 유형이라, 마음을 적어 내려갈 노트 한 권이 힘이 됩니다.", coupangUrl: "https://link.coupang.com/a/gSmOsshYgD", image: "https://images.pexels.com/photos/29737184/pexels-photo-29737184.jpeg?auto=compress&cs=tinysrgb&h=350" },
+    label: "INFP 키링",
+    reason: "상상 속 세계가 넓은 INFP, 네 글자를 달고 다니면 같은 유형이 먼저 알아봐요.", coupangUrl: "https://link.coupang.com/a/hzl3XDPnHM" },
   INTP: {
-    label: "타임타이머",
-    reason: "생각에 몰입하면 시간 감각을 놓치는 유형이라, 눈에 보이는 타이머 하나가 생활 리듬을 잡아줍니다.", coupangUrl: "https://link.coupang.com/a/gSmOuFY4D6", image: "https://images.pexels.com/photos/15930083/pexels-photo-15930083.jpeg?auto=compress&cs=tinysrgb&h=350" },
+    label: "INTP 키링",
+    reason: "생각이 꼬리를 무는 INTP, 손에 쥐고 만지작거릴 유형 키링 하나 어때요?", coupangUrl: "https://link.coupang.com/a/hzl3ZP4P8K" },
   ESTP: {
-    label: "홈트레이닝 세트",
-    reason: "몸을 움직여야 스트레스가 풀리는 유형이라, 언제든 바로 시작할 수 있는 운동 도구가 잘 맞습니다.", coupangUrl: "https://link.coupang.com/a/gSmOw5Rhka", image: "https://images.pexels.com/photos/8436471/pexels-photo-8436471.jpeg?auto=compress&cs=tinysrgb&h=350" },
+    label: "ESTP 키링",
+    reason: "어디서든 눈에 띄는 ESTP, 내 유형을 대놓고 드러내는 키링이 잘 어울려요.", coupangUrl: "https://link.coupang.com/a/hzl3162gfI" },
   ESFP: {
-    label: "블루투스 스피커",
-    reason: "분위기와 즐거움으로 에너지를 얻는 유형이라, 좋아하는 음악을 크게 틀어줄 스피커 하나가 기분 전환에 좋습니다.", coupangUrl: "https://link.coupang.com/a/gSmOzoW6ua", image: "https://images.pexels.com/photos/29581125/pexels-photo-29581125.jpeg?auto=compress&cs=tinysrgb&h=350" },
+    label: "ESFP 키링",
+    reason: "분위기 메이커 ESFP, 친구들과 유형별로 맞춰 달면 더 재밌어요.", coupangUrl: "https://link.coupang.com/a/hzl34kfJBY" },
   ENFP: {
-    label: "포스트잇",
-    reason: "새로운 시작은 잘하지만 마무리가 쌓이면 부담스러운 유형이라, 눈에 보이게 하나씩 지워나갈 수 있는 포스트잇이 도움이 됩니다.", coupangUrl: "https://link.coupang.com/a/gSmOBCc2dE", image: "https://images.pexels.com/photos/17210072/pexels-photo-17210072.jpeg?auto=compress&cs=tinysrgb&h=350" },
+    label: "ENFP 키링",
+    reason: "새로운 사람과 금방 친해지는 ENFP, 키링 하나가 대화의 시작이 돼요.", coupangUrl: "https://link.coupang.com/a/hzl36AmmkK" },
   ENTP: {
-    label: "화이트보드",
-    reason: "머릿속 아이디어를 눈에 보이게 정리할 때 완성도가 높아지는 유형이라, 화이트보드 하나가 좋은 도구가 됩니다.", coupangUrl: "https://link.coupang.com/a/gSmOD7zxZc", image: "https://images.pexels.com/photos/8617769/pexels-photo-8617769.jpeg?auto=compress&cs=tinysrgb&h=350" },
+    label: "ENTP 키링",
+    reason: "말로는 지지 않는 ENTP, 네 글자 키링으로 정체를 먼저 밝혀 두세요.", coupangUrl: "https://link.coupang.com/a/hzl38PQCJw" },
   ESTJ: {
-    label: "마사지건",
-    reason: "목표를 향해 쉬지 않고 달리는 유형이라, 의식적으로 몸의 피로를 풀어줄 도구를 일정에 넣어두면 좋습니다.", coupangUrl: "https://link.coupang.com/a/gSmOGt4yHY", image: "https://images.pexels.com/photos/36593691/pexels-photo-36593691.jpeg?auto=compress&cs=tinysrgb&h=350" },
+    label: "ESTJ 키링",
+    reason: "일 처리 확실한 ESTJ, 가방에 단 네 글자가 '믿고 맡기세요'를 대신 말해 줘요.", coupangUrl: "https://link.coupang.com/a/hzl4aZaevQ" },
   ESFJ: {
-    label: "홈카페 세트",
-    reason: "남을 챙기느라 바빴다면, 집에서 나만을 위한 여유로운 시간을 만들어 줄 홈카페 세트는 어떨까요.", coupangUrl: "https://link.coupang.com/a/gSmOIAAoDY", image: "https://images.pexels.com/photos/18056912/pexels-photo-18056912.jpeg?auto=compress&cs=tinysrgb&h=350" },
+    label: "ESFJ 키링",
+    reason: "모두를 챙기는 ESFJ, 친구 유형까지 맞춰 선물하기 좋아요.", coupangUrl: "https://link.coupang.com/a/hzl4db4KyW" },
   ENFJ: {
-    label: "감정일기장",
-    reason: "남의 감정을 먼저 살피는 유형이라, 내 마음을 들여다보는 시간을 위한 기록장이 도움이 됩니다.", coupangUrl: "https://link.coupang.com/a/gSmOKIDv1E", image: "https://images.pexels.com/photos/29737184/pexels-photo-29737184.jpeg?auto=compress&cs=tinysrgb&h=350" },
+    label: "ENFJ 키링",
+    reason: "사람들의 중심에 있는 ENFJ, 모임 친구들과 유형 키링을 나눠 달아 보세요.", coupangUrl: "https://link.coupang.com/a/hzl4fpCY68" },
   ENTJ: {
-    label: "스탠딩 데스크",
-    reason: "쉬는 시간도 성과처럼 여기는 유형이라, 일하는 방식 자체를 편하게 바꿔줄 도구가 실질적인 도움이 됩니다.", coupangUrl: "https://link.coupang.com/a/gSmOMQhKtU", image: "https://images.pexels.com/photos/5552789/pexels-photo-5552789.jpeg?auto=compress&cs=tinysrgb&h=350" },
+    label: "ENTJ 키링",
+    reason: "목표가 분명한 ENTJ, 내 유형을 당당하게 드러내는 키링 하나면 충분해요.", coupangUrl: "https://link.coupang.com/a/hzl4hIGOFE" },
 };
