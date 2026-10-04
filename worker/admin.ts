@@ -390,6 +390,12 @@ async function dashboard(
     { key: "3~10분", views: journey.b3 },
     { key: "10분 이상", views: journey.b4 },
   ];
+  // 들어온 페이지별 1페이지 이탈. 이탈자가 많은 순(고치면 효과가 큰 순)으로 보여 줍니다.
+  const byBounce = (m: Record<string, { n: number; b: number }> = {}) => Object.entries(m).sort((a, b) => b[1].b - a[1].b || b[1].n - a[1].n);
+  const landingAll = byBounce(all.landing);
+  const landingSources = byBounce(all.landingSource);
+  const landingBounces = landingAll.reduce((sum, [, x]) => sum + x.b, 0);
+  const landingDays = withData.filter((r) => r.landing).length;
   // MBTI 결과 화면에서 바로 이어서 연 페이지. 같은 사이트 안 이동만 봅니다.
   const afterMbti = rowsOf(all.afterMbti, 12);
   const afterMbtiTotal = Object.values(all.afterMbti).reduce((sum, n) => sum + n, 0);
@@ -530,6 +536,21 @@ ${journeyDays.map((d) => `<tr><td>${d.day.slice(5)}</td><td>${d.visitors.toLocal
 <div class="grid">
 <div class="box"><h2>체류 시간 분포</h2>${bars(dwellRows, journey.visitors)}</div>
 <div class="box"><h2>MBTI 결과 다음에 연 페이지</h2><p class="note">결과 화면에서 바로 이어서 연 페이지입니다(합계 ${afterMbtiTotal.toLocaleString()}). 「/」 는 다시 검사하기나 로고를 누른 경우입니다.</p>${bars(afterMbti, afterMbtiTotal)}</div>
+</div>
+
+<div class="box"><h2>1페이지만 보고 나간 사람은 어디로 들어왔나</h2>
+<p class="note">
+그날 처음 연 페이지(들어온 페이지)별로 셉니다. <b>이탈률 = 그 페이지 하나만 보고 나간 사람 ÷ 그 페이지로 들어온 사람</b>.
+「이탈 몫」은 전체 1페이지 이탈자 중 그 페이지가 차지하는 비율 — 고치면 효과가 큰 순서입니다.
+글을 다 읽고 만족해 나간 사람도 이탈로 잡히니, 검사 페이지의 이탈과 글 페이지의 이탈은 다르게 읽으세요.
+${landingAll.length === 0 ? "" : `집계 버전 2(${landingDays}일치)만 들어 있습니다 — 지난 날짜가 비면 새로고침할 때마다 7일씩 채웁니다.`}
+</p>
+${landingAll.length === 0 ? `<p class="empty">아직 기록이 없습니다. 새로고침하면 지난 날짜를 다시 집계합니다.</p>` : `<div class="grid"><div class="scroll"><table><thead><tr><th>들어온 페이지</th><th>들어온 사람</th><th>1페이지 이탈</th><th>이탈률</th><th>이탈 몫</th></tr></thead><tbody>
+${landingAll.slice(0, 30).map(([path, x]) => `<tr><td>${esc(path)}</td><td>${x.n.toLocaleString()}</td><td>${x.b.toLocaleString()}</td><td>${pct(x.b, x.n)}</td><td>${landingBounces ? ((x.b / landingBounces) * 100).toFixed(1) + "%" : "-"}</td></tr>`).join("")}
+</tbody></table></div>
+<div class="scroll"><table><thead><tr><th>유입 경로</th><th>들어온 사람</th><th>1페이지 이탈</th><th>이탈률</th></tr></thead><tbody>
+${landingSources.map(([src, x]) => `<tr><td>${esc(SOURCE_LABELS[src] ?? src)}</td><td>${x.n.toLocaleString()}</td><td>${x.b.toLocaleString()}</td><td>${pct(x.b, x.n)}</td></tr>`).join("")}
+</tbody></table></div></div>`}
 </div>
 
 <div class="box"><h2>결과 화면 링크 묶음 클릭</h2>

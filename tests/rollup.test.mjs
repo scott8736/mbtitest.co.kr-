@@ -90,3 +90,22 @@ test("날짜 범위는 양 끝을 포함하고 월을 넘긴다", () => {
   assert.deepEqual(mod.daysBetween("2026-09-29", "2026-10-02"), ["2026-09-29", "2026-09-30", "2026-10-01", "2026-10-02"]);
   assert.deepEqual(mod.daysBetween("2026-10-04", "2026-10-04"), ["2026-10-04"]);
 });
+
+test("들어온 페이지별 이탈: 가장 이른 조회가 들어온 페이지, 기록 순서가 뒤섞여도 같다", () => {
+  const rows = [
+    // A: 블로그로 들어와 MBTI 검사로 감 (기록이 늦은 것부터 들어옴)
+    page("A", "/tests/mbti/", "10:01:00", { source: "internal" }), page("A", "/blog/x/", "10:00:00", { source: "naver" }),
+    // B·C: 블로그 하나만 보고 나감
+    page("B", "/blog/x/", "11:00:00", { source: "naver" }),
+    page("C", "/blog/x/", "12:00:00", { source: "google" }),
+    // D: MBTI 첫 화면만 보고 나감
+    page("D", "/tests/mbti/", "13:00:00", { source: "direct" }),
+  ];
+  const r = mod.buildRollup("2026-10-05", rows, []);
+  assert.deepEqual(r.landing["/blog/x/"], { n: 3, b: 2 });
+  assert.deepEqual(r.landing["/tests/mbti/"], { n: 1, b: 1 }, "A 는 블로그로 들어왔으므로 MBTI 첫 페이지 집계에 없다");
+  assert.deepEqual(r.landingSource.naver, { n: 2, b: 1 });
+  assert.equal(Object.values(r.landing).reduce((s, x) => s + x.b, 0), r.journey.b0, "이탈자 합 = 1페이지 이탈");
+  const m = mod.mergeRollups([r, mod.buildRollup("2026-10-06", [page("E", "/blog/x/", "09:00:00")], [])]);
+  assert.deepEqual(m.landing["/blog/x/"], { n: 4, b: 3 });
+});

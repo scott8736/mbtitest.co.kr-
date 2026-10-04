@@ -12,7 +12,7 @@
  * 집계 방식을 바꾸면 ROLLUP_VERSION 을 올리세요. 저장된 옛 집계는 버전이 달라 다시 만들어집니다.
  */
 
-export const ROLLUP_VERSION = 1;
+export const ROLLUP_VERSION = 2; // 2: 들어온 페이지별 이탈(landing) 추가 — 지난 날짜도 다시 집계해 기준 기간과 비교합니다
 /** 오늘 집계를 다시 만드는 간격 */
 export const TODAY_TTL_MS = 10 * 60_000;
 /** 한 번 화면을 열 때 새로 만드는 지난 날짜 수. 처음 90일을 채울 때 한 번에 몰아 읽지 않게 합니다 */
@@ -20,6 +20,7 @@ export const MAX_BUILDS_PER_LOAD = 7;
 /** 하루 집계에 남기는 주소·리퍼러 수. 나머지 꼬리는 버립니다 */
 const KEEP_PATHS = 300;
 const KEEP_REFERRERS = 100;
+const KEEP_LANDINGS = 200;
 
 export type Journey = {
   visitors: number;
@@ -58,7 +59,13 @@ export type Rollup = {
   share?: { views: number; visitors: number; toTest: number };
   /** 다른 테스트 결과 공유 페이지(/tests/<slug>/r/<결과>/) → 아무 검사 첫 화면. 2026-10-04 추가, share 와 같은 이유로 버전은 그대로. */
   shareTest?: { views: number; visitors: number; toTest: number };
+  /** 하루 첫 조회 주소 → 그 주소로 들어온 사람(n) · 그 한 페이지만 보고 나간 사람(b). 버전 2부터. */
+  landing?: Record<string, Bounce>;
+  /** 첫 조회의 유입 경로 → n · b. 버전 2부터. */
+  landingSource?: Record<string, Bounce>;
 };
+
+export type Bounce = { n: number; b: number };
 
 export type PageRow = {
   path: string;
@@ -119,9 +126,11 @@ export function buildRollup(day: string, pages: PageRow[], events: EventRow[]): 
     afterMbti: {},
     share: { views: 0, visitors: 0, toTest: 0 },
     shareTest: { views: 0, visitors: 0, toTest: 0 },
+    landing: {},
+    landingSource: {},
   };
 
-  type Visitor = { views: number; first: number; last: number; tests: Set<string>; tookMbti: boolean; mbtiAt: number; otherAt: number; shareAt: number; mbtiStartAt: number; testShareAt: number; introAt: number };
+  type Visitor = { views: number; first: number; last: number; tests: Set<string>; tookMbti: boolean; mbtiAt: number; otherAt: number; shareAt: number; mbtiStartAt: number; testShareAt: number; introAt: number; landing: string; landingSource: string };
   const visitors = new Map<string, Visitor>();
 
   for (const p of pages) {
@@ -141,10 +150,15 @@ export function buildRollup(day: string, pages: PageRow[], events: EventRow[]): 
     const at = toMs(p.created_at);
     let v = visitors.get(p.visitor_hash);
     if (!v) {
-      v = { views: 0, first: at, last: at, tests: new Set(), tookMbti: false, mbtiAt: Infinity, otherAt: -Infinity, shareAt: Infinity, mbtiStartAt: -Infinity, testShareAt: Infinity, introAt: -Infinity };
+      v = { views: 0, first: at, last: at, tests: new Set(), tookMbti: false, mbtiAt: Infinity, otherAt: -Infinity, shareAt: Infinity, mbtiStartAt: -Infinity, testShareAt: Infinity, introAt: -Infinity, landing: p.path, landingSource: p.source };
       visitors.set(p.visitor_hash, v);
     }
     v.views += 1;
+    // 기록 순서가 시간순이라는 보장이 없어 가장 이른 조회를 첫 페이지로 삼습니다.
+    if (at < v.first) {
+      v.landing = p.path;
+      v.landingSource = p.source;
+    }
     v.first = Math.min(v.first, at);
     v.last = Math.max(v.last, at);
     if (isTestIntro(p.path)) {
@@ -184,6 +198,11 @@ export function buildRollup(day: string, pages: PageRow[], events: EventRow[]): 
       r.shareTest!.visitors += 1;
       if (v.introAt >= v.testShareAt) r.shareTest!.toTest += 1;
     }
+    for (const [map, key] of [[r.landing!, v.landing], [r.landingSource!, v.landingSource]] as const) {
+      const row = (map[key] ??= { n: 0, b: 0 });
+      row.n += 1;
+      if (v.views === 1) row.b += 1;
+    }
     if (v.views === 1) j.b0 += 1;
     else if (span < 60) j.b1 += 1;
     else if (span < 180) j.b2 += 1;
@@ -196,6 +215,7 @@ export function buildRollup(day: string, pages: PageRow[], events: EventRow[]): 
 
   r.paths = top(r.paths, KEEP_PATHS);
   r.referrers = top(r.referrers, KEEP_REFERRERS);
+  r.landing = Object.fromEntries(Object.entries(r.landing!).sort((a, b) => b[1].n - a[1].n).slice(0, KEEP_LANDINGS));
   return r;
 }
 
@@ -206,6 +226,8 @@ export function mergeRollups(list: Rollup[]): Rollup {
     referrers: {}, steps: {}, events: {}, journey: emptyJourney(), afterMbti: {},
     share: { views: 0, visitors: 0, toTest: 0 },
     shareTest: { views: 0, visitors: 0, toTest: 0 },
+    landing: {},
+    landingSource: {},
   };
   for (const r of list) {
     m.views += r.views;
@@ -220,6 +242,13 @@ export function mergeRollups(list: Rollup[]): Rollup {
       row.result += s.result;
     }
     for (const key of Object.keys(m.journey) as (keyof Journey)[]) m.journey[key] += r.journey[key];
+    for (const key of ["landing", "landingSource"] as const) {
+      for (const [k, x] of Object.entries(r[key] ?? {})) {
+        const row = (m[key]![k] ??= { n: 0, b: 0 });
+        row.n += x.n;
+        row.b += x.b;
+      }
+    }
     for (const key of ["share", "shareTest"] as const) {
       const from = r[key];
       if (!from) continue;
