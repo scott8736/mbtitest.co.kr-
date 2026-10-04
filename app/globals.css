@@ -392,6 +392,8 @@ button:focus-visible,a:focus-visible,input:focus-visible { outline:3px solid rgb
 .ad-unit[data-ad-placement="resultTop"] { margin:0 auto 30px; }
 main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% - 40px)); }
 
+.trademark-notice { flex-basis:100%; width:100%; margin:22px 0 0; color:rgba(255,255,255,.5); font-size:11.5px; line-height:1.6; text-align:center; word-break:keep-all; }
+.trademark-notice + .partners-disclosure { margin-top:12px; }
 .partners-disclosure {
   flex-basis:100%;
   width:100%;

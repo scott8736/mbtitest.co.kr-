@@ -97,10 +97,10 @@ export default function MbtiHome() {
               <h2 id="type-guide-title">MBTI 유형별 특징</h2>
               <p className="section-lead">네 가지 지표를 조합하면 16가지 유형이 만들어집니다. 같은 유형이라도 성장 환경과 경험에 따라 모습은 달라질 수 있으므로 대표적인 성향으로 참고해 주세요.</p>
               {[
-                ["NT", "분석형", "논리, 전략, 지식과 새로운 아이디어를 중시하는 유형", ["INTJ","INTP","ENTJ","ENTP"]],
-                ["NF", "외교형", "공감, 의미, 성장과 사람 사이의 연결을 중시하는 유형", ["INFJ","INFP","ENFJ","ENFP"]],
-                ["SJ", "관리자형", "책임, 안정, 현실적인 기준과 꾸준한 실행을 중시하는 유형", ["ISTJ","ISFJ","ESTJ","ESFJ"]],
-                ["SP", "탐험가형", "경험, 감각, 유연성과 빠른 상황 대응을 중시하는 유형", ["ISTP","ISFP","ESTP","ESFP"]],
+                ["NT", "탐구형", "논리, 전략, 지식과 새로운 아이디어를 중시하는 유형", ["INTJ","INTP","ENTJ","ENTP"]],
+                ["NF", "공감형", "공감, 의미, 성장과 사람 사이의 연결을 중시하는 유형", ["INFJ","INFP","ENFJ","ENFP"]],
+                ["SJ", "안정형", "책임, 안정, 현실적인 기준과 꾸준한 실행을 중시하는 유형", ["ISTJ","ISFJ","ESTJ","ESFJ"]],
+                ["SP", "행동형", "경험, 감각, 유연성과 빠른 상황 대응을 중시하는 유형", ["ISTP","ISFP","ESTP","ESFP"]],
               ].map(([group, title, desc, codes]) => (
                 <div className="type-group" key={group as string}>
                   <div className="group-heading"><b>{group as string}</b><div><h3>{title as string}</h3><p>{desc as string}</p></div></div>

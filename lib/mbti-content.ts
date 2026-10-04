@@ -26,7 +26,7 @@ export type MbtiProfile = {
 
 export const profiles: Record<MbtiCode, MbtiProfile> = {
   intj: {
-    code: "INTJ", name: "전략가", group: "분석형 NT", tagline: "복잡한 문제를 구조화하고 먼 미래를 설계하는 독립적인 전략가",
+    code: "INTJ", name: "설계자", group: "탐구형 NT", tagline: "복잡한 문제를 구조화하고 먼 미래를 설계하는 독립적인 전략가",
     summary: "INTJ는 장기적인 목표를 세우고 복잡한 문제를 체계로 바꾸는 데 강점을 보이는 유형입니다. 혼자 생각을 정리할 시간이 필요하고, 관계에서는 말보다 일관된 행동과 책임으로 신뢰를 표현하는 경우가 많습니다.",
     core: "가능성을 떠올리는 직관(N)과 논리적 기준으로 판단하는 사고(T), 계획을 선호하는 판단(J)이 결합됩니다. 겉으로는 조용해 보여도 머릿속에서는 여러 시나리오를 비교하며 가장 효율적인 경로를 찾습니다.",
     strengths: ["장기 목표와 우선순위를 선명하게 정합니다.", "정보의 패턴을 발견하고 전략으로 연결합니다.", "독립적으로 깊이 집중하며 기준을 지킵니다."],
@@ -40,7 +40,7 @@ export const profiles: Record<MbtiCode, MbtiProfile> = {
     matches: ["enfp", "entp", "infj"], challenges: ["esfp", "esfj", "isfp"],
   },
   intp: {
-    code: "INTP", name: "논리술사", group: "분석형 NT", tagline: "당연해 보이는 것에도 질문을 던지고 원리를 끝까지 탐구하는 사색가",
+    code: "INTP", name: "탐구가", group: "탐구형 NT", tagline: "당연해 보이는 것에도 질문을 던지고 원리를 끝까지 탐구하는 사색가",
     summary: "INTP는 아이디어의 원리와 논리적 일관성을 탐구하는 유형입니다. 정답을 빠르게 확정하기보다 여러 가능성을 열어 두며, 관심 분야에서는 긴 시간 몰입해 독창적인 해법을 찾습니다.",
     core: "내향(I)의 깊은 집중, 직관(N)의 가능성 탐색, 사고(T)의 분석, 인식(P)의 유연성이 결합됩니다. 정해진 방식보다 왜 그렇게 해야 하는지를 이해해야 움직임이 빨라집니다.",
     strengths: ["복잡한 개념을 분해해 핵심 원리를 찾습니다.", "고정관념에서 벗어난 대안을 제시합니다.", "감정에 휩쓸리지 않고 문제를 객관적으로 검토합니다."],
@@ -54,7 +54,7 @@ export const profiles: Record<MbtiCode, MbtiProfile> = {
     matches: ["entj", "entp", "infj"], challenges: ["esfj", "estj", "isfj"],
   },
   entj: {
-    code: "ENTJ", name: "통솔자", group: "분석형 NT", tagline: "목표를 구조화하고 사람과 자원을 움직여 결과를 만드는 지휘자",
+    code: "ENTJ", name: "지휘관", group: "탐구형 NT", tagline: "목표를 구조화하고 사람과 자원을 움직여 결과를 만드는 지휘자",
     summary: "ENTJ는 목표 달성을 위해 빠르게 판단하고 실행 체계를 만드는 유형입니다. 큰 그림과 효율을 중시하며, 책임을 맡았을 때 방향을 제시하고 팀을 이끄는 모습이 자연스럽게 나타납니다.",
     core: "외향(E)의 추진력, 직관(N)의 전략적 시야, 사고(T)의 객관적 판단, 판단(J)의 계획성이 결합됩니다. 문제를 발견하면 오래 불평하기보다 해결 구조부터 만들려 합니다.",
     strengths: ["복잡한 목표를 단계별 실행 계획으로 바꿉니다.", "결정이 필요한 순간에 책임지고 방향을 제시합니다.", "성과를 막는 비효율을 빠르게 발견합니다."],
@@ -68,7 +68,7 @@ export const profiles: Record<MbtiCode, MbtiProfile> = {
     matches: ["intp", "enfp", "intj"], challenges: ["isfp", "esfp", "isfj"],
   },
   entp: {
-    code: "ENTP", name: "변론가", group: "분석형 NT", tagline: "새로운 가능성을 빠르게 발견하고 질문과 토론으로 판을 바꾸는 탐험가",
+    code: "ENTP", name: "토론가", group: "탐구형 NT", tagline: "새로운 가능성을 빠르게 발견하고 질문과 토론으로 판을 바꾸는 탐험가",
     summary: "ENTP는 익숙한 방식에 의문을 제기하고 새로운 가능성을 실험하는 유형입니다. 대화를 통해 생각을 발전시키며, 변화가 빠르고 선택지가 많은 상황에서 순발력과 창의성이 살아납니다.",
     core: "외향(E)의 상호작용, 직관(N)의 아이디어, 사고(T)의 논리, 인식(P)의 개방성이 결합됩니다. 하나의 결론보다 더 나은 질문과 다른 경로를 찾는 데 흥미를 느낍니다.",
     strengths: ["상황을 새로운 관점에서 재해석합니다.", "즉석에서 아이디어를 연결하고 설득합니다.", "불확실한 환경에서도 대안을 빠르게 만듭니다."],
@@ -82,7 +82,7 @@ export const profiles: Record<MbtiCode, MbtiProfile> = {
     matches: ["infj", "intj", "enfp"], challenges: ["isfj", "istj", "esfj"],
   },
   infj: {
-    code: "INFJ", name: "옹호자", group: "외교형 NF", tagline: "사람의 마음과 관계의 흐름을 깊이 읽고 의미 있는 변화를 만드는 조언자",
+    code: "INFJ", name: "마음 등대", group: "공감형 NF", tagline: "사람의 마음과 관계의 흐름을 깊이 읽고 의미 있는 변화를 만드는 조언자",
     summary: "INFJ는 사람의 말 뒤에 있는 의미와 관계의 흐름을 세심하게 읽는 유형입니다. 조용해 보여도 분명한 가치 기준을 가지고 있으며, 자신이 중요하다고 믿는 사람과 목표에는 꾸준히 헌신합니다.",
     core: "내향(I)의 성찰, 직관(N)의 통찰, 감정(F)의 가치 판단, 판단(J)의 방향성이 결합됩니다. 여러 단서를 하나의 이야기로 연결해 사람과 상황의 미래를 예상합니다.",
     strengths: ["상대의 감정과 숨은 필요를 섬세하게 파악합니다.", "가치와 현실을 연결한 장기적인 방향을 제시합니다.", "깊은 관계에서 일관되고 책임감 있게 행동합니다."],
@@ -96,7 +96,7 @@ export const profiles: Record<MbtiCode, MbtiProfile> = {
     matches: ["entp", "enfp", "intj"], challenges: ["estp", "estj", "esfp"],
   },
   infp: {
-    code: "INFP", name: "중재자", group: "외교형 NF", tagline: "자신만의 가치와 가능성을 지키며 사람의 진심을 발견하는 이상주의자",
+    code: "INFP", name: "이야기꾼", group: "공감형 NF", tagline: "자신만의 가치와 가능성을 지키며 사람의 진심을 발견하는 이상주의자",
     summary: "INFP는 개인의 가치와 진정성을 중요하게 생각하는 유형입니다. 조용하고 부드러워 보여도 내면의 기준은 단단하며, 사람과 세상이 더 나아질 가능성을 오래 믿습니다.",
     core: "내향(I)의 내면 세계, 직관(N)의 상상력, 감정(F)의 가치 중심 판단, 인식(P)의 유연성이 결합됩니다. 정답보다 자신과 타인에게 진실한 선택인지를 중요하게 봅니다.",
     strengths: ["사람의 개성과 감정을 편견 없이 이해합니다.", "상상력과 언어 감각으로 새로운 의미를 만듭니다.", "중요한 가치와 약자를 위해 꾸준히 목소리를 냅니다."],
@@ -110,7 +110,7 @@ export const profiles: Record<MbtiCode, MbtiProfile> = {
     matches: ["enfj", "entj", "infj"], challenges: ["estj", "istj", "estp"],
   },
   enfj: {
-    code: "ENFJ", name: "선도자", group: "외교형 NF", tagline: "사람의 가능성을 발견하고 공동의 방향으로 이끄는 따뜻한 리더",
+    code: "ENFJ", name: "응원단장", group: "공감형 NF", tagline: "사람의 가능성을 발견하고 공동의 방향으로 이끄는 따뜻한 리더",
     summary: "ENFJ는 사람의 감정과 잠재력을 빠르게 알아보고 함께 성장할 방향을 만드는 유형입니다. 관계의 분위기를 살피면서도 필요한 순간에는 분명한 목표를 제시합니다.",
     core: "외향(E)의 관계 에너지, 직관(N)의 가능성, 감정(F)의 공감, 판단(J)의 조직력이 결합됩니다. 개인의 필요와 공동체의 목표를 동시에 조율하려 합니다.",
     strengths: ["사람의 장점을 발견하고 용기를 북돋습니다.", "여러 사람의 의견을 공동 목표로 연결합니다.", "말과 행동으로 신뢰와 참여를 이끌어 냅니다."],
@@ -124,7 +124,7 @@ export const profiles: Record<MbtiCode, MbtiProfile> = {
     matches: ["infp", "isfp", "intp"], challenges: ["istp", "istj", "estp"],
   },
   enfp: {
-    code: "ENFP", name: "활동가", group: "외교형 NF", tagline: "사람과 아이디어의 가능성을 발견해 새로운 에너지를 만드는 자유로운 활동가",
+    code: "ENFP", name: "아이디어 뱅크", group: "공감형 NF", tagline: "사람과 아이디어의 가능성을 발견해 새로운 에너지를 만드는 자유로운 영혼",
     summary: "ENFP는 새로운 사람과 가능성에서 에너지를 얻고, 자신이 발견한 의미를 열정적으로 나누는 유형입니다. 자유로워 보이지만 진심과 가치가 연결된 일에는 놀라울 만큼 깊게 몰입합니다.",
     core: "외향(E)의 교류, 직관(N)의 가능성, 감정(F)의 가치, 인식(P)의 유연성이 결합됩니다. 익숙한 답보다 사람과 상황 안에 숨은 새로운 선택지를 찾습니다.",
     strengths: ["사람의 잠재력을 발견하고 분위기에 활력을 줍니다.", "서로 다른 아이디어를 빠르게 연결합니다.", "변화에 유연하며 진심 어린 소통을 만듭니다."],
@@ -138,7 +138,7 @@ export const profiles: Record<MbtiCode, MbtiProfile> = {
     matches: ["intj", "infj", "entj"], challenges: ["istj", "estj", "isfj"],
   },
   istj: {
-    code: "ISTJ", name: "현실주의자", group: "관리자형 SJ", tagline: "검증된 기준과 책임감으로 일상의 신뢰를 쌓는 현실적인 관리자",
+    code: "ISTJ", name: "약속 지킴이", group: "안정형 SJ", tagline: "검증된 기준과 책임감으로 일상의 신뢰를 쌓는 현실적인 관리자",
     summary: "ISTJ는 사실과 경험을 바탕으로 약속과 기준을 지키는 유형입니다. 눈에 띄는 표현보다 맡은 일을 정확하게 마무리하며 주변에 안정감을 제공합니다.",
     core: "내향(I)의 집중, 감각(S)의 구체성, 사고(T)의 원칙, 판단(J)의 계획성이 결합됩니다. 이미 검증된 절차를 존중하면서 오류와 위험을 줄이는 데 능합니다.",
     strengths: ["약속과 마감을 꾸준히 지킵니다.", "세부 사실과 과거 경험을 정확하게 기억합니다.", "복잡한 일을 표준과 순서로 정리합니다."],
@@ -152,7 +152,7 @@ export const profiles: Record<MbtiCode, MbtiProfile> = {
     matches: ["esfp", "estp", "isfj"], challenges: ["enfp", "entp", "infp"],
   },
   isfj: {
-    code: "ISFJ", name: "수호자", group: "관리자형 SJ", tagline: "작은 변화를 기억하고 꾸준한 돌봄으로 관계의 안전을 만드는 수호자",
+    code: "ISFJ", name: "돌봄 요정", group: "안정형 SJ", tagline: "작은 변화를 기억하고 꾸준한 돌봄으로 관계의 안전을 만드는 수호자",
     summary: "ISFJ는 사람의 필요와 일상의 세부를 세심하게 기억하는 유형입니다. 조용하지만 책임감이 강하고, 가까운 사람과 공동체가 안정적으로 유지되도록 꾸준히 행동합니다.",
     core: "내향(I)의 차분함, 감각(S)의 세심함, 감정(F)의 배려, 판단(J)의 안정성이 결합됩니다. 익숙한 경험을 토대로 지금 필요한 실질적인 도움을 제공합니다.",
     strengths: ["상대의 취향과 필요한 도움을 세심하게 기억합니다.", "보이지 않는 자리에서도 책임을 꾸준히 다합니다.", "갈등을 줄이고 편안한 분위기를 만듭니다."],
@@ -166,7 +166,7 @@ export const profiles: Record<MbtiCode, MbtiProfile> = {
     matches: ["estp", "esfp", "istj"], challenges: ["entp", "entj", "enfp"],
   },
   estj: {
-    code: "ESTJ", name: "경영자", group: "관리자형 SJ", tagline: "명확한 기준과 실행력으로 조직과 일상을 안정시키는 현실적인 관리자",
+    code: "ESTJ", name: "현장 반장", group: "안정형 SJ", tagline: "명확한 기준과 실행력으로 조직과 일상을 안정시키는 현실적인 관리자",
     summary: "ESTJ는 해야 할 일을 빠르게 파악하고 사람과 자원을 효율적으로 배치하는 유형입니다. 약속, 규칙, 책임을 중요하게 여기며 실제 결과로 신뢰를 얻습니다.",
     core: "외향(E)의 실행력, 감각(S)의 현실성, 사고(T)의 기준, 판단(J)의 조직력이 결합됩니다. 모호한 논의보다 누가 무엇을 언제 할지 분명하게 정하는 것을 선호합니다.",
     strengths: ["목표를 현실적인 일정과 역할로 바꿉니다.", "결정을 미루지 않고 책임 있게 실행합니다.", "공동체의 규칙과 운영을 안정적으로 유지합니다."],
@@ -180,7 +180,7 @@ export const profiles: Record<MbtiCode, MbtiProfile> = {
     matches: ["isfp", "istp", "esfj"], challenges: ["infp", "enfp", "infj"],
   },
   esfj: {
-    code: "ESFJ", name: "집정관", group: "관리자형 SJ", tagline: "사람을 연결하고 세심한 실천으로 공동체의 온도를 높이는 협력가",
+    code: "ESFJ", name: "모임 호스트", group: "안정형 SJ", tagline: "사람을 연결하고 세심한 실천으로 공동체의 온도를 높이는 협력가",
     summary: "ESFJ는 주변 사람의 감정과 필요를 빠르게 살피고 관계가 원활하게 이어지도록 행동하는 유형입니다. 표현이 따뜻하고 현실적인 도움에도 적극적입니다.",
     core: "외향(E)의 교류, 감각(S)의 현실 감각, 감정(F)의 관계 중심 판단, 판단(J)의 계획성이 결합됩니다. 사람들이 편안하게 참여할 수 있는 분위기와 절차를 만듭니다.",
     strengths: ["사람을 자연스럽게 연결하고 소속감을 만듭니다.", "상대에게 필요한 실질적인 도움을 빠르게 제공합니다.", "일정과 행사를 세심하게 준비하고 마무리합니다."],
@@ -194,7 +194,7 @@ export const profiles: Record<MbtiCode, MbtiProfile> = {
     matches: ["istp", "isfp", "estj"], challenges: ["intp", "intj", "entp"],
   },
   istp: {
-    code: "ISTP", name: "장인", group: "탐험가형 SP", tagline: "상황을 냉정하게 관찰하고 손에 잡히는 해결책을 만드는 실용적인 장인",
+    code: "ISTP", name: "해결사", group: "행동형 SP", tagline: "상황을 냉정하게 관찰하고 손에 잡히는 해결책을 만드는 실용적인 장인",
     summary: "ISTP는 문제가 생겼을 때 감정적으로 동요하기보다 원인을 관찰하고 직접 해결해 보는 유형입니다. 자율성과 개인 공간을 중요하게 여기며 필요한 순간에는 빠르게 행동합니다.",
     core: "내향(I)의 집중, 감각(S)의 현장 감각, 사고(T)의 분석, 인식(P)의 유연성이 결합됩니다. 이론만 듣기보다 직접 만지고 시험하며 작동 원리를 이해합니다.",
     strengths: ["위기 상황에서 침착하게 핵심 문제를 찾습니다.", "도구와 자원을 활용해 실용적인 해법을 만듭니다.", "변화하는 상황에 빠르게 적응합니다."],
@@ -208,7 +208,7 @@ export const profiles: Record<MbtiCode, MbtiProfile> = {
     matches: ["esfj", "estj", "isfp"], challenges: ["enfj", "enfp", "infj"],
   },
   isfp: {
-    code: "ISFP", name: "모험가", group: "탐험가형 SP", tagline: "자신의 감각과 가치에 충실하며 조용히 아름다운 변화를 만드는 모험가",
+    code: "ISFP", name: "산책가", group: "행동형 SP", tagline: "자신의 감각과 가치에 충실하며 조용히 아름다운 변화를 만드는 모험가",
     summary: "ISFP는 현재의 감각과 개인의 진정성을 중요하게 생각하는 유형입니다. 부드럽고 유연하지만 자신이 소중하게 여기는 사람과 가치에는 분명한 태도를 보입니다.",
     core: "내향(I)의 섬세함, 감각(S)의 현실 감각, 감정(F)의 가치 판단, 인식(P)의 유연성이 결합됩니다. 말로 규정하기보다 직접 경험하고 느끼며 자신만의 선택을 만듭니다.",
     strengths: ["사람과 환경의 미묘한 변화를 세심하게 알아차립니다.", "강요하지 않으면서 따뜻한 도움을 제공합니다.", "색감, 공간, 몸의 감각처럼 실제적인 아름다움을 표현합니다."],
@@ -222,7 +222,7 @@ export const profiles: Record<MbtiCode, MbtiProfile> = {
     matches: ["enfj", "esfj", "istp"], challenges: ["entj", "intj", "estj"],
   },
   estp: {
-    code: "ESTP", name: "사업가", group: "탐험가형 SP", tagline: "현장의 변화를 빠르게 읽고 기회를 행동으로 바꾸는 대담한 해결사",
+    code: "ESTP", name: "행동대장", group: "행동형 SP", tagline: "현장의 변화를 빠르게 읽고 기회를 행동으로 바꾸는 대담한 해결사",
     summary: "ESTP는 지금 눈앞의 상황을 빠르게 파악하고 직접 행동하면서 답을 찾는 유형입니다. 사람과 환경의 반응을 잘 읽으며 위기에서도 현실적인 선택을 만들어 냅니다.",
     core: "외향(E)의 행동력, 감각(S)의 현장성, 사고(T)의 실용 판단, 인식(P)의 순발력이 결합됩니다. 긴 설명보다 실제 경험과 즉각적인 결과를 통해 배웁니다.",
     strengths: ["긴급한 상황에서 빠르고 현실적으로 판단합니다.", "사람의 반응과 협상 흐름을 민감하게 읽습니다.", "실패를 두려워하기보다 직접 시도하며 개선합니다."],
@@ -236,7 +236,7 @@ export const profiles: Record<MbtiCode, MbtiProfile> = {
     matches: ["isfj", "istj", "esfp"], challenges: ["infj", "infp", "enfj"],
   },
   esfp: {
-    code: "ESFP", name: "연예인", group: "탐험가형 SP", tagline: "현재의 즐거움과 사람의 감정을 생생하게 살리는 따뜻한 분위기 메이커",
+    code: "ESFP", name: "분위기 메이커", group: "행동형 SP", tagline: "현재의 즐거움과 사람의 감정을 생생하게 살리는 따뜻한 분위기 메이커",
     summary: "ESFP는 사람과 현재의 경험에서 에너지를 얻고 주변의 분위기를 밝게 만드는 유형입니다. 즉흥적으로 보여도 가까운 사람의 감정과 실제 필요를 빠르게 알아차립니다.",
     core: "외향(E)의 교류, 감각(S)의 생생한 경험, 감정(F)의 관계 중심 판단, 인식(P)의 유연성이 결합됩니다. 멀리 있는 가능성보다 지금 함께 느끼고 행동할 수 있는 것을 중요하게 봅니다.",
     strengths: ["사람을 편안하게 하고 긍정적인 분위기를 만듭니다.", "현실의 변화와 타인의 반응을 빠르게 포착합니다.", "새로운 경험에 유연하고 실제적인 도움을 줍니다."],
@@ -275,7 +275,7 @@ export function pairInsight(a: MbtiCode, b: MbtiCode) {
       : "서로 다른 관점이 강한 자극과 보완이 되지만, 의도를 추측하면 오해가 커질 수 있습니다.";
   return {
     title: `${A.code}와 ${B.code} 궁합`,
-    summary: `${A.code} ${A.name}와 ${B.code} ${B.name}의 관계는 단순한 좋고 나쁨보다 서로의 소통 방식과 생활 리듬을 어떻게 조율하는지가 중요합니다. ${common}`,
+    summary: `${A.code}(${A.name})와 ${B.code}(${B.name})의 관계는 단순한 좋고 나쁨보다 서로의 소통 방식과 생활 리듬을 어떻게 조율하는지가 중요합니다. ${common}`,
     strength: `${A.code}의 ${A.strengths[0].replace("합니다.", "하는 힘")}과 ${B.code}의 ${B.strengths[0].replace("합니다.", "하는 힘")}이 만나면 혼자서는 놓치기 쉬운 부분을 보완할 수 있습니다.`,
     conflict: contrasts.length
       ? `특히 ${contrasts.slice(0, 2).join(", ")}에서 차이가 드러날 수 있습니다. 상대의 행동을 무관심이나 통제로 단정하지 말고 필요한 기준을 말로 확인하는 것이 좋습니다.`

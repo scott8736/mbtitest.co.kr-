@@ -37,6 +37,10 @@ export default function SiteFooter({
           <a href="/contact/">문의하기</a>
           <a href="/privacy/">개인정보처리방침</a>
         </nav>
+        {/* 상표 고지 (2026-10-04) — 유형 페이지·홈 본문에만 있던 "비공식" 안내를 모든 페이지 하단에 둡니다. */}
+        <p className="trademark-notice">
+          MBTI®는 The Myers-Briggs Company의 등록상표입니다. 이 사이트의 검사는 자기이해를 돕는 비공식 성격테스트로, 공식 MBTI® 검사와 관련이 없습니다.
+        </p>
         <p className="partners-disclosure">
           파트너스 활동의 일환으로, 수수료 제공받음
         </p>
