@@ -184,6 +184,7 @@ export default function TarotDaily({ fortune }: { fortune: TarotFortune }) {
             path={`/tarot/${fortune.slug}/`}
             shareText={`오늘 내 타로는 「${picked.ko}」 카드!`}
             linkTitle={fortune.title}
+            group="tarot"
           />
 
           <AdUnit position="resultMiddle" />

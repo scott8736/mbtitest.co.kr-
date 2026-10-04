@@ -162,6 +162,7 @@ export default function CoupleFortuneTool() {
             path="/fortune/gunghap/"
             shareText={`우리 궁합 ${result.score}점 나왔어요!`}
             linkTitle="무료 궁합"
+            group="fortune"
           />
 
           <SajuLabBanner placement="gunghap" />

@@ -250,7 +250,7 @@ export default function FortuneTool({ mode, resultOnly = false }: { mode: Fortun
           {mode === "saju" && <SajuResult result={result} />}
           {mode === "saju-mbti" && <SajuMbtiResult result={result} mbti={submitted?.mbti ?? ""} />}
 
-          <ResultShareCard {...fortuneShare(mode, result, today, submitted?.mbti ?? "")} />
+          <ResultShareCard {...fortuneShare(mode, result, today, submitted?.mbti ?? "")} group="fortune" />
 
           <SajuLabBanner placement={mode === "today" ? "fortune-today" : mode === "saju" ? "fortune-saju" : "fortune-saju-mbti"} />
 

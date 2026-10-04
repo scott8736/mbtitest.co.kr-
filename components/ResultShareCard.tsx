@@ -31,6 +31,8 @@ export type ResultShareProps = {
   path?: string;
   shareText: string;
   linkTitle: string;
+  /** 관리자 「모리 카드 공유」 표에서 묶어 셀 칸. IQ·자가진단은 test, 운세·사주·궁합은 fortune, 타로는 tarot */
+  group?: "test" | "fortune" | "tarot";
 };
 
 async function drawResultCard(c: ResultShareProps, myMori: string | null): Promise<Blob | null> {
@@ -166,7 +168,12 @@ export default function ResultShareCard(props: ResultShareProps) {
       linkTitle={props.linkTitle}
       lead={myMori ? `내 ${myMori} 모리가 받은 결과예요. 친구 결과도 물어보세요.` : "결과 카드를 친구에게 보여 주고, 친구 결과도 물어보세요."}
       previewAlt={`${props.headline} 공유 카드 미리보기`}
-      channels={{ image: "test-image", link: "test-link", threads: "test-threads", copy: "test-copy" }}
+      channels={{
+        image: `${props.group ?? "test"}-image`,
+        link: `${props.group ?? "test"}-link`,
+        threads: `${props.group ?? "test"}-threads`,
+        copy: `${props.group ?? "test"}-copy`,
+      }}
     >
       {myMori ? null : (
         <a className="mori-find-cta" href="/tests/mbti/" onClick={onResultLinkClick("test-mori-cta")}>

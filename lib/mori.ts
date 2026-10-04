@@ -69,6 +69,15 @@ export const SHARE_CHANNELS = {
   "test-link": "다른 테스트 · 링크 공유",
   "test-threads": "다른 테스트 · 스레드",
   "test-copy": "다른 테스트 · 링크 복사",
+  // 운세·사주·궁합·띠별/별자리 운세 결과 카드와 타로 카드(2026-10-04~). 사용자가 따로 보길 원했습니다.
+  "fortune-image": "운세·사주·궁합 · 카드 이미지",
+  "fortune-link": "운세·사주·궁합 · 링크 공유",
+  "fortune-threads": "운세·사주·궁합 · 스레드",
+  "fortune-copy": "운세·사주·궁합 · 링크 복사",
+  "tarot-image": "타로 · 카드 이미지",
+  "tarot-link": "타로 · 링크 공유",
+  "tarot-threads": "타로 · 스레드",
+  "tarot-copy": "타로 · 링크 복사",
 } as const;
 
 export type ShareChannel = keyof typeof SHARE_CHANNELS;

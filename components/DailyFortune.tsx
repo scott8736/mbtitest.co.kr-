@@ -97,6 +97,7 @@ export default function DailyFortune({ scope = "", label = "" }: { scope?: strin
             color="#7657d6"
             shareText={`오늘 ${label || "내"} 운세 총운 ${reading.score}점!`}
             linkTitle={title}
+            group="fortune"
           />
         )}
 
