@@ -15,7 +15,7 @@ const KEY_FILE = "D:/00 cloud/report_content.key";
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const { outputFiles } = await build({
   stdin: {
-    contents: `export * from "./worker/report"; export { validateOrder, REPORT_CONSENT_VERSION, isSellerInfoComplete, reportEventOn, REPORT_EVENT } from "./lib/report-config"; export { writeSetting } from "./worker/naver";`,
+    contents: `export * from "./worker/report"; export { validateOrder, REPORT_CONSENT_VERSION, isSellerInfoComplete, reportEventOn, reportPrice, REPORT_EVENT, REPORT_EVENT_PRICE, REPORT_REGULAR_PRICE } from "./lib/report-config"; export { writeSetting } from "./worker/naver";`,
     resolveDir: repoRoot,
     loader: "ts",
   },
@@ -68,6 +68,9 @@ test("이벤트 표시는 한국 시각 기준 기간 안에서만 켜진다(지
   assert.equal(R.reportEventOn(new Date(kstMidnight(from).getTime() - 1)), false);
   assert.equal(R.reportEventOn(new Date(kstMidnight(to).getTime() + 86400_000 - 1)), true);
   assert.equal(R.reportEventOn(new Date(kstMidnight(to).getTime() + 86400_000)), false);
+  assert.equal(R.reportPrice(kstMidnight(to)), R.REPORT_EVENT_PRICE);
+  assert.equal(R.reportPrice(new Date(kstMidnight(to).getTime() + 86400_000)), R.REPORT_REGULAR_PRICE);
+  assert.ok(R.REPORT_REGULAR_PRICE > R.REPORT_EVENT_PRICE, "이벤트가가 실제로 더 싸야 「이벤트」 표시가 사실이다");
 });
 
 test("주문 입력 검사: 유형·점수 짝, 휴대폰, 동의, 이름 정리", () => {

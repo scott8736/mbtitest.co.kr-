@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import ReportBuy, { ReportPreview } from "../../components/ReportBuy";
 import SiteFooter from "../../components/SiteFooter";
-import ReportEventRange from "../../components/ReportEvent";
-import { REPORT_PRICE, REPORT_PRODUCT } from "../../lib/report-config";
+import ReportPriceBox from "../../components/ReportEvent";
+import { REPORT_PRODUCT } from "../../lib/report-config";
 
 export const metadata: Metadata = {
   title: "모리 마음숲 안내서 — 내 점수로 만든 리포트",
@@ -46,8 +46,7 @@ export default function ReportPage() {
         <p className="rp-muted">무료 미리보기 6쪽 · 견본 이름 「하늘」 · 내 유형·점수로 만들어지는 나머지 쪽은 결제 후에 열립니다.</p>
 
         <div className="rp-price">
-          <ReportEventRange />
-          <b>{REPORT_PRICE.toLocaleString()}원</b>
+          <ReportPriceBox />
           <small>A5 104쪽(생년월일을 넣으면 110쪽) · PDF 저장 · 휴대폰 배경화면 3종 · 결제 후 바로 열람</small>
         </div>
 

@@ -11,7 +11,10 @@ import {
   isSellerInfoComplete,
   MBTI_TYPES,
   PAYAPP_USERID,
-  REPORT_PRICE,
+  REPORT_EVENT,
+  REPORT_EVENT_PRICE,
+  REPORT_REGULAR_PRICE,
+  reportPrice,
   REPORT_TEST_PRICE,
   SELLER,
 } from "../lib/report-config";
@@ -147,7 +150,7 @@ export async function handleReportAdmin(request: Request, url: URL, path: string
     : "";
 
   const body = `<div class="wrap">
-<div class="head"><div><h1>리포트 판매</h1><p>${esc(SELLER.name)} · 페이앱 ${esc(PAYAPP_USERID)} · 판매가 ${REPORT_PRICE.toLocaleString()}원</p></div>
+<div class="head"><div><h1>리포트 판매</h1><p>${esc(SELLER.name)} · 페이앱 ${esc(PAYAPP_USERID)} · 지금 판매가 ${reportPrice().toLocaleString()}원 (이벤트 ${esc(REPORT_EVENT.from)}~${esc(REPORT_EVENT.to)} ${REPORT_EVENT_PRICE.toLocaleString()}원 · 그 뒤 ${REPORT_REGULAR_PRICE.toLocaleString()}원)</p></div>
 <nav class="ranges"><a href="/admin/">접속 현황</a><a href="/admin/report/" class="on">리포트 판매</a></nav></div>
 ${q.get("saved") ? `<p class="note" style="color:#3f7d5c">저장했습니다.</p>` : ""}
 ${q.get("err") ? `<p class="note" style="color:#b6483c">${esc(err[q.get("err") ?? ""] ?? "오류")}</p>` : ""}

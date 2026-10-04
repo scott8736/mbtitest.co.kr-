@@ -1,28 +1,47 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { REPORT_EVENT, fmtEventDate, reportEventOn } from "../lib/report-config";
+import {
+  REPORT_EVENT,
+  REPORT_REGULAR_PRICE,
+  eventEndNextDay,
+  fmtEventDate,
+  reportEventOn,
+  reportPrice,
+} from "../lib/report-config";
 
 /**
- * 이벤트 기간인지 방문자 브라우저 시각으로 판단합니다(정적 페이지라 빌드 시각으로 정하면 기간이 지나도 남습니다).
- * 첫 그림에서는 꺼 둔 채로 그리고 붙은 뒤 켭니다 — 서버 그림과 어긋나지 않게.
+ * 이벤트 기간·가격을 방문자 브라우저 시각으로 정합니다(정적 페이지라 빌드 시각으로 정하면 기간이 지나도 남습니다).
+ * 첫 그림에서는 비워 두고 붙은 뒤 채웁니다 — 서버 그림과 어긋나지 않고, 끝난 이벤트 가격이 잠깐이라도 보이지 않게.
  */
-export function useReportEvent(): boolean {
-  const [on, setOn] = useState(false);
+export function useReportPricing(): { ready: boolean; eventOn: boolean; price: number } {
+  const [state, setState] = useState({ ready: false, eventOn: false, price: 0 });
   useEffect(() => {
-    const id = setTimeout(() => setOn(reportEventOn()), 0);
+    const id = setTimeout(() => setState({ ready: true, eventOn: reportEventOn(), price: reportPrice() }), 0);
     return () => clearTimeout(id);
   }, []);
-  return on;
+  return state;
 }
 
-/** 판매 페이지 가격 위 「오픈 기념 특별 이벤트 · 10월 5일 ~ 10월 31일」 */
-export default function ReportEventRange() {
-  const on = useReportEvent();
-  if (!on) return null;
+export function useReportEvent(): boolean {
+  return useReportPricing().eventOn;
+}
+
+export const won = (n: number) => `${n.toLocaleString()}원`;
+/** 「11월 1일부터 14,900원」 */
+export const afterEventText = () => `${fmtEventDate(eventEndNextDay())}부터 ${won(REPORT_REGULAR_PRICE)}`;
+
+/** 판매 페이지 가격 상자: 이벤트 띠 + 가격 */
+export default function ReportPriceBox() {
+  const { ready, eventOn, price } = useReportPricing();
   return (
-    <span className="rp-event">
-      {REPORT_EVENT.label} · {fmtEventDate(REPORT_EVENT.from)} ~ {fmtEventDate(REPORT_EVENT.to)}
-    </span>
+    <>
+      {eventOn ? (
+        <span className="rp-event">
+          {REPORT_EVENT.label} · {fmtEventDate(REPORT_EVENT.from)} ~ {fmtEventDate(REPORT_EVENT.to)} · {afterEventText()}
+        </span>
+      ) : null}
+      <b>{ready ? won(price) : " "}</b>
+    </>
   );
 }

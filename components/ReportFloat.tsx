@@ -10,7 +10,7 @@
  */
 import { useEffect, useState } from "react";
 import { readLastResult } from "../lib/my-mori";
-import { REPORT_PRICE } from "../lib/report-config";
+import { reportPrice } from "../lib/report-config";
 import { REPORT_READY_TYPES } from "../report/content/ready";
 
 const HIDE_KEY = "mori-float-hidden";
@@ -52,7 +52,7 @@ export default function ReportFloat() {
     <div className="report-float" role="complementary" aria-label="유료 리포트 안내">
       <a href={mine ? "/report/?from=float" : "/tests/mbti/"}>
         <b>📖 {mine ? `내 ${mine} 104쪽 리포트` : "무료 검사 → 유료 리포트"}</b>
-        <span>{mine ? `미리보기 6쪽 무료 · ${REPORT_PRICE.toLocaleString()}원` : `내 점수로 만든 안내서 · ${REPORT_PRICE.toLocaleString()}원`}</span>
+        <span>{mine ? `미리보기 6쪽 무료 · ${reportPrice().toLocaleString()}원` : `내 점수로 만든 안내서 · ${reportPrice().toLocaleString()}원`}</span>
       </a>
       <button type="button" onClick={close} aria-label="리포트 안내 닫기">×</button>
     </div>

@@ -10,8 +10,13 @@
 
 export const REPORT_PRODUCT = "모리 마음숲 안내서";
 
-/** 오픈 기념 특별 이벤트가(사용자 결정 2026-10-04). 할인 전 가격은 표시하지 않습니다(판 적이 없는 가격). */
-export const REPORT_PRICE = 9900;
+/**
+ * 가격(사용자 결정 2026-10-05): 오픈 이벤트 기간 9,900원, 11월 1일부터 14,900원.
+ * 「이벤트가」 표시는 끝난 뒤 실제로 오르는 가격이 있어야 사실이 됩니다(표시광고법). 판 적 없는 「정가」 취소선은 쓰지 않습니다.
+ * 결제 금액은 서버가 주문 시각으로 reportPrice() 를 불러 정하고 주문에 저장합니다. 페이앱 통보는 저장된 금액과 대조합니다.
+ */
+export const REPORT_EVENT_PRICE = 9900;
+export const REPORT_REGULAR_PRICE = 14900;
 /** 관리자 시험 결제 금액. 페이앱 최소 금액입니다. */
 export const REPORT_TEST_PRICE = 1000;
 /** 이벤트 기간. 비워 두면 「이벤트」 문구 없이 가격만 보입니다. */
@@ -26,6 +31,18 @@ export function reportEventOn(now: Date = new Date()): boolean {
   if (!REPORT_EVENT.label) return false;
   const kst = new Date(now.getTime() + 9 * 3600_000).toISOString().slice(0, 10);
   return kst >= REPORT_EVENT.from && kst <= REPORT_EVENT.to;
+}
+
+/** 지금 받을 가격. 서버(주문)와 화면이 같은 함수를 씁니다. */
+export function reportPrice(now: Date = new Date()): number {
+  return reportEventOn(now) ? REPORT_EVENT_PRICE : REPORT_REGULAR_PRICE;
+}
+
+/** 이벤트가 끝난 다음 날(「11월 1일부터 14,900원」 안내용) */
+export function eventEndNextDay(): string {
+  const d = new Date(`${REPORT_EVENT.to}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
 }
 
 export const fmtEventDate = (d: string) => d.replace(/^\d{4}-(\d{2})-(\d{2})$/, (_, m, dd) => `${Number(m)}월 ${Number(dd)}일`);

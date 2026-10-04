@@ -20,7 +20,7 @@ import {
   PAYAPP_USERID,
   REPORT_CONSENT_VERSION,
   REPORT_PAY_TYPES,
-  REPORT_PRICE,
+  reportPrice,
   REPORT_PRODUCT,
   validateOrder,
   type CleanOrder,
@@ -408,7 +408,7 @@ export function handleReport(request: Request, url: URL, env: Env, ctx: Ctx): Pr
       const checked = validateOrder(raw as Record<string, never>, seoulToday());
       if (!checked.ok) return json({ error: checked.error }, 400);
       if (!hasBook(checked.value.type)) return json({ error: "이 유형의 리포트는 준비 중이에요." }, 503);
-      const made = await createOrder(db, checked.value, { price: REPORT_PRICE, test: false, meta: orderMeta(raw, request) });
+      const made = await createOrder(db, checked.value, { price: reportPrice(), test: false, meta: orderMeta(raw, request) });
       return made.ok ? json({ payurl: made.payurl, orderNo: made.orderNo }) : json({ error: made.error }, 502);
     }
 

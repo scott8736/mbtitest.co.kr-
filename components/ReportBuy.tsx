@@ -8,7 +8,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { questions, typeData, type Axis } from "../lib/mbti-data";
 import { readLastResult } from "../lib/my-mori";
-import { BIRTH_TIME_SLOTS, REPORT_CONSENT_TEXT, REPORT_CONSENT_VERSION, REPORT_PRICE } from "../lib/report-config";
+import { BIRTH_TIME_SLOTS, REPORT_CONSENT_TEXT, REPORT_CONSENT_VERSION } from "../lib/report-config";
+import { useReportPricing, won } from "./ReportEvent";
 
 type Stored = { result: string; scores: Record<Axis, number> };
 const AXES: Axis[] = ["EI", "SN", "TF", "JP"];
@@ -51,6 +52,7 @@ export default function ReportBuy() {
   const [phone, setPhone] = useState("");
   const [agree, setAgree] = useState(false);
   const [busy, setBusy] = useState(false);
+  const { ready: priced, price } = useReportPricing();
   const [error, setError] = useState("");
 
   // sessionStorage 는 마운트 뒤에만 읽을 수 있어 한 박자 늦게 읽습니다(정적 렌더와 어긋나지 않게).
@@ -126,7 +128,7 @@ export default function ReportBuy() {
       </label>
       {error ? <p className="rp-error" role="alert">{error}</p> : null}
       <button className="rp-button" type="submit" disabled={busy}>
-        {busy ? "결제창 여는 중…" : `${REPORT_PRICE.toLocaleString()}원 결제하기`}
+        {busy ? "결제창 여는 중…" : priced ? `${won(price)} 결제하기` : "결제하기"}
       </button>
     </form>
   );

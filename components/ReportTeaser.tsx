@@ -5,8 +5,8 @@ import { useEffect, useRef } from "react";
 import { recordTestEventOnce } from "../lib/test-events";
 import { moriImage } from "../lib/mori";
 import { MORI_WORLD } from "../lib/mori-world";
-import { REPORT_EVENT, REPORT_PRICE, fmtEventDate as fmt } from "../lib/report-config";
-import { useReportEvent } from "./ReportEvent";
+import { REPORT_EVENT, fmtEventDate as fmt } from "../lib/report-config";
+import { afterEventText, useReportPricing, won } from "./ReportEvent";
 import { REPORT_READY_TYPES } from "../report/content/ready";
 
 /**
@@ -31,7 +31,7 @@ export default function ReportTeaser({ code, slug = "mbti" }: { code: string; sl
   const ref = useRef<HTMLElement>(null);
   const ready = REPORT_READY_TYPES.includes(code);
   const says = MORI_WORLD[code]?.says ?? "";
-  const eventOn = useReportEvent();
+  const { ready: priced, eventOn, price } = useReportPricing();
 
   // 카드가 화면에 절반 이상 들어왔을 때 한 번 셉니다. 클릭이 적을 때
   // "안 눌렀다"와 "거기까지 내려오지 않았다"를 가르기 위해서입니다.
@@ -90,8 +90,8 @@ export default function ReportTeaser({ code, slug = "mbti" }: { code: string; sl
       ) : null}
       <div className="report-teaser-buy">
         <p className="report-teaser-price">
-          {eventOn ? <small>{REPORT_EVENT.label} · {fmt(REPORT_EVENT.to)}까지</small> : null}
-          <strong>{REPORT_PRICE.toLocaleString()}원</strong>
+          {eventOn ? <small>{REPORT_EVENT.label} · {fmt(REPORT_EVENT.to)}까지 ({afterEventText()})</small> : null}
+          <strong>{priced ? won(price) : "\u00a0"}</strong>
         </p>
         {ready ? (
           <Link href="/report/?from=result-card" className="primary-button" onClick={() => recordTestEventOnce(slug, "report_click")}>
