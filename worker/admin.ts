@@ -383,6 +383,19 @@ async function dashboard(
     .map((code) => ({ code, n: eventCount("mbti_type", code.toLowerCase()) }))
     .sort((a, b) => b.n - a.n);
   const typeTotal = typeRows.reduce((s, r) => s + r.n, 0);
+  // 유형 기록(mbti_type)을 시작하기 전 기간의 추정: 결과 화면의 「내 유형 특징」·「내 궁합」 링크로 넘어간 페이지뷰.
+  // 결과 화면 다음 페이지(afterMbti)는 page_views 로 만든 집계라 과거 기간도 나옵니다. 누른 사람만 잡히는 표본입니다.
+  const estRows = typeRows
+    .map(({ code }) => ({ code, n: (all.afterMbti[`/types/${code.toLowerCase()}/`] ?? 0) + (all.afterMbti[`/compatibility/${code.toLowerCase()}/`] ?? 0) }))
+    .sort((a, b) => b.n - a.n);
+  const estTotal = estRows.reduce((s, r) => s + r.n, 0);
+  const letterTable = (rows: { code: string; n: number }[], total: number) =>
+    (["EI", "SN", "TF", "JP"] as const)
+      .map((ax) => {
+        const l = rows.filter((r) => r.code.includes(ax[0])).reduce((s, r) => s + r.n, 0);
+        return `<tr><td>${ax}</td><td>${ax[0]} ${l} (${total ? ((l / total) * 100).toFixed(1) : "0"}%)</td><td>${ax[1]} ${total - l} (${total ? (((total - l) / total) * 100).toFixed(1) : "0"}%)</td></tr>`;
+      })
+      .join("");
   const shareClicks = SHARE_CHANNEL_KEYS.map((key) => ({ key, label: SHARE_CHANNELS[key], clicks: eventCount("share_click", key) }));
   const sumClicks = (prefix: string) => shareClicks.filter((row) => row.key.startsWith(prefix)).reduce((sum, row) => sum + row.clicks, 0);
   const shareClickTotal = sumClicks("mori-");
@@ -519,6 +532,14 @@ ${(["EI", "SN", "TF", "JP"] as const).map((ax) => { const l = typeRows.filter((r
 <div class="scroll"><table><thead><tr><th>유형</th><th>완주</th><th>비율</th></tr></thead><tbody>
 ${typeRows.map((r) => `<tr><td>${r.code}</td><td>${r.n}</td><td>${((r.n / typeTotal) * 100).toFixed(1)}%</td></tr>`).join("")}
 <tr><td><b>합계</b></td><td><b>${typeTotal}</b></td><td></td></tr>
+</tbody></table></div>`}
+<h3 style="margin:22px 0 6px;font-size:16px">지난 기간 추정 — 결과 화면에서 「내 유형 특징·궁합」을 누른 기록</h3>
+<p class="note">유형 기록을 시작하기 전(${TYPE_SINCE} 이전)도 볼 수 있는 추정치입니다. 결과 화면의 내 유형 링크(/types/유형/·/compatibility/유형/)로 바로 넘어간 페이지뷰를 유형별로 셉니다.
+<b>누른 사람만 잡히는 표본</b>이라 유형마다 누르는 성향이 다르면 어긋날 수 있고, 한 사람이 둘 다 누르면 두 번 셉니다. 기간을 90일로 넓혀 보세요.</p>
+${estTotal === 0 ? `<p class="empty">이 기간에는 결과 화면에서 유형 페이지로 넘어간 기록이 없습니다.</p>` : `<div class="scroll"><table><thead><tr><th>축</th><th>왼쪽</th><th>오른쪽</th></tr></thead><tbody>${letterTable(estRows, estTotal)}</tbody></table></div>
+<div class="scroll"><table><thead><tr><th>유형</th><th>클릭</th><th>비율</th></tr></thead><tbody>
+${estRows.map((r) => `<tr><td>${r.code}</td><td>${r.n}</td><td>${((r.n / estTotal) * 100).toFixed(1)}%</td></tr>`).join("")}
+<tr><td><b>합계</b></td><td><b>${estTotal}</b></td><td></td></tr>
 </tbody></table></div>`}
 </div>
 
