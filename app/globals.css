@@ -1362,6 +1362,17 @@ main:not(.screener) .result-card-image {
 @media (min-width:900px) { .type-hero-mori { float:right; width:320px; margin:0 0 20px 40px; } }
 .seo-card-head .seo-card-face img { width:100%; height:100%; border-radius:13px; object-fit:cover; }
 .seo-card-head .seo-card-face { overflow:hidden; }
+/* 궁합: 두 모리 나란히 (카드는 겹치게, 조합 제목 위는 크게) */
+.pair-moris { display:inline-flex; align-items:center; flex:none; }
+.pair-moris img { width:40px; height:40px; border-radius:12px; border:2px solid #fff; box-shadow:0 4px 10px rgba(34,40,70,.12); object-fit:cover; }
+.pair-moris img + img { margin-left:-10px; }
+.pair-moris.is-large { display:flex; gap:12px; margin:0 0 16px; }
+.pair-moris.is-large img { width:96px; height:96px; border-radius:26px; border-width:3px; }
+.pair-moris.is-large img + img { margin-left:0; }
+.pair-moris.is-large i { color:#8b7fc0; font-style:normal; font-size:26px; font-weight:800; }
+.compatibility-grid .pair-moris { margin-bottom:10px; }
+.compatibility-grid .pair-moris img { width:44px; height:44px; }
+.type-card-mori { display:block; width:64px; height:64px; margin:0 0 10px; border-radius:18px; object-fit:cover; }
 /* 모리 15초 영상 카드 (홈 히어로 아래 · 공유 페이지) */
 .mori-video { display:flex; align-items:center; gap:22px; max-width:640px; margin:28px auto; padding:16px 22px 16px 16px; border-radius:26px; background:linear-gradient(135deg,#f1ecff,#fff0e8); box-shadow:0 12px 30px rgba(34,40,70,.08); }
 .mori-video video { flex:0 0 auto; width:150px; height:auto; aspect-ratio:9/16; border-radius:18px; background:#efeaff; object-fit:cover; }

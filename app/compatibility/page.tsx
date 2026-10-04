@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import AdUnit from "../../components/AdUnit";
 import ContentHeader from "../../components/ContentHeader";
-import Mascot, { moodForKey } from "../../components/Mascot";
 import SiteFooter from "../../components/SiteFooter";
 import { typeData } from "../../lib/mbti-data";
 import { mbtiCodes, profiles } from "../../lib/mbti-content";
+import { moriImage } from "../../lib/mori";
 
 export const metadata: Metadata = {
   title: "MBTI 궁합표와 유형별 관계",
@@ -52,7 +52,7 @@ export default function Page() {
               <article key={code} style={{ "--card-accent": typeData[profiles[code].code].color } as React.CSSProperties}>
                 <div className="seo-card-head">
                   <span className="seo-card-face">
-                    <Mascot mood={moodForKey(code)} size={44} accent={typeData[profiles[code].code].color} />
+                    <img src={moriImage(code)} width={52} height={52} alt="" loading="lazy" />
                   </span>
                   <b>{profiles[code].code}</b>
                 </div>
@@ -68,6 +68,9 @@ export default function Page() {
         <div className="seo-card-grid compatibility-grid">
           {pairs.map(([pair, title, desc]) => (
             <article key={pair}>
+              <span className="pair-moris" aria-hidden="true">
+                {pair.split(" × ").map((c) => <img key={c} src={moriImage(c)} width={44} height={44} alt="" loading="lazy" />)}
+              </span>
               <b>{pair}</b>
               <h3>{title}</h3>
               <p>{desc}</p>

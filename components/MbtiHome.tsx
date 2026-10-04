@@ -4,6 +4,7 @@ import TrendingTests from "./TrendingTests";
 import AdUnit from "./AdUnit";
 import MoriLoopVideo from "./MoriLoopVideo";
 import { typeData } from "../lib/mbti-data";
+import { moriImage } from "../lib/mori";
 
 export default function MbtiHome() {
   return (
@@ -104,7 +105,7 @@ export default function MbtiHome() {
               ].map(([group, title, desc, codes]) => (
                 <div className="type-group" key={group as string}>
                   <div className="group-heading"><b>{group as string}</b><div><h3>{title as string}</h3><p>{desc as string}</p></div></div>
-                  <div className="type-cards">{(codes as string[]).map((code) => <article key={code}><strong>{code}</strong><h4>{typeData[code].name}</h4><p>{typeData[code].tagline}</p></article>)}</div>
+                  <div className="type-cards">{(codes as string[]).map((code) => <article key={code}><img className="type-card-mori" src={moriImage(code)} width={64} height={64} alt="" loading="lazy" /><strong>{code}</strong><h4>{typeData[code].name}</h4><p>{typeData[code].tagline}</p></article>)}</div>
                 </div>
               ))}
             </section>
