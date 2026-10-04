@@ -121,3 +121,31 @@ test("쿠팡 파트너스 고지문구는 푸터(SiteFooter) 한 곳에만 있�
     .map((file) => relative(repoRoot, file));
   assert.deepEqual(offenders, [], `푸터 밖에 파트너스 고지문구가 있습니다: ${offenders.join(", ")}`);
 });
+
+test("사주랩 배너가 결과 화면 9자리 모두에 붙어 있고, 자가진단에는 없다", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const read = (f) => readFile(new URL(`../components/${f}`, import.meta.url), "utf8");
+  const expected = {
+    "MbtiResult.tsx": ['placement="mbti"'],
+    "GenericTestRunner.tsx": ['placement="test"'],
+    "SharedResult.tsx": ['placement="shared"'],
+    "IqTestRunner.tsx": ['placement="iq"'],
+    "TarotDaily.tsx": ['placement="tarot"'],
+    "FortuneTool.tsx": ['"fortune-today"', '"fortune-saju"', '"fortune-saju-mbti"'],
+    "CoupleFortuneTool.tsx": ['placement="gunghap"'],
+  };
+  const missing = [];
+  for (const [file, needles] of Object.entries(expected)) {
+    const src = await read(file);
+    if (!src.includes("<SajuLabBanner")) missing.push(file);
+    for (const n of needles) if (!src.includes(n)) missing.push(`${file} ${n}`);
+  }
+  assert.deepEqual(missing, []);
+  assert.equal((await read("ScreenerRunner.tsx")).includes("SajuLabBanner"), false, "자가진단 결과에는 사주 배너를 달지 않는다");
+  const banner = await read("SajuLabBanner.tsx");
+  assert.ok(!/명이 보고/.test(banner), "셀 수 없는 실시간 시청자 수를 지어내지 않는다");
+  const visible = banner.slice(banner.indexOf("return ("));
+  // 「무료 운세로는 볼 수 없는」은 유료와 대비하는 말이라 둔다. 무료로 볼 수 있다고 읽히는 말만 막는다.
+  assert.ok(!/무료로|무료 보기|무료 제공|기간 한정/.test(visible), "사주랩은 유료다. 무료로 볼 수 있다고 쓰지 않는다");
+  assert.ok(/유료/.test(visible), "유료임을 배너에 밝힌다");
+});

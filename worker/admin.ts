@@ -9,6 +9,7 @@
  * 저장하는 것: 경로·리퍼러·기기·국가·날짜별 방문자 해시.
  * 저장하지 않는 것: IP 원본, 쿠키, 쿼리스트링.
  */
+import { SAJULAB_PLACEMENTS, SAJULAB_PLACEMENT_KEYS } from "../lib/sajulab";
 import { SOURCE_LABELS } from "../lib/analytics";
 import {
   DEFAULT_TREND_KEYWORDS,
@@ -238,6 +239,8 @@ const PICK_SINCE = "2026-10-01";
 /** 유료 정밀 리포트 수요 측정 카드를 결과 화면에 붙인 다음 날. 10-03 은 붙이기 전 완주가
  *  섞여 있어 관심률이 낮게 나오므로 하루 뒤부터 비율을 냅니다. */
 const REPORT_SINCE = "2026-10-04";
+/** 결과 화면 「프리미엄 사주」 배너(사주랩)를 붙인 날. 이전 기간을 섞으면 0 이 끼어 비율이 낮아집니다. */
+const SAJULAB_SINCE = "2026-10-04";
 /** 검사 화면 방문을 사람당 한 번(답하기 전까지 탭당 한 번) 세기 시작한 다음 날.
  *  「방문」(페이지뷰)은 새로고침·재방문이 섞여 응답 시작률이 낮게 나온다. */
 const VISIT_SINCE = "2026-10-04";
@@ -347,6 +350,27 @@ async function dashboard(
   const reportClick = countsFor("report_click").get("mbti") ?? 0;
   const reportFollow = countsFor("report_follow").get("mbti") ?? 0;
   const reportCompleted = completedBySlug.get("mbti") ?? 0;
+
+  // 사주랩 배너: slug 자리에 배너 자리 이름이 들어 있습니다(lib/sajulab.ts).
+  const sajuRows = await q<{ slug: string; name: string; count: number }>(
+    `SELECT slug, name, COUNT(*) AS count FROM test_events
+      WHERE day BETWEEN ? AND ? AND name IN ('saju_seen', 'saju_click')
+      GROUP BY slug, name`, from, to);
+  const sajuCount = (slug: string, name: string) =>
+    sajuRows.find((row) => row.slug === slug && row.name === name)?.count ?? 0;
+  const sajuTable = SAJULAB_PLACEMENT_KEYS.map((key) => ({
+    key,
+    label: SAJULAB_PLACEMENTS[key],
+    seen: sajuCount(key, "saju_seen"),
+    click: sajuCount(key, "saju_click"),
+  })).sort((a, b) => b.click - a.click || b.seen - a.seen);
+  const sajuSeenTotal = sajuTable.reduce((sum, row) => sum + row.seen, 0);
+  const sajuClickTotal = sajuTable.reduce((sum, row) => sum + row.click, 0);
+  const sajuRate = (click: number, seen: number) => {
+    if (from < SAJULAB_SINCE) return "-";
+    if (seen < MIN_SAMPLE) return "표본 부족";
+    return ((click / seen) * 100).toFixed(1) + "%";
+  };
   // 분모가 같은 기간을 세어 왔을 때만, 표본이 충분할 때만 비율을 냅니다.
   const reportRate = (part: number, whole: number) => {
     if (from < REPORT_SINCE) return "-";
@@ -430,6 +454,20 @@ MBTI 결과 화면의 「정밀 리포트」 카드입니다. 상품은 아직 �
 </p>
 <div class="scroll"><table><thead><tr><th>완주</th><th>노출</th><th>클릭</th><th>팔로우</th><th>노출률</th><th>관심률</th><th>노출 대비 클릭</th></tr></thead><tbody>
 <tr><td>${reportCompleted || "-"}</td><td>${reportSeen}</td><td>${reportClick}</td><td>${reportFollow}</td><td>${reportRate(reportSeen, reportCompleted)}</td><td><b>${reportRate(reportClick, reportCompleted)}</b></td><td>${reportRate(reportClick, reportSeen)}</td></tr>
+</tbody></table></div>
+</div>
+
+<div class="box"><h2>사주랩 배너 클릭 (결과 화면)</h2>
+<p class="note">
+결과 화면의 「프리미엄 사주 보러 가기」 배너(유료 프리미엄 안내)입니다. 누르면 4ju.sajulab.kr/4ju 가 새 탭으로 열립니다.
+「노출」은 배너가 화면에 절반 이상 들어온 사람, 「클릭」은 배너를 누른 사람입니다. 둘 다 탭당 한 번만 셉니다.
+<b>클릭률 = 클릭 ÷ 노출</b>. 노출이 적은 자리는 배너까지 내려오지 않는다는 뜻이라 위치를 올릴 문제입니다.
+사주랩 쪽에 실제로 도착한 수는 그쪽 통계로 대조하세요(새 탭이 막히거나 바로 닫으면 여기 클릭보다 적습니다).
+비율은 ${SAJULAB_SINCE} 부터, 노출 ${MIN_SAMPLE}건 이상일 때만 냅니다. 자가진단(/check/)에는 배너를 달지 않았습니다.
+</p>
+<div class="scroll"><table><thead><tr><th>자리</th><th>노출</th><th>클릭</th><th>클릭률</th></tr></thead><tbody>
+${sajuTable.map((row) => `<tr><td>${esc(row.label)}</td><td>${row.seen}</td><td>${row.click}</td><td>${sajuRate(row.click, row.seen)}</td></tr>`).join("")}
+<tr><td><b>합계</b></td><td><b>${sajuSeenTotal}</b></td><td><b>${sajuClickTotal}</b></td><td><b>${sajuRate(sajuClickTotal, sajuSeenTotal)}</b></td></tr>
 </tbody></table></div>
 </div>
 

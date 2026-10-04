@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { buildCouple } from "../lib/fortune-couple";
 import { elementLabels, earthlyBranchesKo, heavenlyStemsKo } from "../lib/fortune-engine";
 import styles from "../lib/fortune.module.css";
+import SajuLabBanner from "./SajuLabBanner";
 
 /**
  * 사주 궁합 화면.
@@ -148,6 +149,8 @@ export default function CoupleFortuneTool() {
             궁합은 관계의 성공이나 실패를 예측하지 않습니다. 두 사람이 어디서 손이 더 가는지를 미리
             일러 주는 참고 자료로만 보시기 바랍니다.
           </p>
+
+          <SajuLabBanner placement="gunghap" />
         </div>
       )}
     </section>

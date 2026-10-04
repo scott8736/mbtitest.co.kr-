@@ -18,6 +18,8 @@ const { outputFiles } = await build({
     contents: `
       export { markStep2Reached, recordStep2Once, markTestCompleted, recordCompletionOnce, remainingMinutes, recordTestEventOnce, recordVisitOnce, recordAnswered } from "./lib/test-events";
       export { parseRange, cleanKey } from "./worker/admin";
+      export { isKnownEvent } from "./worker/test-events";
+      export { SAJULAB_PLACEMENT_KEYS } from "./lib/sajulab";
     `,
     resolveDir: repoRoot,
     loader: "ts",
@@ -134,5 +136,26 @@ test("방문은 답하기 전까지 한 번만, 답한 뒤 다시 검사하면 �
     "/api/event?slug=mbti&name=visited",
     "/api/event?slug=mbti&name=answered",
     "/api/event?slug=mbti&name=visited",
+  ]);
+});
+
+test("사주랩 배너 이벤트는 배너 자리로만 받고, 탭당 한 번만 센다", () => {
+  for (const key of mod.SAJULAB_PLACEMENT_KEYS) {
+    assert.ok(mod.isKnownEvent(key, "saju_seen"), `${key} 노출이 워커에서 버려진다`);
+    assert.ok(mod.isKnownEvent(key, "saju_click"), `${key} 클릭이 워커에서 버려진다`);
+  }
+  assert.equal(mod.isKnownEvent("depression", "saju_click"), false, "자가진단에는 배너가 없다");
+  assert.equal(mod.isKnownEvent("아무거나", "saju_click"), false);
+  assert.equal(mod.isKnownEvent("test", "completed"), false, "배너 자리 이름은 테스트 slug 가 아니다");
+  assert.ok(mod.isKnownEvent("mbti", "completed"), "기존 이벤트는 그대로 받는다");
+
+  reset();
+  mod.recordTestEventOnce("tarot", "saju_seen");
+  mod.recordTestEventOnce("tarot", "saju_seen");
+  mod.recordTestEventOnce("tarot", "saju_click");
+  mod.recordTestEventOnce("tarot", "saju_click");
+  assert.deepEqual(sent, [
+    "/api/event?slug=tarot&name=saju_seen",
+    "/api/event?slug=tarot&name=saju_click",
   ]);
 });

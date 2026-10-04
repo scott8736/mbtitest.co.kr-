@@ -11,6 +11,7 @@ import {
   todayKst,
 } from "../lib/tarot";
 import AdUnit from "./AdUnit";
+import SajuLabBanner from "./SajuLabBanner";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
 import Mascot from "./Mascot";
@@ -171,6 +172,8 @@ export default function TarotDaily({ fortune }: { fortune: TarotFortune }) {
           </div>
 
           <AdUnit position="resultMiddle" />
+
+          <SajuLabBanner placement="tarot" />
 
           <p className="tarot-again">
             오늘의 카드는 자정까지 그대로입니다. <b>내일 다시 오시면</b> 새 카드를 뽑을 수 있어요.

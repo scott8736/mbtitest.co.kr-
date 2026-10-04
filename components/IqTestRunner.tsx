@@ -9,6 +9,7 @@ import ShareButtons from "./ShareButtons";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
 import TestResultPick from "./TestResultPick";
+import SajuLabBanner from "./SajuLabBanner";
 import { markTestCompleted, recordCompletionOnce, recordTestEvent } from "../lib/test-events";
 
 /**
@@ -241,6 +242,7 @@ export default function IqTestRunner() {
             정식 IQ는 웩슬러 지능검사처럼 전문가가 실시하는 검사로 확인할 수 있습니다.
           </p>
 
+          <SajuLabBanner placement="iq" />
           <TestResultPick slug={IQ_SLUG} resultKey={String(band.min)} />
 
           <ShareButtons title={`IQ 테스트 20문제 중 ${correct}문제 맞혔어요. 몇 개 맞힐 수 있나요?`} url="https://mbtitest.co.kr/tests/iq/" />

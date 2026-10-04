@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import AdUnit from "./AdUnit";
+import SajuLabBanner from "./SajuLabBanner";
 import {
   birthTimeSlots,
   buildChart,
@@ -247,6 +248,8 @@ export default function FortuneTool({ mode, resultOnly = false }: { mode: Fortun
           {mode === "today" && <TodayResult result={result} today={today} />}
           {mode === "saju" && <SajuResult result={result} />}
           {mode === "saju-mbti" && <SajuMbtiResult result={result} mbti={submitted?.mbti ?? ""} />}
+
+          <SajuLabBanner placement={mode === "today" ? "fortune-today" : mode === "saju" ? "fortune-saju" : "fortune-saju-mbti"} />
 
           <AdUnit position="resultBottom" label="운세 결과 하단 광고" />
         </div>

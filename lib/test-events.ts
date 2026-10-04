@@ -13,6 +13,8 @@
  * report_*: 유료 정밀 리포트 수요 측정(2026-10-03~). 아직 상품이 없고, 결과 화면에
  *   목차와 가격만 보여 줘 몇 명이 사려고 하는지 봅니다. seen 은 카드가 화면에 들어온 수,
  *   click 은 「내 리포트 받기」, follow 는 그다음 스레드 팔로우 링크입니다.
+ * saju_*: 결과 화면 「프리미엄 사주」 배너(2026-10-04~). slug 자리에 테스트가 아니라
+ *   배너 자리(lib/sajulab.ts 의 SAJULAB_PLACEMENTS)를 넣습니다.
  */
 export type TestEventName =
   | "visited"
@@ -22,7 +24,9 @@ export type TestEventName =
   | "pick_click"
   | "report_seen"
   | "report_click"
-  | "report_follow";
+  | "report_follow"
+  | "saju_seen"
+  | "saju_click";
 
 /**
  * 2단계 도착. 완주와 같은 방식입니다 — 2단계 화면 조회수를 쓰면 새로고침과

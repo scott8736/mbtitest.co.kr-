@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { GenericResult, GenericTest } from "../lib/generic-tests";
 import { testCatalog } from "../lib/test-catalog";
 import AdUnit from "./AdUnit";
+import SajuLabBanner from "./SajuLabBanner";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
 import Mascot from "./Mascot";
@@ -114,6 +115,8 @@ export default function SharedResult({
             나도 테스트하기 <span>→</span>
           </Link>
         </div>
+
+        <SajuLabBanner placement="shared" />
 
         <AdUnit position="resultBottom" label={`${test.title} ${result.name} 하단 광고`} />
 

@@ -8,6 +8,7 @@
  * 응답 내용은 보내지 않습니다.
  */
 import { testCatalog } from "../lib/test-catalog";
+import { SAJULAB_PLACEMENT_KEYS } from "../lib/sajulab";
 import { isBot, RETENTION_DAYS, seoulDay } from "../lib/analytics";
 import { ensureSchema } from "./schema";
 
@@ -32,7 +33,17 @@ const KNOWN_NAMES = new Set([
   "report_seen",
   "report_click",
   "report_follow",
+  "saju_seen",
+  "saju_click",
 ]);
+
+/** 사주랩 배너는 테스트가 아니라 배너 자리로 셉니다. 자리 목록 밖의 값은 버립니다. */
+const SAJULAB_SLUGS = new Set<string>(SAJULAB_PLACEMENT_KEYS);
+
+export function isKnownEvent(slug: string, name: string): boolean {
+  if (!KNOWN_NAMES.has(name)) return false;
+  return name.startsWith("saju_") ? SAJULAB_SLUGS.has(slug) : KNOWN_SLUGS.has(slug);
+}
 
 /**
  * `/api/event` POST 요청이면 처리하고 204 를 돌려줍니다. 아니면 null 이라
@@ -52,7 +63,7 @@ async function recordTestEvent(request: Request, url: URL, env: EventEnv): Promi
 
     const slug = url.searchParams.get("slug") ?? "";
     const name = url.searchParams.get("name") ?? "";
-    if (!KNOWN_SLUGS.has(slug) || !KNOWN_NAMES.has(name)) return;
+    if (!isKnownEvent(slug, name)) return;
 
     await ensureSchema(env.DB);
     await env.DB.prepare("INSERT INTO test_events (slug, name, day) VALUES (?, ?, ?)")
