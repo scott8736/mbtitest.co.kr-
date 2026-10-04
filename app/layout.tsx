@@ -71,7 +71,7 @@ export const metadata: Metadata = {
   icons: {
     // 2026-10-05 시작 템플릿 기본 아이콘 → 모리. ico 는 svg 를 못 읽는 수집기(네이버 등)용.
     icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/mori-icon.svg", type: "image/svg+xml" }, // 이름을 바꿔 브라우저에 남은 옛 파란 아이콘 캐시를 끊습니다
       { url: "/favicon.ico", sizes: "48x48" },
     ],
     shortcut: "/favicon.ico",

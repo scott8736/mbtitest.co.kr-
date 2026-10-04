@@ -5,7 +5,7 @@
  * 금액은 화면에 보여 주기만 하고 서버로 보내지 않습니다 — 서버가 lib/report-config.ts 의 값으로 결제창을 엽니다.
  */
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { questions, typeData, type Axis } from "../lib/mbti-data";
 import { readLastResult } from "../lib/my-mori";
 import { BIRTH_TIME_SLOTS, REPORT_CONSENT_TEXT, REPORT_CONSENT_VERSION } from "../lib/report-config";
@@ -135,8 +135,18 @@ export default function ReportBuy() {
 }
 
 /** 무료 미리보기 여섯 쪽(표지·내 모리·내 점수·16모리·연애 장·13개월 달력). 내 검사 결과가 있으면 내 유형 견본을, 없거나 아직 없는 유형이면 INFP 견본을 보여 줍니다. */
+const PREVIEW_PAGES = [1, 2, 3, 4, 5, 6];
+
+/**
+ * 무료 미리보기 6쪽 (2026-10-05 개선). 휴대폰에서 옆으로 넘기는 띠였는데 넘길 수 있다는 표시가 없어
+ * 1쪽만 보고 지나갔습니다. 다음 쪽을 살짝 보이게 하고, 「1 / 6」·화살표·점을 달고,
+ * 누르면 크게 보는 화면(이전·다음)을 엽니다.
+ */
 export function ReportPreview() {
   const [type, setType] = useState("INFP");
+  const [at, setAt] = useState(0);
+  const [open, setOpen] = useState<number | null>(null);
+  const strip = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const id = setTimeout(() => {
       const parsed = readStored();
@@ -144,21 +154,71 @@ export function ReportPreview() {
     }, 0);
     return () => clearTimeout(id);
   }, []);
+  useEffect(() => {
+    if (open === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(null);
+      if (e.key === "ArrowRight") setOpen((n) => (n === null ? n : Math.min(n + 1, PREVIEW_PAGES.length - 1)));
+      if (e.key === "ArrowLeft") setOpen((n) => (n === null ? n : Math.max(n - 1, 0)));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  const src = (n: number) => `/report-app/preview/${type}-${n}.jpg`;
+  const fallback = (n: number) => (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    if (!img.src.includes("/INFP-")) img.src = `/report-app/preview/INFP-${n}.jpg`;
+  };
+  const go = (i: number) => {
+    const el = strip.current;
+    const card = el?.children[i] as HTMLElement | undefined;
+    if (el && card) el.scrollTo({ left: card.offsetLeft - el.offsetLeft, behavior: "smooth" });
+  };
+  const onScroll = () => {
+    const el = strip.current;
+    const first = el?.children[0] as HTMLElement | undefined;
+    if (!el || !first) return;
+    setAt(Math.min(PREVIEW_PAGES.length - 1, Math.round(el.scrollLeft / (first.offsetWidth + 10))));
+  };
+
   return (
-    <div className="rp-preview">
-      {[1, 2, 3, 4, 5, 6].map((n) => (
-        // eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기(output: export)라 next/image 최적화를 쓰지 않습니다
-        <img
-          key={`${type}-${n}`}
-          src={`/report-app/preview/${type}-${n}.jpg`}
-          alt={`${type} 리포트 미리보기 ${n}쪽`}
-          loading="lazy"
-          onError={(e) => {
-            const img = e.currentTarget;
-            if (!img.src.includes("/INFP-")) img.src = `/report-app/preview/INFP-${n}.jpg`;
-          }}
-        />
-      ))}
+    <div className="rp-preview-wrap">
+      <div className="rp-preview-bar">
+        <span className="rp-hint-m">👉 옆으로 넘겨 보세요 · 누르면 크게 보여요</span>
+        <span className="rp-hint-d">👉 쪽을 누르면 크게 보여요</span>
+        <b>{at + 1} / {PREVIEW_PAGES.length}</b>
+      </div>
+      <div className="rp-preview-box">
+        <div className="rp-preview" ref={strip} onScroll={onScroll}>
+          {PREVIEW_PAGES.map((n, i) => (
+            <button type="button" key={`${type}-${n}`} onClick={() => setOpen(i)} aria-label={`미리보기 ${n}쪽 크게 보기`}>
+              {/* eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기(output: export)라 next/image 최적화를 쓰지 않습니다 */}
+              <img src={src(n)} alt={`${type} 리포트 미리보기 ${n}쪽`} loading="lazy" onError={fallback(n)} />
+            </button>
+          ))}
+        </div>
+        {at > 0 ? <button type="button" className="rp-preview-arrow is-prev" onClick={() => go(at - 1)} aria-label="이전 쪽">‹</button> : null}
+        {at < PREVIEW_PAGES.length - 1 ? <button type="button" className="rp-preview-arrow is-next" onClick={() => go(at + 1)} aria-label="다음 쪽">›</button> : null}
+      </div>
+      <div className="rp-preview-dots" aria-hidden="true">
+        {PREVIEW_PAGES.map((n, i) => <i key={n} className={i === at ? "on" : ""} />)}
+      </div>
+
+      {open !== null ? (
+        <div className="rp-lightbox" role="dialog" aria-modal="true" aria-label="미리보기 크게 보기" onClick={() => setOpen(null)}>
+          <div className="rp-lightbox-in" onClick={(e) => e.stopPropagation()}>
+            {/* eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기(output: export)라 next/image 최적화를 쓰지 않습니다 */}
+            <img src={src(PREVIEW_PAGES[open])} alt={`${type} 리포트 미리보기 ${PREVIEW_PAGES[open]}쪽`} onError={fallback(PREVIEW_PAGES[open])} />
+            <div className="rp-lightbox-nav">
+              <button type="button" onClick={() => setOpen(Math.max(open - 1, 0))} disabled={open === 0}>‹ 이전</button>
+              <b>{open + 1} / {PREVIEW_PAGES.length}</b>
+              <button type="button" onClick={() => setOpen(Math.min(open + 1, PREVIEW_PAGES.length - 1))} disabled={open === PREVIEW_PAGES.length - 1}>다음 ›</button>
+            </div>
+            <button type="button" className="rp-lightbox-close" onClick={() => setOpen(null)} aria-label="닫기">×</button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

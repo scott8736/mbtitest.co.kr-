@@ -38,7 +38,7 @@ export default function BlogPage() {
       <ContentHeader active="/blog" />
       <section className="blog-hub-hero">
         <div>
-          <span className="eyebrow">MBTI · PSYCHOLOGY GUIDE</span>
+          <span className="eyebrow">📚 MBTI · 심리 가이드</span>
           <h1>
             나를 이해하는
             <br />
@@ -66,7 +66,7 @@ export default function BlogPage() {
       </section>
 
       <section className="blog-hub-intro">
-        <span>CONTENT HUB</span>
+        <span>심리 콘텐츠</span>
         <h2>검사 결과를 일상에서 활용하는 방법</h2>
         <p>
           MBTI 네 글자만 외우는 대신 각 지표가 실제 대화, 연애, 업무에서 어떻게

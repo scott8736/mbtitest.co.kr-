@@ -37,6 +37,14 @@ export default function Page() {
         <a className="content-cta" href="/">
           내 유형 먼저 확인하기 →
         </a>
+        {/* 2026-10-05 궁합 = 서로 다른 두 모리 */}
+        <div className="compat-duo" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기라 next/image 최적화를 쓰지 않습니다 */}
+          <img src={moriImage("ENFP")} alt="" width={180} height={180} />
+          <span>💞</span>
+          {/* eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기라 next/image 최적화를 쓰지 않습니다 */}
+          <img src={moriImage("ISTJ")} alt="" width={180} height={180} />
+        </div>
       </section>
 
       <section className="content-body">

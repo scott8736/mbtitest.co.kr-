@@ -12,19 +12,21 @@ export const metadata: Metadata = {
 };
 
 
-const TOPICS = [
-  "내 성향의 농도 — 실제 점수로 고른 글",
-  "나는 어떤 사람일까",
-  "연애할 때의 나",
-  "친구와 사람들 사이에서",
-  "일하는 방식",
-  "공부할 때의 나",
-  "돈을 대하는 마음",
-  "방전과 충전",
-  "하루의 리듬",
-  "나를 꾸미는 색",
-  "앞으로 13개월 마음 달력",
+// 장 설명은 원고(리포트_디자인/content)에 실제로 있는 내용만 씁니다.
+const TOPICS: [string, string, string][] = [
+  ["🎚️", "내 성향의 농도", "네 축을 내 실제 점수(반반·중간·뚜렷)에 맞춰 골라 쓴 글"],
+  ["🌱", "나는 어떤 사람일까", "내 모리의 성격과 강점, 마음 습관"],
+  ["💗", "연애할 때의 나", "끌리는 사람, 다툴 때의 나, 잘 맞는 짝꿍 모리"],
+  ["🤝", "친구와 사람들 사이에서", "친구 관계와 모임에서 자연스럽게 맡는 역할"],
+  ["💼", "일하는 방식", "일하는 스타일과 잘 어울리는 일"],
+  ["📚", "공부할 때의 나", "집중이 잘 되는 공부 방법"],
+  ["🪙", "돈을 대하는 마음", "돈을 쓰고 모으는 나의 습관"],
+  ["🔋", "방전과 충전", "지칠 때 보내는 신호와 회복하는 법"],
+  ["⏰", "하루의 리듬", "나에게 맞는 하루의 흐름"],
+  ["🎨", "나를 꾸미는 색", "어울리는 색과 분위기"],
+  ["📅", "앞으로 13개월 마음 달력", "이번 달부터 13개월, 달마다 마음 쓰는 법"],
 ];
+const EXTRAS = ["📖 세계관 「마음숲 이야기」", "🐾 나와 다른 15모리와 지내는 법", "✍️ 써 보는 페이지", "🖼️ 오려 붙이는 포스터", "📱 휴대폰 배경화면 3종", "🔮 생년월일을 넣으면 사주 장 6쪽"];
 
 export default function ReportPage() {
   return (
@@ -51,12 +53,24 @@ export default function ReportPage() {
         </div>
 
         <h2>들어 있는 것</h2>
-        <ol className="rp-topics">
-          {TOPICS.map((t) => (
-            <li key={t}>{t}</li>
+        <ol className="rp-chapters">
+          {TOPICS.map(([icon, title, desc], i) => (
+            <li key={title}>
+              <span className="rp-ch-icon" aria-hidden="true">{icon}</span>
+              <div>
+                <small>{String(i + 1).padStart(2, "0")}</small>
+                <b>{title}</b>
+                <span>{desc}</span>
+              </div>
+            </li>
           ))}
         </ol>
-        <p>그 밖에 세계관 「마음숲 이야기」, 나와 다른 15모리와 지내는 법, 써 보는 페이지, 오려 붙일 수 있는 포스터 쪽이 함께 들어 있습니다.</p>
+        <p className="rp-extras-title">그 밖에 함께 들어 있는 것</p>
+        <ul className="rp-extras">
+          {EXTRAS.map((x) => (
+            <li key={x}>{x}</li>
+          ))}
+        </ul>
         <div className="notice-box">
           <strong>읽기 전에</strong>
           <p>이 리포트는 공식 MBTI® 검사 결과가 아니라 자기이해를 돕는 콘텐츠입니다. 의료·심리 진단을 대신하지 않습니다. 사주 장은 전통 해석을 재미로 풀어 쓴 것으로 미래를 단정하지 않습니다.</p>

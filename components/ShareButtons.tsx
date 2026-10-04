@@ -60,11 +60,17 @@ export default function ShareButtons({ title, url, label, variant = "article" }:
   };
 
   return (
-    <div className={variant === "footer" ? "share-bar" : "article-share"}>
-      <span>{label ?? (variant === "footer" ? "이 페이지가 도움이 되었다면" : "이 글 공유하기")}</span>
+    <div className={`${variant === "footer" ? "share-bar" : "article-share"} share-cute`}>
+      {/* 2026-10-05 모리와 함께 — 공유하고 싶어지게 귀엽게 */}
+      {/* eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기라 next/image 최적화를 쓰지 않습니다 */}
+      <img className="share-mori" src="/characters/mori-enfp.webp" alt="" width={64} height={64} loading="lazy" aria-hidden="true" />
+      <div className="share-copy">
+        <span>{label ?? (variant === "footer" ? "친구에게도 알려 줄래요?" : "이 글, 친구에게도 보여 줄래요?")}</span>
+        <small>카톡·인스타로 보내면 친구도 자기 모리를 찾을 수 있어요</small>
+      </div>
       <div className="share-actions">
-        <button type="button" onClick={share}>공유하기</button>
-        <button type="button" onClick={copy}>링크 복사</button>
+        <button type="button" onClick={share}>💌 친구에게 공유</button>
+        <button type="button" onClick={copy}>🔗 링크 복사</button>
       </div>
       <p aria-live="polite">{notice}</p>
     </div>
