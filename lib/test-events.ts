@@ -1,4 +1,5 @@
 import type { ResultClickPlacement } from "./result-clicks";
+import type { ShareChannel } from "./mori";
 
 /**
  * 검사 진행 이벤트.
@@ -20,6 +21,8 @@ import type { ResultClickPlacement } from "./result-clicks";
  * result_click: 결과 화면 링크 묶음을 누름(2026-10-05~). slug 자리에 묶음 이름
  *   (lib/result-clicks.ts 의 RESULT_CLICK_PLACEMENTS)을 넣습니다. 결과 다음에 어디로 가서
  *   사이트에 더 머무는지 보려고 셉니다.
+ * share_click: 모리 캐릭터 카드 공유 버튼(2026-10-04 제작). slug 자리에 공유 수단
+ *   (lib/mori.ts 의 SHARE_CHANNELS)을 넣습니다.
  */
 export type TestEventName =
   | "visited"
@@ -32,7 +35,8 @@ export type TestEventName =
   | "report_follow"
   | "saju_seen"
   | "saju_click"
-  | "result_click";
+  | "result_click"
+  | "share_click";
 
 /**
  * 2단계 도착. 완주와 같은 방식입니다 — 2단계 화면 조회수를 쓰면 새로고침과
@@ -151,6 +155,11 @@ export function onResultLinkClick(placement: ResultClickPlacement) {
     const target = event.target as { closest?: (selector: string) => unknown } | null;
     if (target?.closest?.("a[href]")) recordResultClick(placement);
   };
+}
+
+/** 모리 카드 공유. 탭당 수단마다 한 번만 세어 「공유 ÷ 완주」를 사람 비율로 읽게 합니다. */
+export function recordShare(channel: ShareChannel): void {
+  recordTestEventOnce(channel, "share_click");
 }
 
 export function recordTestEvent(slug: string, name: TestEventName): void {

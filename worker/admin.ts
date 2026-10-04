@@ -12,6 +12,7 @@
 import { SAJULAB_PLACEMENTS, SAJULAB_PLACEMENT_KEYS } from "../lib/sajulab";
 import { RESULT_CLICK_PLACEMENTS, RESULT_CLICK_PLACEMENT_KEYS } from "../lib/result-clicks";
 import { loadRollups, mergeRollups } from "./rollup";
+import { SHARE_CHANNELS, SHARE_CHANNEL_KEYS } from "../lib/mori";
 import { SOURCE_LABELS } from "../lib/analytics";
 import {
   DEFAULT_TREND_KEYWORDS,
@@ -250,6 +251,12 @@ const VISIT_SINCE = "2026-10-04";
 /** 결과 화면 링크 묶음 클릭(result_click)을 세기 시작한 날. 배포한 10-04 는 반나절만 섞여 다음 날부터 냅니다. */
 const RESULT_CLICK_SINCE = "2026-10-05";
 
+/**
+ * 모리 캐릭터 카드 공유(share_click)·공유 페이지(/s/)를 세기 시작한 날.
+ * ⚠ share-card 브랜치를 main 에 합쳐 배포하는 날로 바꾸세요. 그 전 날이 섞이면 0 이 끼어 비율이 낮아집니다.
+ */
+const SHARE_SINCE = "2026-10-11";
+
 /** 이보다 표본이 작으면 비율을 내지 않습니다. 몇 건짜리 비율은 뜻이 없습니다. */
 const MIN_SAMPLE = 20;
 
@@ -365,6 +372,14 @@ async function dashboard(
   const mbtiCompleted = completedBySlug.get("mbti") ?? 0;
   const homeViews = all.paths["/"] ?? 0;
   const otherCompleted = [...completedBySlug].filter(([slug]) => slug !== "mbti").reduce((sum, [, n]) => sum + n, 0);
+  const share = all.share ?? { views: 0, visitors: 0, toTest: 0 };
+  const shareClicks = SHARE_CHANNEL_KEYS.map((key) => ({ key, label: SHARE_CHANNELS[key], clicks: eventCount("share_click", key) }));
+  const shareClickTotal = shareClicks.reduce((sum, row) => sum + row.clicks, 0);
+  const shareRate = (part: number, whole: number) => {
+    if (from < SHARE_SINCE) return "-";
+    if (whole < MIN_SAMPLE) return "표본 부족";
+    return ((part / whole) * 100).toFixed(1) + "%";
+  };
   const clickRate = (click: number, whole: number) => {
     if (from < RESULT_CLICK_SINCE) return "-";
     if (whole < MIN_SAMPLE) return "표본 부족";
@@ -473,6 +488,21 @@ ${RESULT_CLICK_PLACEMENT_KEYS.map((key) => {
   const whole = key.startsWith("mbti-") ? mbtiCompleted : key === "home-trending" ? homeViews : otherCompleted;
   return `<tr><td>${esc(RESULT_CLICK_PLACEMENTS[key])}</td><td>${clicksFor(key)}</td><td>${whole || "-"}</td><td>${clickRate(clicksFor(key), whole)}</td></tr>`;
 }).join("")}
+</tbody></table></div>
+</div>
+
+<div class="box"><h2>모리 카드 공유</h2>
+<p class="note">
+MBTI 결과 화면의 캐릭터 카드 공유 버튼입니다. 「공유」는 버튼을 누른 사람(탭당 수단마다 한 번), 비율은 MBTI 완주 대비입니다.
+「공유 페이지」는 친구가 받은 링크(/s/유형/)를 연 사람, 「→ 검사 시작」은 그중 MBTI 검사 화면까지 간 사람입니다.
+<b>공유 1번당 새 검사 = 검사 시작 ÷ 공유 합계</b> — 1을 넘으면 공유만으로 사람이 늘어납니다. 비율은 ${SHARE_SINCE} 부터 냅니다.
+</p>
+<div class="scroll"><table><thead><tr><th>공유 수단</th><th>공유</th><th>÷ MBTI 완주</th></tr></thead><tbody>
+${shareClicks.map((row) => `<tr><td>${esc(row.label)}</td><td>${row.clicks}</td><td>${shareRate(row.clicks, mbtiCompleted)}</td></tr>`).join("")}
+<tr><td><b>합계</b></td><td><b>${shareClickTotal}</b></td><td><b>${shareRate(shareClickTotal, mbtiCompleted)}</b></td></tr>
+</tbody></table></div>
+<div class="scroll"><table><thead><tr><th>공유 페이지 조회</th><th>공유 페이지 방문자</th><th>→ 검사 시작</th><th>시작률</th><th>공유 1번당 새 검사</th></tr></thead><tbody>
+<tr><td>${share.views}</td><td>${share.visitors}</td><td>${share.toTest}</td><td>${shareRate(share.toTest, share.visitors)}</td><td><b>${from < SHARE_SINCE || shareClickTotal < MIN_SAMPLE ? "-" : (share.toTest / shareClickTotal).toFixed(2)}</b></td></tr>
 </tbody></table></div>
 </div>
 

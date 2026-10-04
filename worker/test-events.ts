@@ -10,6 +10,7 @@
 import { testCatalog } from "../lib/test-catalog";
 import { SAJULAB_PLACEMENT_KEYS } from "../lib/sajulab";
 import { RESULT_CLICK_PLACEMENT_KEYS } from "../lib/result-clicks";
+import { SHARE_CHANNEL_KEYS } from "../lib/mori";
 import { isBot, RETENTION_DAYS, seoulDay } from "../lib/analytics";
 import { ensureSchema } from "./schema";
 
@@ -37,6 +38,7 @@ const KNOWN_NAMES = new Set([
   "saju_seen",
   "saju_click",
   "result_click",
+  "share_click",
 ]);
 
 /** 사주랩 배너는 테스트가 아니라 배너 자리로 셉니다. 자리 목록 밖의 값은 버립니다. */
@@ -45,10 +47,14 @@ const SAJULAB_SLUGS = new Set<string>(SAJULAB_PLACEMENT_KEYS);
 /** 결과 화면 링크 묶음도 테스트가 아니라 묶음 이름으로 셉니다. */
 const RESULT_CLICK_SLUGS = new Set<string>(RESULT_CLICK_PLACEMENT_KEYS);
 
+/** 모리 카드 공유도 공유 수단 이름으로 셉니다. */
+const SHARE_SLUGS = new Set<string>(SHARE_CHANNEL_KEYS);
+
 export function isKnownEvent(slug: string, name: string): boolean {
   if (!KNOWN_NAMES.has(name)) return false;
   if (name.startsWith("saju_")) return SAJULAB_SLUGS.has(slug);
   if (name === "result_click") return RESULT_CLICK_SLUGS.has(slug);
+  if (name === "share_click") return SHARE_SLUGS.has(slug);
   return KNOWN_SLUGS.has(slug);
 }
 

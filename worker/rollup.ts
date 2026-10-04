@@ -51,6 +51,11 @@ export type Rollup = {
   journey: Journey;
   /** MBTI 결과 화면에서 바로 이어서 연 페이지 */
   afterMbti: Record<string, number>;
+  /**
+   * 모리 카드 공유 페이지(/s/<유형>/). 2026-10-04 에 추가해 그 전에 저장된 집계에는 없습니다 —
+   * 그 날들은 공유 페이지가 없던 때라 0 으로 읽으면 맞으므로 ROLLUP_VERSION 은 올리지 않았습니다.
+   */
+  share?: { views: number; visitors: number; toTest: number };
 };
 
 export type PageRow = {
@@ -85,6 +90,9 @@ export function stageOf(path: string): { slug: string; stage: "intro" | "step2" 
   return { slug: m[1], stage: (m[2] as "step2" | "result" | undefined) ?? "intro" };
 }
 
+/** 모리 카드 공유 페이지 /s/<유형>/ */
+export const isSharePage = (path: string) => /^\/s\/[a-z]{4}\/$/.test(path);
+
 /** D1 의 CURRENT_TIMESTAMP("YYYY-MM-DD HH:MM:SS", UTC) → 밀리초 */
 const toMs = (stamp: string) => Date.parse(stamp.replace(" ", "T") + "Z");
 
@@ -104,9 +112,10 @@ export function buildRollup(day: string, pages: PageRow[], events: EventRow[]): 
     events: {},
     journey: emptyJourney(),
     afterMbti: {},
+    share: { views: 0, visitors: 0, toTest: 0 },
   };
 
-  type Visitor = { views: number; first: number; last: number; tests: Set<string>; tookMbti: boolean; mbtiAt: number; otherAt: number };
+  type Visitor = { views: number; first: number; last: number; tests: Set<string>; tookMbti: boolean; mbtiAt: number; otherAt: number; shareAt: number; mbtiStartAt: number };
   const visitors = new Map<string, Visitor>();
 
   for (const p of pages) {
@@ -126,7 +135,7 @@ export function buildRollup(day: string, pages: PageRow[], events: EventRow[]): 
     const at = toMs(p.created_at);
     let v = visitors.get(p.visitor_hash);
     if (!v) {
-      v = { views: 0, first: at, last: at, tests: new Set(), tookMbti: false, mbtiAt: Infinity, otherAt: -Infinity };
+      v = { views: 0, first: at, last: at, tests: new Set(), tookMbti: false, mbtiAt: Infinity, otherAt: -Infinity, shareAt: Infinity, mbtiStartAt: -Infinity };
       visitors.set(p.visitor_hash, v);
     }
     v.views += 1;
@@ -138,6 +147,11 @@ export function buildRollup(day: string, pages: PageRow[], events: EventRow[]): 
     }
     if (p.path === "/tests/mbti/step2/") v.tookMbti = true;
     if (p.path === "/mbti-result/") v.mbtiAt = Math.min(v.mbtiAt, at);
+    if (isSharePage(p.path)) {
+      r.share!.views += 1;
+      v.shareAt = Math.min(v.shareAt, at);
+    }
+    if (p.path === "/tests/mbti/") v.mbtiStartAt = Math.max(v.mbtiStartAt, at);
   }
 
   // 체류·회유. 체류 시간은 첫 조회 ~ 마지막 조회라 마지막 페이지에 머문 시간은 빠집니다.
@@ -151,6 +165,10 @@ export function buildRollup(day: string, pages: PageRow[], events: EventRow[]): 
     const done = v.tookMbti && v.mbtiAt !== Infinity;
     if (done) j.mbti_done += 1;
     if (done && v.otherAt > v.mbtiAt) j.mbti_next += 1;
+    if (v.shareAt !== Infinity) {
+      r.share!.visitors += 1;
+      if (v.mbtiStartAt >= v.shareAt) r.share!.toTest += 1;
+    }
     if (v.views === 1) j.b0 += 1;
     else if (span < 60) j.b1 += 1;
     else if (span < 180) j.b2 += 1;
@@ -171,6 +189,7 @@ export function mergeRollups(list: Rollup[]): Rollup {
   const m: Rollup = {
     v: ROLLUP_VERSION, day: "", views: 0, visitors: 0, sources: {}, devices: {}, paths: {}, countries: {},
     referrers: {}, steps: {}, events: {}, journey: emptyJourney(), afterMbti: {},
+    share: { views: 0, visitors: 0, toTest: 0 },
   };
   for (const r of list) {
     m.views += r.views;
@@ -185,6 +204,11 @@ export function mergeRollups(list: Rollup[]): Rollup {
       row.result += s.result;
     }
     for (const key of Object.keys(m.journey) as (keyof Journey)[]) m.journey[key] += r.journey[key];
+    if (r.share) {
+      m.share!.views += r.share.views;
+      m.share!.visitors += r.share.visitors;
+      m.share!.toTest += r.share.toTest;
+    }
   }
   return m;
 }

@@ -1324,3 +1324,31 @@ main:not(.screener) .result-card-image {
   .sajulab-title { font-size:18px; }
   .sajulab-button { min-height:56px; font-size:17px; }
 }
+
+/* 모리 캐릭터 카드 (2026-10-04). --mori 는 lib/mori.ts 의 유형별 몸 색.
+   결과 화면: 맨 위 캐릭터(MoriPortrait) + 설명 아래 공유 버튼(MoriShare). 공유 페이지: /s/<유형>/ */
+.result-shell > h1 { word-break:keep-all; }
+.mori-portrait { margin:14px auto 22px; max-width:360px; text-align:center; }
+.mori-portrait img { display:block; width:100%; height:auto; border-radius:28px; box-shadow:0 18px 40px rgba(34,40,70,.16); }
+.mori-portrait figcaption { margin-top:12px; color:var(--muted); font-size:14px; font-weight:700; }
+.mori-portrait figcaption b { color:var(--ink); }
+.mori-share { max-width:620px; margin:6px auto 30px; padding:20px; border-radius:22px; background:rgba(255,255,255,.9); border:1px solid var(--line); }
+.mori-share-lead { margin:0 0 14px; font-size:15px; font-weight:700; color:var(--ink); word-break:keep-all; }
+.mori-share-buttons { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.mori-share-buttons button { min-height:52px; padding:10px 12px; border:2px solid var(--ink); border-radius:16px; background:#fff; color:var(--ink); font:inherit; font-size:15px; font-weight:800; cursor:pointer; word-break:keep-all; }
+.mori-share-buttons button:first-child { background:var(--violet); border-color:var(--violet); color:#fff; }
+.mori-share-buttons button:hover { transform:translateY(-1px); }
+.mori-share-note { min-height:1.4em; margin:10px 0 0; color:var(--muted); font-size:13px; word-break:keep-all; }
+.mori-landing { max-width:640px; margin:0 auto; padding:30px 16px 40px; text-align:center; }
+.mori-landing-img { display:block; width:min(100%,380px); height:auto; margin:18px auto 20px; border-radius:30px; box-shadow:0 18px 40px rgba(34,40,70,.16); }
+.mori-landing h1 { margin:0 0 10px; font-size:clamp(26px,6vw,38px); letter-spacing:-.04em; word-break:keep-all; }
+.mori-landing-tagline { margin:0 0 24px; color:var(--muted); font-size:16px; word-break:keep-all; }
+.mori-landing-meta { margin:12px 0 18px; color:var(--muted); font-size:14px; }
+.mori-landing-more { color:var(--violet); font-weight:800; text-decoration:none; }
+.mori-dex { max-width:900px; margin:0 auto 50px; padding:0 16px; text-align:center; }
+.mori-dex h2 { font-size:22px; margin:10px 0 16px; }
+.mori-dex > div { display:grid; grid-template-columns:repeat(8,1fr); gap:10px; }
+.mori-dex a { display:block; padding:6px; border-radius:16px; background:#fff; border:1px solid var(--line); color:var(--ink); text-decoration:none; font-size:12px; font-weight:800; }
+.mori-dex a.on { border:2px solid var(--violet); }
+.mori-dex img { display:block; width:100%; height:auto; border-radius:12px; }
+@media (max-width:620px) { .mori-dex > div { grid-template-columns:repeat(4,1fr); } .mori-share-buttons button { font-size:14px; } }

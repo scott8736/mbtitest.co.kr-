@@ -2,12 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import AdUnit from "./AdUnit";
-import Mascot from "./Mascot";
+import { MoriPortrait, MoriShare } from "./MoriCard";
 import MbtiResultPick from "./MbtiResultPick";
 import ReportTeaser from "./ReportTeaser";
 import SajuLabBanner from "./SajuLabBanner";
 import { questions, typeData, typeDetails, type Axis } from "../lib/mbti-data";
 import { onResultLinkClick, recordCompletionOnce } from "../lib/test-events";
+import { MORI_BEST } from "../lib/mori";
 
 const TEST_PATH = "/tests/mbti/";
 const STORAGE_KEY = "mbti-test-result";
@@ -57,45 +58,16 @@ export default function MbtiResult() {
     location.assign(TEST_PATH);
   };
 
-  const share = async () => {
-    const text = `나의 MBTI는 ${result}, ${resultInfo.name}! 무료 MBTI 검사로 당신의 유형도 확인해보세요.`;
-    const url = `${location.origin}/types/${result.toLowerCase()}/`;
-    if (navigator.share) await navigator.share({ title: "마음결 MBTI 결과", text, url });
-    else {
-      await navigator.clipboard.writeText(`${text} ${url}`);
-      alert("결과 링크를 복사했습니다.");
-    }
-  };
-
-  const downloadResult = () => {
-    const canvas = document.createElement("canvas");
-    canvas.width = 1080; canvas.height = 1080;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const gradient = ctx.createLinearGradient(0, 0, 1080, 1080);
-    gradient.addColorStop(0, "#172A46"); gradient.addColorStop(.58, "#302268"); gradient.addColorStop(1, resultInfo.color);
-    ctx.fillStyle = gradient; ctx.fillRect(0, 0, 1080, 1080);
-    ctx.fillStyle = "rgba(255,255,255,.1)"; ctx.beginPath(); ctx.arc(900, 160, 280, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "#DCD4FF"; ctx.font = "700 30px sans-serif"; ctx.fillText("MY MBTI RESULT", 90, 120);
-    ctx.fillStyle = "#fff"; ctx.font = "900 130px sans-serif"; ctx.fillText(result, 90, 330);
-    ctx.font = "800 52px sans-serif"; ctx.fillText(resultInfo.name, 90, 420);
-    ctx.fillStyle = "rgba(255,255,255,.78)"; ctx.font = "500 34px sans-serif"; ctx.fillText(resultInfo.tagline, 90, 490);
-    resultInfo.strengths.forEach((x, i) => { ctx.fillStyle = "#fff"; ctx.font = "600 29px sans-serif"; ctx.fillText(`✦ ${x}`, 90, 650 + i * 64); });
-    ctx.fillStyle = "#fff"; ctx.font = "700 30px sans-serif"; ctx.fillText("나도 무료 MBTI 검사하기", 90, 930);
-    ctx.fillStyle = "rgba(255,255,255,.65)"; ctx.font = "500 24px sans-serif"; ctx.fillText(location.host, 90, 975);
-    const link = document.createElement("a"); link.download = `mbti-${result}.png`; link.href = canvas.toDataURL("image/png"); link.click();
-  };
-
   return (
     <section className="result-shell" style={{ "--result-color": resultInfo.color } as React.CSSProperties}>
       <span className="result-kicker">검사가 완료되었습니다</span>
-      <Mascot className="result-mascot mascot-center" mood="celebrate" size={96} accent={resultInfo.color} />
-      {/* 네 글자를 색 사각형에 넣던 result-code 를 카드로 바꿉니다. 카드에
-          같은 네 글자가 더 크게 들어가 있고, 캡처해서 공유할 수 있습니다. */}
-      <img className="result-card-image" src={`/images/og/r/mbti-${result.toLowerCase()}.png`} width={1200} height={630} alt={`${result} ${resultInfo.name} 결과 카드`} />
+      {/* 결과 화면 첫 그림은 유형별 모리 캐릭터입니다(2026-10-04). 예전 1200x630 결과 카드는
+          글자뿐이라 공유할 맛이 없었습니다. 공유 카드는 아래 MoriShare 가 9:16 으로 그립니다. */}
+      <MoriPortrait code={result} name={resultInfo.name} />
       <h1>{resultInfo.name}</h1>
       <p className="result-tagline">{resultInfo.tagline}</p>
       <p className="result-description">{resultInfo.description}</p>
+      <MoriShare code={result} name={resultInfo.name} tagline={resultInfo.tagline} percents={percentages} best={MORI_BEST[result]} />
       <div className="result-grid">
         <article className="axis-card">
           <h2>나의 성향 지표</h2>
@@ -123,7 +95,7 @@ export default function MbtiResult() {
         </div>
       </div>
       <MbtiResultPick code={result} />
-      <div className="result-actions"><button className="primary-button" onClick={share}>결과 공유하기 <span>↗</span></button><button className="secondary-button" onClick={downloadResult}>결과 이미지 저장</button><button className="secondary-button" onClick={start}>다시 검사하기</button></div>
+      <div className="result-actions"><button className="secondary-button" onClick={start}>다시 검사하기</button></div>
       <p className="disclaimer">본 테스트는 자기이해를 위한 간이 성격 테스트이며, 전문적인 심리 진단을 대신하지 않습니다.</p>
       <div className="related-results result-deep-link" onClick={onResultLinkClick("mbti-type")}>
         <span className="eyebrow">MORE ABOUT {result}</span>
