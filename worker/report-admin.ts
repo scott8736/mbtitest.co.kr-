@@ -26,6 +26,17 @@ type Helpers = {
   redirect: (to: string) => Response;
 };
 
+/**
+ * D1 의 CURRENT_TIMESTAMP 와 toISOString 은 UTC 라, 페이앱이 주는 결제 시각(한국 시각)과 9시간 어긋나 보였습니다.
+ * 관리자 화면에서는 모두 한국 시각으로 맞춰 보여 줍니다.
+ */
+export function kst(value: string): string {
+  if (!value) return "";
+  const at = new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(value) ? value : `${value.replace(" ", "T")}Z`);
+  if (Number.isNaN(at.getTime())) return value;
+  return new Date(at.getTime() + 9 * 3600_000).toISOString().replace("T", " ").slice(0, 19);
+}
+
 const STATUS_KO: Record<string, string> = {
   pending: "결제 대기", paid: "결제 완료", partial: "부분 취소", refunded: "환불(승인취소)", cancelled: "요청 취소", failed: "결제창 실패",
 };
@@ -160,10 +171,13 @@ ${testBox}
 <th>주문번호</th><th>유형</th><th>금액</th><th>상태</th><th>결제</th><th>첫 열람</th><th>열람</th><th></th></tr></thead><tbody>
 ${orders
   .map(
-    (o) => `<tr><td>${esc(o.order_no)}${o.test ? " <small>(시험)</small>" : ""}<br><small class="muted">${esc(o.created_at)}</small></td>
+    (o) => `<tr><td>${esc(o.order_no)}${o.test ? " <small>(시험)</small>" : ""}<br><small class="muted">${esc(kst(o.created_at))}</small></td>
 <td>${esc(o.type)}</td><td>${o.price.toLocaleString()}</td><td>${esc(STATUS_KO[o.status] ?? o.status)}</td>
-<td><small>${esc(o.paid_at)}</small></td><td><small>${esc(o.first_viewed_at || "-")}</small></td><td>${o.view_count}</td>
-<td>${o.status === "pending" && o.payurl ? `<a href="${esc(o.payurl)}" target="_blank" rel="noopener">결제창</a> ` : ""}${["paid", "partial", "pending"].includes(o.status) && o.mul_no
+<td><small>${esc(o.paid_at)}</small></td><td><small>${esc(o.first_viewed_at ? kst(o.first_viewed_at) : "-")}</small></td><td>${o.view_count}</td>
+<td>${o.status === "pending" && o.payurl ? `<a href="${esc(o.payurl)}" target="_blank" rel="noopener">결제창</a> ` : ""}${
+      // 열람 링크는 시험 주문에만 둡니다. 손님 주문을 관리자가 열면 「첫 열람」이 찍혀 환불 판단 근거가 흐려집니다.
+      o.test && ["paid", "partial"].includes(o.status) ? `<a href="/report-app/?o=${o.token}" target="_blank" rel="noopener">열기</a> ` : ""
+    }${["paid", "partial", "pending"].includes(o.status) && o.mul_no
       ? `<form method="post" action="/admin/report/cancel" onsubmit="return confirm('${esc(o.order_no)} 를 취소할까요? 결제된 주문이면 환불됩니다.')" style="display:inline">
 <input type="hidden" name="order_no" value="${esc(o.order_no)}"><input name="memo" placeholder="취소 사유" style="width:90px;padding:4px 6px"><button type="submit" style="padding:4px 10px">취소</button></form>`
       : ""}</td></tr>`,
@@ -172,7 +186,7 @@ ${orders
 </tbody></table></div></div>
 
 <div class="box"><h2>페이앱 기록 (최근 30건)</h2><div class="scroll"><table><thead><tr><th>시각</th><th>주문번호</th><th>종류</th><th>내용</th></tr></thead><tbody>
-${events.map((e) => `<tr><td><small>${esc(e.created_at)}</small></td><td>${esc(e.order_no)}</td><td>${esc(e.kind)}</td><td><small>${esc(e.detail)}</small></td></tr>`).join("") || `<tr><td colspan="4" class="muted">기록 없음</td></tr>`}
+${events.map((e) => `<tr><td><small>${esc(kst(e.created_at))}</small></td><td>${esc(e.order_no)}</td><td>${esc(e.kind)}</td><td><small>${esc(e.detail)}</small></td></tr>`).join("") || `<tr><td colspan="4" class="muted">기록 없음</td></tr>`}
 </tbody></table></div></div>
 </div>`;
   return html(shell("리포트 판매", body));
