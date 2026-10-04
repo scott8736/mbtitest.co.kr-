@@ -4,6 +4,7 @@ import { useMemo, useSyncExternalStore } from "react";
 import { buildDailyReading, formatKoreanDate } from "../lib/daily-fortune";
 import { seoulDateKey } from "../lib/fortune-engine";
 import styles from "../lib/fortune.module.css";
+import ResultShareCard from "./ResultShareCard";
 
 /**
  * 서버(빌드 시점) 렌더에 쓰는 고정 날짜.
@@ -84,6 +85,20 @@ export default function DailyFortune({ scope = "", label = "" }: { scope?: strin
             {reading.caution}
           </p>
         </div>
+
+        {live && (
+          <ResultShareCard
+            id={`daily-${scope || "all"}-${reading.dateKey}`}
+            kicker={`${formatKoreanDate(reading.dateKey)} ${title}`}
+            big={String(reading.score)}
+            bigLabel="총운"
+            headline={reading.headline}
+            pills={[`행운의 색 ${reading.luckyColor}`]}
+            color="#7657d6"
+            shareText={`오늘 ${label || "내"} 운세 총운 ${reading.score}점!`}
+            linkTitle={title}
+          />
+        )}
 
         <p className={styles.formNote}>
           날짜를 기준으로 정해지므로 같은 날에는 몇 번을 봐도 같은 내용이 나옵니다. 새로고침으로

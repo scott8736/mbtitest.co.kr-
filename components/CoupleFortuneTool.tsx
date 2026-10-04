@@ -5,6 +5,7 @@ import { buildCouple } from "../lib/fortune-couple";
 import { elementLabels, earthlyBranchesKo, heavenlyStemsKo } from "../lib/fortune-engine";
 import styles from "../lib/fortune.module.css";
 import SajuLabBanner from "./SajuLabBanner";
+import ResultShareCard from "./ResultShareCard";
 
 /**
  * 사주 궁합 화면.
@@ -149,6 +150,19 @@ export default function CoupleFortuneTool() {
             궁합은 관계의 성공이나 실패를 예측하지 않습니다. 두 사람이 어디서 손이 더 가는지를 미리
             일러 주는 참고 자료로만 보시기 바랍니다.
           </p>
+
+          <ResultShareCard
+            id={`gunghap-${result.score}`}
+            kicker="생년월일 궁합"
+            big={String(result.score)}
+            bigLabel="궁합 점수"
+            headline={result.headline}
+            sub={`일간 관계 ${result.relation} · 띠 관계 ${result.branch}`}
+            color={result.score >= 62 ? "#5d9080" : "#c9873f"}
+            path="/fortune/gunghap/"
+            shareText={`우리 궁합 ${result.score}점 나왔어요!`}
+            linkTitle="무료 궁합"
+          />
 
           <SajuLabBanner placement="gunghap" />
         </div>

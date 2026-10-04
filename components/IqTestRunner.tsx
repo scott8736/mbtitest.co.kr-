@@ -5,7 +5,7 @@ import Link from "next/link";
 import { IQ_AREAS, IQ_SLUG, iqBandFor, iqFaq, iqIntro, iqQuestions } from "../lib/iq-test";
 import AdUnit from "./AdUnit";
 import CrossPromo from "./CrossPromo";
-import ShareButtons from "./ShareButtons";
+import ResultShareCard from "./ResultShareCard";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
 import TestResultPick from "./TestResultPick";
@@ -245,7 +245,18 @@ export default function IqTestRunner() {
           <SajuLabBanner placement="iq" />
           <TestResultPick slug={IQ_SLUG} resultKey={String(band.min)} />
 
-          <ShareButtons title={`IQ 테스트 20문제 중 ${correct}문제 맞혔어요. 몇 개 맞힐 수 있나요?`} url="https://mbtitest.co.kr/tests/iq/" />
+          <ResultShareCard
+            id={`iq-${correct}`}
+            kicker="IQ 퍼즐 20문제"
+            big={`${correct}/${total}`}
+            bigLabel="맞힌 문제"
+            headline={band.name}
+            sub={`걸린 시간 ${formatDuration(elapsed)}`}
+            color={band.color}
+            path="/tests/iq/"
+            shareText={`IQ 퍼즐 20문제 중 ${correct}문제 맞혔어요. 몇 개 맞힐 수 있나요?`}
+            linkTitle="IQ 테스트 20문제"
+          />
 
           <div className="result-actions">
             <button className="secondary-button" onClick={start}>

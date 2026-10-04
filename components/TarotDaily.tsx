@@ -12,6 +12,7 @@ import {
 } from "../lib/tarot";
 import AdUnit from "./AdUnit";
 import SajuLabBanner from "./SajuLabBanner";
+import ResultShareCard from "./ResultShareCard";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
 import Mascot from "./Mascot";
@@ -170,6 +171,20 @@ export default function TarotDaily({ fortune }: { fortune: TarotFortune }) {
             <span>오늘의 한 줄</span>
             <h2>{picked.advice}</h2>
           </div>
+
+          <ResultShareCard
+            id={`tarot-${fortune.slug}-${picked.no}`}
+            kicker={`${dateKey} ${fortune.title}`}
+            big={picked.symbol}
+            bigLabel={picked.ko}
+            headline={`${picked.ko} · ${picked.en}`}
+            sub={picked.advice}
+            pills={picked.keyword.split(" · ")}
+            color={picked.color}
+            path={`/tarot/${fortune.slug}/`}
+            shareText={`오늘 내 타로는 「${picked.ko}」 카드!`}
+            linkTitle={fortune.title}
+          />
 
           <AdUnit position="resultMiddle" />
 

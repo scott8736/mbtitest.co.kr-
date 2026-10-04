@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import AdUnit from "./AdUnit";
 import SajuLabBanner from "./SajuLabBanner";
+import ResultShareCard, { type ResultShareProps } from "./ResultShareCard";
 import {
   birthTimeSlots,
   buildChart,
@@ -249,6 +250,8 @@ export default function FortuneTool({ mode, resultOnly = false }: { mode: Fortun
           {mode === "saju" && <SajuResult result={result} />}
           {mode === "saju-mbti" && <SajuMbtiResult result={result} mbti={submitted?.mbti ?? ""} />}
 
+          <ResultShareCard {...fortuneShare(mode, result, today, submitted?.mbti ?? "")} />
+
           <SajuLabBanner placement={mode === "today" ? "fortune-today" : mode === "saju" ? "fortune-saju" : "fortune-saju-mbti"} />
 
           <AdUnit position="resultBottom" label="운세 결과 하단 광고" />
@@ -284,6 +287,56 @@ function ElementBars({ counts }: { counts: number[] }) {
       ))}
     </div>
   );
+}
+
+/** 결과 화면 아래 공유 카드에 넣을 값. 각 결과 화면과 같은 계산(같은 seed)을 씁니다. */
+function fortuneShare(mode: FortuneMode, result: Result, today: string, mbti: string): ResultShareProps {
+  const { chart, dailySeed } = result;
+  if (mode === "today") {
+    const overall = scoreBy(dailySeed, 0, 52, 97);
+    return {
+      id: `today-${today}-${overall}`,
+      kicker: `${today} 오늘의 운세`,
+      big: String(overall),
+      bigLabel: "총운",
+      headline: pickBy(todayHeadlines, dailySeed),
+      pills: [`연애 ${scoreBy(dailySeed, 1)}`, `재물 ${scoreBy(dailySeed, 3)}`, `직장 ${scoreBy(dailySeed, 5)}`],
+      color: "#7657d6",
+      path: "/fortune/today/",
+      shareText: `오늘 내 총운은 ${overall}점!`,
+      linkTitle: "오늘의 운세",
+    };
+  }
+  if (mode === "saju") {
+    const title = dayMasterReadings[chart.dayStemIdx].title;
+    const [stem, image = title] = title.split(" — ");
+    return {
+      id: `saju-${chart.dayStemIdx}`,
+      kicker: "내 사주 일간(日干)",
+      big: stem.slice(0, 1),
+      headline: image,
+      sub: `나는 ${stem} 일간`,
+      color: "#5d9080",
+      path: "/fortune/saju/",
+      shareText: `내 사주 일간은 ${stem}, 「${image}」래요.`,
+      linkTitle: "무료 사주 풀이",
+    };
+  }
+  const axes = sajuAxes(chart.elementCounts);
+  const sajuCode = axes.map((axis) => axis.pick).join("");
+  const matched = axes.filter((axis, index) => axis.pick === mbti[index]).length;
+  return {
+    id: `saju-mbti-${sajuCode}-${mbti}`,
+    kicker: "사주 MBTI",
+    big: sajuCode,
+    bigLabel: "사주가 말하는 나",
+    headline: `사주는 ${sajuCode}, 나는 ${mbti}`,
+    sub: `네 축 중 ${matched}개가 같은 방향`,
+    color: "#c9873f",
+    path: "/fortune/saju-mbti/",
+    shareText: `사주로 본 내 MBTI는 ${sajuCode}래요. 실제 나는 ${mbti}!`,
+    linkTitle: "사주 MBTI",
+  };
 }
 
 function TodayResult({ result, today }: { result: Result; today: string }) {

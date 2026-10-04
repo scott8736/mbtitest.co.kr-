@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { Screener } from "../lib/screeners";
 import { HELPLINES, bandFor, maxScore, screenerBySlug } from "../lib/screeners";
+import ResultShareCard from "./ResultShareCard";
 import AdUnit from "./AdUnit";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
@@ -234,6 +235,23 @@ export default function ScreenerRunner({ screener }: { screener: Screener }) {
             점수가 높아도 그것만으로 질환이 있다는 뜻은 아닙니다. 판단은 전문가와 함께
             하시기 바랍니다.
           </p>
+
+          {/* 공유 카드에는 점수·구간을 넣지 않습니다. 마음건강 결과를 남에게 보이게 하지 않고,
+              「나도 점검해 봤어」만 전합니다. 도움이 필요한 구간에서는 공유판을 띄우지 않습니다. */}
+          {!urgent && (
+            <ResultShareCard
+              id={`check-${screener.slug}`}
+              kicker="마음 점검"
+              big="✓"
+              bigLabel="점검 완료"
+              headline={screener.title}
+              sub="몇 분이면 끝나요. 결과는 나만 볼 수 있어요."
+              color={band.color}
+              path={`/check/${screener.slug}/`}
+              shareText={`${screener.title} 해 봤어요. 요즘 마음 상태 한번 점검해 보세요.`}
+              linkTitle={screener.title}
+            />
+          )}
 
           <div className="result-actions">
             <button className="secondary-button" onClick={start}>
