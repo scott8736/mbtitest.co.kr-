@@ -51,6 +51,9 @@ const worker = {
     // 주소를 바꿀 때마다 여기 한 줄을 추가합니다.
     const MOVED_PAGES: Record<string, string> = {
       "/blog/idol-mbti-list-warning": "/blog/rescene-mbti/",
+      // 2026-10-05 궁합 비슷한 글 통합, MBTI 와 무관한 트로트 순위 글 정리
+      "/blog/mbti-love-compatibility-guide": "/blog/mbti-compatibility-guide/",
+      "/blog/trot-singer-ranking": "/blog/lim-young-woong-mbti/",
     };
     const moved = MOVED_PAGES[url.pathname.replace(/\/+$/, "")];
     if (moved) return Response.redirect(`${url.origin}${moved}`, 301);

@@ -1,6 +1,7 @@
 import { newSeoPosts } from "./new-seo-posts";
 import { celebrityPosts } from "./celebrity-posts";
 import { fortunePosts } from "./fortune-posts";
+import { promoPosts } from "./promo-posts";
 
 export type BlogSection = {
   heading: string;
@@ -22,11 +23,14 @@ export type BlogPost = {
   cta: { eyebrow: string; title: string; description: string; href: string; label: string };
   relatedSlugs: string[];
   sources?: { label: string; href: string }[];
+  /** 자주 묻는 질문. 본문 끝에 보이고 FAQPage 구조화 데이터로도 나갑니다(지식스니펫용, 2026-10-05~). */
+  faq?: { q: string; a: string }[];
 };
 
 const commonDate = "2026-07-25";
 
 export const blogPosts: BlogPost[] = [
+  ...promoPosts,
   ...celebrityPosts,
   ...newSeoPosts,
   ...fortunePosts,
@@ -171,24 +175,41 @@ export const blogPosts: BlogPost[] = [
     relatedSlugs: ["mbti-test-guide", "mbti-result-changes", "mbti-s-vs-n"],
   },
   {
+    // 2026-10-05 「MBTI 연애 궁합표보다 먼저 확인해야 할 4가지」(mbti-love-compatibility-guide)를 여기로 합쳤습니다.
+    // 같은 검색어(MBTI 궁합표)를 두 글이 나눠 먹고 있었습니다. 옛 주소는 worker/pages-entry.ts 에서 301 로 넘깁니다.
     slug: "mbti-compatibility-guide",
     category: "연애·관계",
-    title: "MBTI 궁합표보다 중요한 연애 관계의 3가지 기준",
-    description: "MBTI 궁합을 절대적인 순위가 아닌 대화, 갈등, 회복 방식의 차이로 건강하게 활용하는 방법입니다.",
-    keywords: ["MBTI 궁합", "MBTI 연애 궁합", "MBTI 궁합표"],
-    readTime: "약 6분",
+    title: "MBTI 궁합표보다 중요한 것, 연애에서 먼저 볼 기준",
+    description: "MBTI 궁합은 좋고 나쁜 순위가 아니라 연락·갈등·약속 방식과 기질 조합의 차이입니다. 궁합표를 대화로 바꾸는 법을 정리했습니다.",
+    keywords: ["MBTI 궁합", "MBTI 연애 궁합", "MBTI 궁합표", "MBTI 커플 궁합", "엠비티아이 궁합"],
+    readTime: "약 8분",
     publishedAt: commonDate,
-    updatedAt: commonDate,
-    intro: ["MBTI 궁합표에서 좋은 조합이라고 반드시 행복한 관계가 되는 것은 아니며, 나쁜 조합으로 표시됐다고 관계가 실패하는 것도 아닙니다. 유형은 두 사람의 차이를 대화하기 위한 언어로 사용할 때 가장 유용합니다."],
-    sections: [
-      { heading: "1. 연락과 혼자 있는 시간의 기준", paragraphs: ["E와 I 차이는 연락 빈도와 만남 후 회복 시간에서 나타날 수 있습니다. 연락 횟수를 애정의 크기로 해석하기보다 각자 편안한 빈도와 혼자 쉬는 시간을 구체적으로 합의하는 것이 중요합니다."] },
-      { heading: "2. 갈등을 해결하는 순서", paragraphs: ["T는 원인과 해결책부터, F는 감정 확인과 관계 회복부터 필요할 수 있습니다. 어느 쪽이 맞는지를 따지기보다 공감과 해결의 순서를 맞추면 같은 문제로 반복해서 다투는 일을 줄일 수 있습니다."] },
-      { heading: "3. 계획과 약속을 다루는 방식", paragraphs: ["J는 미리 정해진 약속에서 안정감을 느끼고 P는 상황에 맞춘 선택을 선호할 수 있습니다. 약속을 언제까지 확정할지와 변경 시 어떻게 알릴지를 정하면 갈등이 줄어듭니다."] },
-      { heading: "궁합을 볼 때 피해야 할 해석", paragraphs: ["상대의 모든 행동을 유형 탓으로 돌리거나, 유형을 이유로 무례한 행동을 정당화해서는 안 됩니다. 신뢰, 존중, 책임감은 어떤 조합에서도 별도로 확인해야 하는 관계의 기본입니다."] },
-      { heading: "궁합표를 대화 질문으로 바꾸기", paragraphs: ["'우리는 잘 맞을까?'보다 '나는 갈등 후 바로 대화하고 싶은데 너는 시간이 필요한가?', '계획 변경은 언제 알려주면 좋은가?'처럼 실제 행동을 묻는 편이 관계에 도움이 됩니다."] },
+    updatedAt: "2026-10-05",
+    intro: [
+      "MBTI 궁합표의 좋은 조합이 행복한 관계를 보장하지 않고, 나쁜 조합이 이별을 뜻하지도 않습니다. 궁합에서 실제로 볼 것은 연락 빈도, 갈등을 푸는 순서, 약속을 다루는 방식처럼 두 사람이 매일 부딪히는 생활 기준입니다.",
+      "같은 유형도 자라 온 환경과 애착 방식, 대화 습관이 다릅니다. 유형은 점수가 아니라 서로 다른 선호를 번역하는 언어로 쓸 때 가장 쓸모가 있습니다.",
     ],
-    cta: { eyebrow: "16가지 유형 조합", title: "두 사람의 MBTI 관계 포인트를 확인하세요", description: "유형 조합별 강점과 조심할 대화 방식을 가볍게 살펴볼 수 있습니다.", href: "/compatibility/", label: "MBTI 궁합 확인하기" },
-    relatedSlugs: ["mbti-e-vs-i", "mbti-t-vs-f", "attachment-style-guide"],
+    sections: [
+      { heading: "연락은 얼마나 자주 해야 할까요?", paragraphs: ["E와 I 차이는 연락 빈도와 만남 뒤 회복 시간에서 나타날 수 있습니다. 연락 횟수를 애정의 크기로 해석하기보다 각자 편안한 빈도와 혼자 쉬는 시간을 구체적으로 합의하는 것이 중요합니다."] },
+      { heading: "다툰 뒤에는 무엇부터 해야 할까요?", paragraphs: ["T는 원인과 해결책부터, F는 감정 확인과 관계 회복부터 필요할 수 있습니다. 어느 쪽이 맞는지를 따지기보다 공감과 해결의 순서를 맞추면 같은 문제로 반복해서 다투는 일을 줄일 수 있습니다."] },
+      { heading: "약속이 바뀌면 왜 서운할까요?", paragraphs: ["J는 미리 정해진 약속에서 안정감을 느끼고 P는 상황에 맞춘 선택을 선호할 수 있습니다. 약속을 언제까지 확정할지와 바뀔 때 어떻게 알릴지를 정하면 갈등이 줄어듭니다."] },
+      {
+        heading: "기질 조합별로 보면 무엇이 다를까요?",
+        paragraphs: [
+          "NF 조합은 진솔한 대화와 서로의 가능성을 응원하는 관계에서 만족을 느끼기 쉽습니다. 감정을 충분히 나누는 장점이 있지만 현실적인 결정이 필요한 순간에는 기준과 일정을 구체화하는 과정이 필요합니다.",
+          "NT 조합은 지적인 대화와 문제 해결에서 연결감을 느끼며 각자의 영역을 존중합니다. 해결책을 빠르게 내놓기 전에 상대가 공감을 원하는지 확인하면 감정적인 엇갈림을 줄일 수 있습니다.",
+          "SJ와 SP는 생활 속도에서 차이가 나타납니다. SJ는 약속과 계획의 일관성을, SP는 지금 상황에 맞는 유연함을 편하게 느낄 수 있습니다. 계획을 지킬 영역과 즉흥적으로 바꿔도 되는 영역을 나누면 서로의 장점을 살릴 수 있습니다.",
+        ],
+      },
+      { heading: "궁합을 볼 때 피해야 할 해석", paragraphs: ["상대의 모든 행동을 유형 탓으로 돌리거나, 유형을 이유로 무례한 행동을 정당화해서는 안 됩니다. 신뢰, 존중, 책임감은 어떤 조합에서도 따로 확인해야 하는 관계의 기본입니다."] },
+      {
+        heading: "좋은 궁합은 조합보다 조율 능력에 가깝습니다",
+        paragraphs: ["갈등이 없는 커플보다 갈등 뒤 회복하는 방법을 아는 커플이 관계를 오래 유지합니다. '우리는 잘 맞을까?'보다 실제 행동을 묻는 질문이 관계에 도움이 됩니다."],
+        bullets: ["공감과 해결 중 무엇이 먼저 필요한지 묻기", "혼자 회복하는 시간을 거절로 해석하지 않기", "계획 변경은 언제 알려 주면 좋은지 정하기", "연락·돈·시간에 대한 현실적인 기준 합의하기"],
+      },
+    ],
+    cta: { eyebrow: "12문항 · 약 2분", title: "나와 잘 맞는 MBTI 관계 스타일은?", description: "소통과 생활 방식으로 나에게 편한 관계 스타일을 확인해 보세요. 유형 조합별 설명은 MBTI 궁합 페이지에 있습니다.", href: "/tests/mbti-love-compatibility/", label: "MBTI 연애 궁합 테스트 시작하기" },
+    relatedSlugs: ["love-tendency-guide", "mbti-t-vs-f", "attachment-style-guide"],
   },
   {
     slug: "attachment-style-guide",

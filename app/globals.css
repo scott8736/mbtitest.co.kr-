@@ -1747,3 +1747,6 @@ main.tarot .generic-intro { min-height:auto; padding-bottom:64px; }
 .article-share.share-cute { flex-direction:column; align-items:stretch; text-align:left; }
 .article-share.share-cute .share-mori { align-self:flex-start; }
 .article-final-cta span { color:#7657d6; }
+.article-faq>div { margin-top:16px; padding:16px 18px; border:1px solid #ebe4f8; border-radius:14px; background:#fbf9ff; }
+.article-faq h3 { margin:0 0 6px; color:var(--ink); font-size:16.5px; }
+.article-faq>div p { margin:0; }

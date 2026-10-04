@@ -111,6 +111,18 @@ export default async function BlogArticlePage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
+      {post.faq && post.faq.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: post.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+            }),
+          }}
+        />
+      )}
 
       <article className="blog-article">
         <nav className="breadcrumbs" aria-label="현재 위치">
@@ -192,6 +204,19 @@ export default async function BlogArticlePage({
                 position="articleBody"
                 label={`${post.title} 하단 광고`}
               />
+            )}
+
+            {post.faq && post.faq.length > 0 && (
+              <section className="article-section article-faq">
+                <span>FAQ</span>
+                <h2>자주 묻는 질문</h2>
+                {post.faq.map((f) => (
+                  <div key={f.q}>
+                    <h3>{f.q}</h3>
+                    <p>{f.a}</p>
+                  </div>
+                ))}
+              </section>
             )}
 
             {post.sources && post.sources.length > 0 && (

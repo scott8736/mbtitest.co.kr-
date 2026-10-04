@@ -138,28 +138,6 @@ export const newSeoPosts: BlogPost[] = [
     relatedSlugs: ["love-tendency-guide", "adult-attachment-guide", "love-ability-guide"],
   },
   {
-    slug: "mbti-love-compatibility-guide",
-    category: "연애·관계",
-    title: "MBTI 연애 궁합표보다 먼저 확인해야 할 4가지",
-    description: "MBTI 연애 궁합을 공감, 아이디어, 안정, 설렘의 관계 스타일로 이해하고 실제 커플 갈등에 활용하는 방법입니다.",
-    keywords: ["MBTI 연애 궁합", "MBTI 궁합 테스트", "MBTI 커플 궁합", "MBTI 궁합표"],
-    readTime: "약 7분",
-    publishedAt: date,
-    updatedAt: date,
-    intro: [
-      "MBTI 연애 궁합표는 두 사람의 관계를 단순하게 이해하는 출발점이 될 수 있지만, 특정 조합이 반드시 잘 맞거나 헤어진다고 단정할 수는 없습니다.",
-      "같은 유형도 성장 환경과 애착 방식, 대화 습관이 다릅니다. 궁합은 점수보다 서로 다른 선호를 번역하는 데 활용하는 편이 좋습니다.",
-    ],
-    sections: [
-      { heading: "NF 궁합은 감정과 의미를 중요하게 봅니다", paragraphs: ["진솔한 대화와 서로의 가능성을 응원하는 관계에서 만족을 느끼기 쉽습니다. 감정을 충분히 나누는 장점이 있지만 현실적인 결정이 필요한 순간에는 기준과 일정을 구체화하는 과정이 필요합니다."] },
-      { heading: "NT 궁합은 아이디어와 독립성을 중시합니다", paragraphs: ["지적인 대화와 문제 해결에서 연결감을 느끼며 각자의 전문 영역을 존중합니다. 해결책을 빠르게 제시하기 전에 상대가 공감을 원하는지 확인하면 감정적인 엇갈림을 줄일 수 있습니다."] },
-      { heading: "SJ와 SP는 생활 속도에서 차이가 나타납니다", paragraphs: ["SJ 성향은 약속과 계획의 일관성을, SP 성향은 현재 상황에 맞는 유연함을 편하게 느낄 수 있습니다. 계획을 지켜야 하는 영역과 즉흥적으로 바꿀 수 있는 영역을 나누면 서로의 장점을 활용할 수 있습니다."] },
-      { heading: "좋은 궁합은 조합보다 조율 능력에 가깝습니다", paragraphs: ["갈등이 없는 커플보다 갈등 후 회복하는 방법을 아는 커플이 관계를 안정적으로 유지합니다."], bullets: ["공감과 해결 중 무엇이 먼저 필요한지 묻기", "혼자 회복하는 시간을 거절로 해석하지 않기", "연락·돈·시간에 대한 현실적인 기준 합의하기"] },
-    ],
-    cta: { eyebrow: "12문항 · 약 2분", title: "나와 잘 맞는 MBTI 관계 스타일은?", description: "소통과 생활 방식으로 선호하는 MBTI 궁합을 확인하세요.", href: "/tests/mbti-love-compatibility/", label: "MBTI 연애 궁합 테스트 시작하기" },
-    relatedSlugs: ["love-tendency-guide", "mbti-t-vs-f", "dating-style-contact-guide"],
-  },
-  {
     slug: "love-ability-guide",
     category: "연애·관계",
     title: "연애 능력이 높은 사람의 공감·표현·갈등 해결 습관",
