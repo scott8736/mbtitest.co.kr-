@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import AdUnit from "../../components/AdUnit";
 import ContentHeader from "../../components/ContentHeader";
-import Mascot, { moodForKey } from "../../components/Mascot";
 import SiteFooter from "../../components/SiteFooter";
 import { typeData } from "../../lib/mbti-data";
+import { moriImage } from "../../lib/mori";
 
 export const metadata: Metadata = {
   title: "MBTI 16가지 유형별 특징",
@@ -88,7 +88,7 @@ export default function Page() {
                 <article key={code} style={{ "--card-accent": typeData[code].color } as React.CSSProperties}>
                   <div className="seo-card-head">
                     <span className="seo-card-face">
-                      <Mascot mood={moodForKey(code)} size={44} accent={typeData[code].color} />
+                      <img src={moriImage(code)} width={52} height={52} alt="" loading="lazy" />
                     </span>
                     <b>{code}</b>
                   </div>
