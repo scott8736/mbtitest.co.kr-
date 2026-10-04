@@ -47,6 +47,12 @@ const STATEMENTS = [
    )`,
   `CREATE INDEX IF NOT EXISTS test_events_day_idx ON test_events (day)`,
   `CREATE INDEX IF NOT EXISTS test_events_slug_idx ON test_events (slug)`,
+  // 관리자 화면용 하루 집계(worker/rollup.ts). 지난 날을 다시 훑지 않으려고 둡니다.
+  `CREATE TABLE IF NOT EXISTS daily_rollup (
+     day text PRIMARY KEY NOT NULL,
+     data text NOT NULL,
+     built_at integer NOT NULL
+   )`,
   `CREATE TABLE IF NOT EXISTS app_settings (
      key text PRIMARY KEY NOT NULL,
      value text NOT NULL,

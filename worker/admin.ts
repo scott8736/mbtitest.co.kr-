@@ -11,6 +11,7 @@
  */
 import { SAJULAB_PLACEMENTS, SAJULAB_PLACEMENT_KEYS } from "../lib/sajulab";
 import { RESULT_CLICK_PLACEMENTS, RESULT_CLICK_PLACEMENT_KEYS } from "../lib/result-clicks";
+import { loadRollups, mergeRollups } from "./rollup";
 import { SOURCE_LABELS } from "../lib/analytics";
 import {
   DEFAULT_TREND_KEYWORDS,
@@ -249,12 +250,6 @@ const VISIT_SINCE = "2026-10-04";
 /** 결과 화면 링크 묶음 클릭(result_click)을 세기 시작한 날. 배포한 10-04 는 반나절만 섞여 다음 날부터 냅니다. */
 const RESULT_CLICK_SINCE = "2026-10-05";
 
-/**
- * 검사 첫 화면 주소. /tests/<slug>/ 와 /check/<slug>/ 만 세고 그 아래(step2·result·공유 r/…)는 뺍니다.
- * 「1인당 검사 수」와 「MBTI 다음 검사 전환」이 같은 기준을 쓰도록 한 곳에 둡니다.
- */
-const TEST_INTRO_SQL = `((path LIKE '/tests/%/' AND path NOT LIKE '/tests/%/%/') OR (path LIKE '/check/%/' AND path NOT LIKE '/check/%/%/'))`;
-
 /** 이보다 표본이 작으면 비율을 내지 않습니다. 몇 건짜리 비율은 뜻이 없습니다. */
 const MIN_SAMPLE = 20;
 
@@ -288,91 +283,54 @@ async function dashboard(
   // 설정을 바꾼 날 전·후를 비교하려면 날짜를 직접 지정할 수 있어야 합니다.
   const to = range?.to ?? seoulDay();
   const from = range?.from ?? seoulDay(new Date(Date.now() - (days - 1) * 86400000));
-  const q = async <T,>(sql: string, ...b: unknown[]) =>
-    ((await db.prepare(sql).bind(...b).all<T>()).results ?? []) as T[];
-
-  const total =
-    (await db
-      .prepare(
-        `SELECT COUNT(*) AS views, COUNT(DISTINCT visitor_hash) AS visitors, COUNT(DISTINCT day) AS days
-           FROM page_views WHERE day BETWEEN ? AND ?`,
-      )
-      .bind(from, to)
-      .first<{ views: number; visitors: number; days: number }>()) ?? { views: 0, visitors: 0, days: 0 };
-
-  const daily = await q<{ day: string; views: number; visitors: number }>(
-    `SELECT day, COUNT(*) AS views, COUNT(DISTINCT visitor_hash) AS visitors
-       FROM page_views WHERE day BETWEEN ? AND ? GROUP BY day ORDER BY day`, from, to);
-  const sources = await q<{ key: string; views: number }>(
-    `SELECT source AS key, COUNT(*) AS views FROM page_views WHERE day BETWEEN ? AND ?
-      GROUP BY source ORDER BY views DESC`, from, to);
-  const devices = await q<{ key: string; views: number }>(
-    `SELECT device AS key, COUNT(*) AS views FROM page_views WHERE day BETWEEN ? AND ?
-      GROUP BY device ORDER BY views DESC`, from, to);
-  const paths = await q<{ key: string; views: number }>(
-    `SELECT path AS key, COUNT(*) AS views FROM page_views WHERE day BETWEEN ? AND ?
-      GROUP BY path ORDER BY views DESC LIMIT 20`, from, to);
-  const countries = await q<{ key: string; views: number }>(
-    `SELECT CASE WHEN country='' THEN '알 수 없음' ELSE country END AS key, COUNT(*) AS views
-       FROM page_views WHERE day BETWEEN ? AND ? GROUP BY key ORDER BY views DESC LIMIT 10`, from, to);
-  const referrers = await q<{ key: string; views: number }>(
-    `SELECT referrer AS key, COUNT(*) AS views FROM page_views
-      WHERE day BETWEEN ? AND ? AND referrer<>'' AND source<>'internal'
-      GROUP BY referrer ORDER BY views DESC LIMIT 15`, from, to);
-  // MBTI 는 결과 주소가 /mbti-result/ 라 /tests/... 패턴 밖에 있어 따로 묶어줍니다.
-  const steps = await q<{ slug: string; intro: number; step2: number; result: number }>(
-    `WITH stages AS (
-       SELECT
-         CASE WHEN path = '/mbti-result/'        THEN 'mbti'
-              WHEN path LIKE '/tests/%/step2/'   THEN substr(path, 8, length(path)-14)
-              WHEN path LIKE '/tests/%/result/'  THEN substr(path, 8, length(path)-15)
-              WHEN path LIKE '/tests/%/'         THEN substr(path, 8, length(path)-8)
-         END AS slug,
-         CASE WHEN path = '/mbti-result/'  THEN 'result'
-              WHEN path LIKE '%/step2/'    THEN 'step2'
-              WHEN path LIKE '%/result/'   THEN 'result'
-              ELSE 'intro' END AS stage
-       FROM page_views
-       WHERE day BETWEEN ? AND ? AND (path LIKE '/tests/%/' OR path = '/mbti-result/')
-     )
-     SELECT slug,
-            SUM(CASE WHEN stage='intro'  THEN 1 ELSE 0 END) AS intro,
-            SUM(CASE WHEN stage='step2'  THEN 1 ELSE 0 END) AS step2,
-            SUM(CASE WHEN stage='result' THEN 1 ELSE 0 END) AS result
-       FROM stages WHERE slug IS NOT NULL AND slug <> ''
-      GROUP BY slug HAVING intro > 0 ORDER BY intro DESC LIMIT 15`, from, to);
+  // 하루 집계(worker/rollup.ts)만 읽습니다. 지난 날은 저장된 한 행, 오늘만 10분마다 새로 만듭니다.
+  // 예전처럼 쿼리마다 page_views 기간 전체를 훑으면 30일 조회 한 번에 약 150만 행을 읽습니다.
+  const { days: rollups, pending } = await loadRollups(db, from, to, seoulDay());
+  const all = mergeRollups(rollups);
+  const rowsOf = (map: Record<string, number>, limit?: number) => {
+    const list = Object.entries(map).map(([key, views]) => ({ key, views })).sort((a, b) => b.views - a.views);
+    return limit ? list.slice(0, limit) : list;
+  };
+  const withData = rollups.filter((r) => r.views > 0);
+  const total = { views: all.views, visitors: all.visitors, days: withData.length };
+  const daily = withData.map((r) => ({ day: r.day, views: r.views, visitors: r.visitors }));
+  const sources = rowsOf(all.sources);
+  const devices = rowsOf(all.devices);
+  const paths = rowsOf(all.paths, 20);
+  const countries = rowsOf(all.countries, 10);
+  const referrers = rowsOf(all.referrers, 15);
+  const steps = Object.entries(all.steps)
+    .filter(([, s]) => s.intro > 0)
+    .map(([slug, s]) => ({ slug, ...s }))
+    .sort((a, b) => b.intro - a.intro)
+    .slice(0, 15);
 
   // 첫 문항에 답한 수와 끝까지 푼 수. 방문만 하고 나간 사람, 풀다 그만둔 사람,
   // 끝낸 사람을 가릅니다. 완주는 결과 화면 조회수가 아니라 이벤트로 셉니다.
   // 결과 주소는 공유되고 새로고침되어 조회수가 완주 수보다 큽니다.
-  const events = await q<{ slug: string; name: string; count: number }>(
-    `SELECT slug, name, COUNT(*) AS count FROM test_events
-      WHERE day BETWEEN ? AND ? AND name IN ('visited', 'answered', 'step2', 'completed', 'pick_click', 'report_seen', 'report_click', 'report_follow')
-      GROUP BY slug, name`, from, to);
+  const eventCount = (name: string, slug: string) => all.events[`${name}|${slug}`] ?? 0;
   const countsFor = (name: string) =>
-    new Map(events.filter((row) => row.name === name).map((row) => [row.slug, row.count]));
+    new Map(
+      Object.entries(all.events)
+        .filter(([key]) => key.startsWith(`${name}|`))
+        .map(([key, count]) => [key.slice(name.length + 1), count] as [string, number]),
+    );
   const answeredBySlug = countsFor("answered");
   const visitedBySlug = countsFor("visited");
   const completedBySlug = countsFor("completed");
   const step2BySlug = countsFor("step2");
   const pickBySlug = countsFor("pick_click");
-  const reportSeen = countsFor("report_seen").get("mbti") ?? 0;
-  const reportClick = countsFor("report_click").get("mbti") ?? 0;
-  const reportFollow = countsFor("report_follow").get("mbti") ?? 0;
+  const reportSeen = eventCount("report_seen", "mbti");
+  const reportClick = eventCount("report_click", "mbti");
+  const reportFollow = eventCount("report_follow", "mbti");
   const reportCompleted = completedBySlug.get("mbti") ?? 0;
 
   // 사주랩 배너: slug 자리에 배너 자리 이름이 들어 있습니다(lib/sajulab.ts).
-  const sajuRows = await q<{ slug: string; name: string; count: number }>(
-    `SELECT slug, name, COUNT(*) AS count FROM test_events
-      WHERE day BETWEEN ? AND ? AND name IN ('saju_seen', 'saju_click')
-      GROUP BY slug, name`, from, to);
-  const sajuCount = (slug: string, name: string) =>
-    sajuRows.find((row) => row.slug === slug && row.name === name)?.count ?? 0;
   const sajuTable = SAJULAB_PLACEMENT_KEYS.map((key) => ({
     key,
     label: SAJULAB_PLACEMENTS[key],
-    seen: sajuCount(key, "saju_seen"),
-    click: sajuCount(key, "saju_click"),
+    seen: eventCount("saju_seen", key),
+    click: eventCount("saju_click", key),
   })).sort((a, b) => b.click - a.click || b.seen - a.seen);
   const sajuSeenTotal = sajuTable.reduce((sum, row) => sum + row.seen, 0);
   const sajuClickTotal = sajuTable.reduce((sum, row) => sum + row.click, 0);
@@ -388,41 +346,9 @@ async function dashboard(
     return ((part / whole) * 100).toFixed(1) + "%";
   };
 
-  // 체류·회유. 새로 모으는 값 없이 page_views 만으로 냅니다. visitor_hash 는 날짜마다
-  // 바뀌므로 「방문자」는 하루 단위 사람입니다. 체류 시간은 첫 조회 ~ 마지막 조회 사이라
-  // 마지막 페이지에서 머문 시간은 빠집니다(1페이지만 보고 나간 사람은 따로 셉니다).
-  // MBTI 완료자는 2단계와 결과 화면을 둘 다 본 사람입니다 — 공유받은 결과 링크만 연 사람을 빼려고요.
-  const journeyDays = await q<{
-    day: string; visitors: number; views: number; multi: number; mbti_done: number; mbti_next: number;
-    b0: number; b1: number; b2: number; b3: number; b4: number;
-  }>(
-    `WITH v AS (
-       SELECT day, visitor_hash, COUNT(*) AS views,
-              (julianday(MAX(created_at)) - julianday(MIN(created_at))) * 86400 AS span,
-              COUNT(DISTINCT CASE WHEN ${TEST_INTRO_SQL} THEN path END) AS tests,
-              MAX(CASE WHEN path = '/tests/mbti/step2/' THEN 1 ELSE 0 END) AS took_mbti,
-              MIN(CASE WHEN path = '/mbti-result/' THEN created_at END) AS mbti_at,
-              MAX(CASE WHEN ${TEST_INTRO_SQL} AND path <> '/tests/mbti/' THEN created_at END) AS other_at
-         FROM page_views WHERE day BETWEEN ? AND ?
-        GROUP BY day, visitor_hash
-     )
-     SELECT day, COUNT(*) AS visitors, SUM(views) AS views,
-            SUM(tests >= 2) AS multi,
-            SUM(took_mbti = 1 AND mbti_at IS NOT NULL) AS mbti_done,
-            SUM(took_mbti = 1 AND mbti_at IS NOT NULL AND other_at > mbti_at) AS mbti_next,
-            SUM(views = 1) AS b0,
-            SUM(views > 1 AND span < 60) AS b1,
-            SUM(views > 1 AND span >= 60 AND span < 180) AS b2,
-            SUM(views > 1 AND span >= 180 AND span < 600) AS b3,
-            SUM(views > 1 AND span >= 600) AS b4
-       FROM v GROUP BY day ORDER BY day`, from, to);
-  const journey = journeyDays.reduce(
-    (sum, d) => {
-      for (const key of ["visitors", "views", "multi", "mbti_done", "mbti_next", "b0", "b1", "b2", "b3", "b4"] as const) sum[key] += d[key] ?? 0;
-      return sum;
-    },
-    { visitors: 0, views: 0, multi: 0, mbti_done: 0, mbti_next: 0, b0: 0, b1: 0, b2: 0, b3: 0, b4: 0 },
-  );
+  // 체류·회유. 계산 방식은 worker/rollup.ts 의 buildRollup 에 있습니다.
+  const journeyDays = withData.map((r) => ({ day: r.day, ...r.journey }));
+  const journey = all.journey;
   const pct = (part: number, whole: number) =>
     whole < MIN_SAMPLE ? "표본 부족" : ((part / whole) * 100).toFixed(1) + "%";
   const dwellRows = [
@@ -433,19 +359,11 @@ async function dashboard(
     { key: "10분 이상", views: journey.b4 },
   ];
   // MBTI 결과 화면에서 바로 이어서 연 페이지. 같은 사이트 안 이동만 봅니다.
-  const afterMbtiWhere = `day BETWEEN ? AND ? AND source = 'internal' AND referrer LIKE '%/mbti-result/%' AND path <> '/mbti-result/'`;
-  const afterMbti = await q<{ key: string; views: number }>(
-    `SELECT path AS key, COUNT(*) AS views FROM page_views WHERE ${afterMbtiWhere}
-      GROUP BY path ORDER BY views DESC LIMIT 12`, from, to);
-  const afterMbtiTotal =
-    (await db.prepare(`SELECT COUNT(*) AS n FROM page_views WHERE ${afterMbtiWhere}`).bind(from, to).first<{ n: number }>())?.n ?? 0;
-  const clickRows = await q<{ slug: string; count: number }>(
-    `SELECT slug, COUNT(*) AS count FROM test_events
-      WHERE day BETWEEN ? AND ? AND name = 'result_click' GROUP BY slug`, from, to);
-  const clicksFor = (key: string) => clickRows.find((row) => row.slug === key)?.count ?? 0;
+  const afterMbti = rowsOf(all.afterMbti, 12);
+  const afterMbtiTotal = Object.values(all.afterMbti).reduce((sum, n) => sum + n, 0);
+  const clicksFor = (key: string) => eventCount("result_click", key);
   const mbtiCompleted = completedBySlug.get("mbti") ?? 0;
-  const homeViews =
-    (await db.prepare(`SELECT COUNT(*) AS n FROM page_views WHERE day BETWEEN ? AND ? AND path = '/'`).bind(from, to).first<{ n: number }>())?.n ?? 0;
+  const homeViews = all.paths["/"] ?? 0;
   const otherCompleted = [...completedBySlug].filter(([slug]) => slug !== "mbti").reduce((sum, [, n]) => sum + n, 0);
   const clickRate = (click: number, whole: number) => {
     if (from < RESULT_CLICK_SINCE) return "-";
@@ -464,6 +382,7 @@ async function dashboard(
     `<div class="wrap">
 <div class="head"><div><h1>접속 현황</h1><p>${from} ~ ${to} (KST)</p></div><nav class="ranges">${ranges}<a href="/admin/trends/">트렌드</a><a href="/admin/keywords/">키워드 조회</a><a href="/admin/coupang/">쿠팡</a></nav></div>
 ${rangeForm}
+${pending > 0 ? `<p class="note">지난 ${pending}일 집계가 아직 없습니다. 한 번에 7일씩 채우므로 새로고침하면 이어서 채웁니다.</p>` : ""}
 
 <div class="cards">
 <div><b>${total.views.toLocaleString()}</b><span>페이지뷰</span></div>

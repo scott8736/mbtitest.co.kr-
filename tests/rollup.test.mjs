@@ -1,0 +1,92 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { build } from "esbuild";
+import { fileURLToPath } from "node:url";
+
+// new URL(..).pathname 은 윈도우에서 "/D:/..." 를 내놓아 esbuild 가 못 읽습니다.
+const repoRoot = fileURLToPath(new URL("..", import.meta.url));
+
+/**
+ * 관리자 하루 집계(worker/rollup.ts).
+ *
+ * 2026-10-04 에 관리자 화면이 쿼리마다 page_views 를 통째로 훑어 D1 무료 한도를 넘겼습니다.
+ * 집계를 SQL 에서 이 파일로 옮겼으므로, 예전 SQL 이 내던 숫자와 같은지 여기서 고정합니다.
+ */
+const { outputFiles } = await build({
+  stdin: {
+    contents: `export { buildRollup, mergeRollups, daysBetween, stageOf, isTestIntro } from "./worker/rollup";`,
+    resolveDir: repoRoot,
+    loader: "ts",
+  },
+  bundle: true,
+  format: "esm",
+  platform: "neutral",
+  write: false,
+});
+const mod = await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString("base64")}`);
+
+const page = (visitor_hash, path, time, extra = {}) => ({
+  path,
+  referrer: "",
+  source: "direct",
+  device: "mobile",
+  country: "KR",
+  visitor_hash,
+  created_at: `2026-10-04 ${time}`,
+  ...extra,
+});
+
+test("체류·회유: 예전 SQL 검증과 같은 5명 표본에서 같은 숫자", () => {
+  const rows = [
+    // A: MBTI 끝내고 애착 검사로 감
+    page("A", "/tests/mbti/", "10:00:00"), page("A", "/tests/mbti/step2/", "10:02:00"),
+    page("A", "/mbti-result/", "10:04:00"), page("A", "/tests/adult-attachment/", "10:05:00", { source: "internal", referrer: "https://mbtitest.co.kr/mbti-result/" }),
+    // B: MBTI 끝내고 나감 (4분)
+    page("B", "/tests/mbti/", "11:00:00"), page("B", "/tests/mbti/step2/", "11:02:00"), page("B", "/mbti-result/", "11:04:00"),
+    // C: 공유받은 결과만 열고 나감 -> 완료자 아님
+    page("C", "/mbti-result/", "12:00:00", { source: "naver", referrer: "https://m.search.naver.com/" }),
+    // D: 애착 먼저, MBTI 나중 -> 전환 아님
+    page("D", "/tests/adult-attachment/", "13:00:00"), page("D", "/tests/adult-attachment/step2/", "13:01:00"),
+    page("D", "/tests/mbti/", "13:03:00"), page("D", "/tests/mbti/step2/", "13:05:00"), page("D", "/mbti-result/", "13:07:00"),
+    // E: 홈 -> 검사 목록 30초
+    page("E", "/", "14:00:00", { country: "" }), page("E", "/tests/", "14:00:30"),
+  ];
+  const r = mod.buildRollup("2026-10-04", rows, [{ slug: "mbti", name: "completed", count: 3 }]);
+  assert.deepEqual(r.journey, { visitors: 5, views: 15, multi: 2, mbti_done: 3, mbti_next: 1, b0: 1, b1: 1, b2: 0, b3: 3, b4: 0 });
+  assert.equal(r.visitors, 5);
+  assert.equal(r.views, 15);
+  assert.deepEqual(r.steps.mbti, { intro: 3, step2: 3, result: 4 }, "A·B·D 가 MBTI 첫 화면·2단계를 봄, 결과는 C 포함 4");
+  assert.deepEqual(r.steps["adult-attachment"], { intro: 2, step2: 1, result: 0 });
+  assert.deepEqual(r.afterMbti, { "/tests/adult-attachment/": 1 });
+  assert.deepEqual(r.referrers, { "https://m.search.naver.com/": 1 }, "사이트 안 이동은 리퍼러 표에 넣지 않는다");
+  assert.equal(r.countries["알 수 없음"], 1);
+  assert.equal(r.events["completed|mbti"], 3);
+});
+
+test("검사 단계 주소 판별: 공유 결과(r/…)·목록(/tests/)은 단계가 아니다", () => {
+  assert.deepEqual(mod.stageOf("/tests/hsp/"), { slug: "hsp", stage: "intro" });
+  assert.deepEqual(mod.stageOf("/tests/hsp/step2/"), { slug: "hsp", stage: "step2" });
+  assert.deepEqual(mod.stageOf("/tests/hsp/result/"), { slug: "hsp", stage: "result" });
+  assert.deepEqual(mod.stageOf("/mbti-result/"), { slug: "mbti", stage: "result" });
+  assert.equal(mod.stageOf("/tests/hsp/r/abc/"), null);
+  assert.equal(mod.stageOf("/tests/"), null);
+  assert.ok(mod.isTestIntro("/check/depression/"));
+  assert.ok(!mod.isTestIntro("/check/depression/result/"));
+});
+
+test("여러 날을 더하면 각 칸이 합쳐진다", () => {
+  const d1 = mod.buildRollup("2026-10-01", [page("A", "/", "01:00:00"), page("A", "/tests/mbti/", "01:00:10")], [{ slug: "mbti", name: "answered", count: 2 }]);
+  const d2 = mod.buildRollup("2026-10-02", [page("A", "/", "01:00:00")], [{ slug: "mbti", name: "answered", count: 5 }]);
+  const m = mod.mergeRollups([d1, d2]);
+  assert.equal(m.views, 3);
+  assert.equal(m.visitors, 2, "방문자 해시는 날마다 바뀌므로 날짜별 합");
+  assert.equal(m.paths["/"], 2);
+  assert.equal(m.events["answered|mbti"], 7);
+  assert.equal(m.journey.b0, 1);
+  assert.equal(m.steps.mbti.intro, 1);
+});
+
+test("날짜 범위는 양 끝을 포함하고 월을 넘긴다", () => {
+  assert.deepEqual(mod.daysBetween("2026-09-29", "2026-10-02"), ["2026-09-29", "2026-09-30", "2026-10-01", "2026-10-02"]);
+  assert.deepEqual(mod.daysBetween("2026-10-04", "2026-10-04"), ["2026-10-04"]);
+});
