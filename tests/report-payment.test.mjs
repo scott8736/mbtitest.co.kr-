@@ -15,7 +15,7 @@ const KEY_FILE = "D:/00 cloud/report_content.key";
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const { outputFiles } = await build({
   stdin: {
-    contents: `export * from "./worker/report"; export { validateOrder, REPORT_CONSENT_VERSION, isSellerInfoComplete, reportEventOn, reportPrice, REPORT_EVENT, REPORT_EVENT_PRICE, REPORT_REGULAR_PRICE } from "./lib/report-config"; export { writeSetting } from "./worker/naver";`,
+    contents: `export * from "./worker/report"; export { validateOrder, REPORT_CONSENT_VERSION, isSellerInfoComplete, reportEventOn, reportPrice, REPORT_EVENT, REPORT_EVENT_PRICE, REPORT_REGULAR_PRICE } from "./lib/report-config"; export { writeSetting } from "./worker/naver"; export { sendTelegram, findTelegramChatId } from "./worker/telegram";`,
     resolveDir: repoRoot,
     loader: "ts",
   },
@@ -131,9 +131,19 @@ test("결제 흐름: 위조·금액 불일치 거절 → 결제완료 → 중복
   const bookUrl = new URL(`https://x/api/report/book?o=${made.token}`);
   assert.equal((await R.handleReport(new Request(bookUrl), bookUrl, { DB: db }, ctx)).status, 402);
 
-  assert.equal(await R.handleFeedback(db, fb(row())), "SUCCESS");
+  const alerts = [];
+  const notify = (m) => alerts.push(m);
+  assert.equal(await R.handleFeedback(db, fb(row(), { price: "100" }), notify), "FAIL");
+  assert.equal(alerts.length, 0, "거절된 통보는 알리지 않는다");
+  assert.equal(await R.handleFeedback(db, fb(row()), notify), "SUCCESS");
   assert.equal(row().status, "paid");
-  assert.equal(await R.handleFeedback(db, fb(row())), "SUCCESS", "같은 통보 재전송");
+  assert.equal(alerts.length, 1, "결제 완료를 알린다");
+  assert.match(alerts[0], /결제 완료/);
+  assert.match(alerts[0], /INFP · 9,900원/);
+  assert.match(alerts[0], /\*\*\*-5678/);
+  assert.ok(!alerts[0].includes("01012345678"), "알림에 휴대폰 전체 번호를 넣지 않는다");
+  assert.equal(await R.handleFeedback(db, fb(row()), notify), "SUCCESS", "같은 통보 재전송");
+  assert.equal(alerts.length, 1, "재전송은 다시 알리지 않는다");
   assert.equal(await R.handleFeedback(db, fb(row(), { pay_state: "8" })), "SUCCESS");
   assert.equal(row().status, "paid", "결제된 주문이 요청취소로 되돌아가지 않는다");
 
@@ -156,9 +166,44 @@ test("결제 흐름: 위조·금액 불일치 거절 → 결제완료 → 중복
     assert.ok(row().first_viewed_at, "첫 열람 시각 기록");
   }
 
-  assert.equal(await R.handleFeedback(db, fb(row(), { pay_state: "64" })), "SUCCESS");
+  const sent = [];
+  assert.equal(await R.handleFeedback(db, fb(row(), { pay_state: "64" }), (m) => sent.push(m)), "SUCCESS");
   assert.equal(row().status, "refunded");
+  assert.equal(sent.length, 1, "환불도 알린다");
+  assert.equal(await R.handleFeedback(db, fb(row(), { pay_state: "64" }), (m) => sent.push(m)), "SUCCESS");
+  assert.equal(sent.length, 1, "같은 환불 통보 재전송은 다시 알리지 않는다");
   assert.equal((await R.handleReport(new Request(bookUrl), bookUrl, { DB: db }, ctx)).status, 402, "환불 뒤에는 닫힌다");
+});
+
+test("텔레그램 알림: 설정이 없으면 보내지 않고, 실패해도 예외 없이 false", async () => {
+  const db = await setup();
+  const real = globalThis.fetch;
+  const calls = [];
+  try {
+    globalThis.fetch = async (url, init) => {
+      calls.push({ url: String(url), body: init?.body ? JSON.parse(init.body) : null });
+      if (String(url).endsWith("/getUpdates")) return Response.json({ ok: true, result: [{ message: { chat: { id: 11 } } }, { message: { chat: { id: 4242 } } }] });
+      return Response.json({ ok: true });
+    };
+    assert.equal(await R.sendTelegram(db, "x"), false, "토큰 없음");
+    assert.equal(calls.length, 0);
+    await R.writeSetting(db, "telegram_bot_token", "not-a-token");
+    await R.writeSetting(db, "telegram_chat_id", "4242");
+    assert.equal(await R.sendTelegram(db, "x"), false, "토큰 모양이 틀리면 보내지 않는다");
+    assert.equal(calls.length, 0);
+    const token = "123456789:" + "A".repeat(35);
+    await R.writeSetting(db, "telegram_bot_token", token);
+    assert.equal(await R.sendTelegram(db, "결제 완료"), true);
+    assert.equal(calls[0].url, `https://api.telegram.org/bot${token}/sendMessage`);
+    assert.deepEqual([calls[0].body.chat_id, calls[0].body.text], ["4242", "결제 완료"]);
+    assert.equal(await R.findTelegramChatId(token), "4242", "봇에게 마지막으로 말을 건 대화");
+    globalThis.fetch = async () => {
+      throw new Error("network");
+    };
+    assert.equal(await R.sendTelegram(db, "x"), false, "네트워크 오류도 예외 없이 false");
+  } finally {
+    globalThis.fetch = real;
+  }
 });
 
 test("다시 찾기: 주문번호 + 뒤 4자리가 맞고 결제된 주문만", async () => {

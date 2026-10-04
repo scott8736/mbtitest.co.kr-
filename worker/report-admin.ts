@@ -20,6 +20,7 @@ import {
 } from "../lib/report-config";
 import { bookTypes, hasBook, keyWorks } from "./report-books";
 import { readSetting, writeSetting } from "./naver";
+import { findTelegramChatId, sendTelegram, telegramConfig, TELEGRAM_TOKEN_RE } from "./telegram";
 import { SOURCE_LABELS } from "../lib/analytics";
 import { createOrder, ensureReportSchema, logEvent, payappKeys, payappPost, salesOpen, type OrderRow } from "./report";
 
@@ -84,6 +85,26 @@ export async function handleReportAdmin(request: Request, url: URL, path: string
       return redirect("/admin/report/?saved=1");
     }
 
+    if (path === "/admin/report/telegram") {
+      // 토큰만 넣으면 봇에게 마지막으로 말을 건 대화를 찾아 대화 ID 를 채웁니다.
+      const token = val("tg_token").replace(/\s+/g, "");
+      if (token && !TELEGRAM_TOKEN_RE.test(token)) return redirect("/admin/report/?err=tgtoken");
+      if (token) await writeSetting(db, "telegram_bot_token", token);
+      let chatId = val("tg_chat").replace(/\s+/g, "");
+      if (!chatId) {
+        const saved = await telegramConfig(db);
+        chatId = saved.chatId || (await findTelegramChatId(saved.token));
+      }
+      if (!chatId) return redirect("/admin/report/?err=tgchat");
+      await writeSetting(db, "telegram_chat_id", chatId);
+      return redirect("/admin/report/?saved=1");
+    }
+
+    if (path === "/admin/report/telegram-test") {
+      const ok = await sendTelegram(db, "mbtitest 리포트 판매 알림 시험입니다. 이 메시지가 보이면 결제·환불 알림이 여기로 옵니다.");
+      return redirect(ok ? "/admin/report/?tgsent=1" : "/admin/report/?err=tgsend");
+    }
+
     if (path === "/admin/report/open") {
       await writeSetting(db, "report_open", val("open") === "1" ? "1" : "0");
       return redirect("/admin/report/?saved=1");
@@ -129,6 +150,7 @@ export async function handleReportAdmin(request: Request, url: URL, path: string
   const keys = await payappKeys(db);
   const contentKey = await readSetting(db, "report_content_key");
   const openFlag = (await readSetting(db, "report_open")) === "1";
+  const tg = await telegramConfig(db);
   const live = await salesOpen(db);
   const orders = (await db.prepare("SELECT * FROM report_orders ORDER BY created_at DESC LIMIT 60").all<OrderRow>()).results ?? [];
   const events = (await db.prepare("SELECT order_no, kind, detail, created_at FROM report_events ORDER BY id DESC LIMIT 30").all<{ order_no: string; kind: string; detail: string; created_at: string }>()).results ?? [];
@@ -141,6 +163,9 @@ export async function handleReportAdmin(request: Request, url: URL, path: string
     pay: "페이앱 결제요청이 실패했습니다. 아래 기록을 보세요.", cancel: "취소할 수 없는 주문입니다.",
     cancelfail: `페이앱 취소 실패: ${q.get("msg") ?? ""}`,
     contentkey: "원고 해독 키가 맞지 않습니다. report_content.key 파일 내용을 그대로 붙여넣으세요.",
+    tgtoken: "봇 토큰 모양이 아닙니다. BotFather 가 준 「숫자:영문」 토큰 전체를 붙여넣으세요.",
+    tgchat: "대화 ID 를 찾지 못했습니다. 텔레그램에서 봇에게 아무 말이나 한 번 보낸 뒤 다시 저장하세요.",
+    tgsend: "텔레그램 알림을 보내지 못했습니다. 토큰·대화 ID 를 확인하세요.",
   };
   const testOrder = q.get("test") ? orders.find((o) => o.order_no === q.get("test")) : null;
   const testBox = testOrder
@@ -153,6 +178,7 @@ export async function handleReportAdmin(request: Request, url: URL, path: string
 <div class="head"><div><h1>리포트 판매</h1><p>${esc(SELLER.name)} · 페이앱 ${esc(PAYAPP_USERID)} · 지금 판매가 ${reportPrice().toLocaleString()}원 (이벤트 ${esc(REPORT_EVENT.from)}~${esc(REPORT_EVENT.to)} ${REPORT_EVENT_PRICE.toLocaleString()}원 · 그 뒤 ${REPORT_REGULAR_PRICE.toLocaleString()}원)</p></div>
 <nav class="ranges"><a href="/admin/">접속 현황</a><a href="/admin/report/" class="on">리포트 판매</a></nav></div>
 ${q.get("saved") ? `<p class="note" style="color:#3f7d5c">저장했습니다.</p>` : ""}
+${q.get("tgsent") ? `<p class="note" style="color:#3f7d5c">텔레그램으로 시험 알림을 보냈습니다. 휴대폰에서 확인하세요.</p>` : ""}
 ${q.get("err") ? `<p class="note" style="color:#b6483c">${esc(err[q.get("err") ?? ""] ?? "오류")}</p>` : ""}
 ${testBox}
 <div class="cards">
@@ -178,6 +204,17 @@ ${testBox}
 <label><span>연동 VALUE</span><input name="linkval" autocomplete="off" spellcheck="false" placeholder="${keys.linkval ? "바꿀 때만 입력" : "붙여넣으세요"}"></label>
 <label><span>원고 해독 키</span><input name="content_key" autocomplete="off" spellcheck="false" placeholder="${contentKey ? "바꿀 때만 입력" : "report_content.key 내용"}"></label>
 </div><button type="submit" style="margin-top:12px">저장</button></form></div>
+
+<div class="box"><h2>텔레그램 알림 (결제·환불)</h2>
+<p class="note">결제가 끝나거나 환불되면 텔레그램으로 알려 줍니다. 지금: ${tg.token ? "토큰 등록됨" : "<b style='color:#b6483c'>토큰 미등록</b>"} · ${tg.chatId ? "대화 ID 등록됨" : "<b style='color:#b6483c'>대화 ID 미등록</b>"}<br>
+① 텔레그램 BotFather → /mybots → 봇 고르기 → API Token 을 복사해 아래에 붙여넣습니다.<br>
+② 저장 전에 그 봇에게 아무 말이나 한 번 보내 두면 대화 ID 는 비워 둬도 자동으로 찾습니다.<br>
+저장된 값은 다시 보여주지 않습니다. 빈 칸은 기존 값을 지우지 않습니다.</p>
+<form method="post" action="/admin/report/telegram" autocomplete="off"><div class="fields">
+<label><span>봇 토큰</span><input name="tg_token" autocomplete="off" spellcheck="false" placeholder="${tg.token ? "바꿀 때만 입력" : "123456789:AA…"}"></label>
+<label><span>대화 ID</span><input name="tg_chat" autocomplete="off" spellcheck="false" placeholder="${tg.chatId ? "바꿀 때만 입력" : "비워 두면 자동으로 찾음"}"></label>
+</div><button type="submit" style="margin-top:12px">저장</button></form>
+${tg.token && tg.chatId ? `<form method="post" action="/admin/report/telegram-test" style="margin-top:10px"><button type="submit">시험 알림 보내기</button></form>` : ""}</div>
 
 <div class="box"><h2>${REPORT_TEST_PRICE.toLocaleString()}원 시험 결제</h2>
 <p class="note">판매를 열지 않아도 됩니다. 진짜 결제창이 열리고, 결제 완료 통보·열람·취소까지 실제 흐름을 그대로 탑니다. 결제창 링크는 입력한 휴대폰으로 가지 않고(문자 끔) 다음 화면에 나옵니다.</p>

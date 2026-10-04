@@ -29,6 +29,7 @@ import { SITE_ORIGIN } from "../lib/site-urls";
 import { classifyDevice, classifySource } from "../lib/analytics";
 import { hasBook, loadBook } from "./report-books";
 import { readSetting } from "./naver";
+import { sendTelegram } from "./telegram";
 
 const PAYAPP_API = "https://api.payapp.kr/oapi/apiLoad.html";
 
@@ -333,11 +334,26 @@ const TRANSITIONS: Record<string, { to: string; from: string[] }> = {
   "71": { to: "partial", from: ["paid"] },
 };
 
+const NOTIFY_HEAD: Record<string, string> = {
+  paid: "💰 리포트 결제 완료", refunded: "↩️ 리포트 환불", partial: "↩️ 리포트 부분 취소", cancelled: "리포트 결제 요청 취소",
+};
+
+/** 텔레그램 알림 문구. 휴대폰은 뒤 4자리만(저장도 그것뿐입니다). */
+export function feedbackMessage(to: string, order: { type: string; price: number; test: number; phone_last4: string }, orderNo: string): string {
+  const at = new Date(Date.now() + 9 * 3600_000).toISOString().slice(5, 16).replace("T", " ");
+  return [
+    `${NOTIFY_HEAD[to] ?? to}${order.test ? " (시험)" : ""}`,
+    `${order.type} · ${order.price.toLocaleString()}원`,
+    `주문 ${orderNo} · 휴대폰 ***-${order.phone_last4}`,
+    `${at} (한국 시각)`,
+  ].join("\n");
+}
+
 /**
  * 페이앱 결과 통보 처리. 돌려준 문자열을 그대로 응답 본문으로 씁니다.
  * 검증에 실패하면 "FAIL" — 페이앱은 SUCCESS 가 아니면 다시 보내므로, 진짜 통보는 키를 고친 뒤 다시 들어옵니다.
  */
-export async function handleFeedback(db: D1Database, form: URLSearchParams): Promise<string> {
+export async function handleFeedback(db: D1Database, form: URLSearchParams, notify?: (text: string) => void): Promise<string> {
   const get = (k: string) => (form.get(k) ?? "").trim();
   const keys = await payappKeys(db);
   const orderNo = get("var1");
@@ -348,9 +364,9 @@ export async function handleFeedback(db: D1Database, form: URLSearchParams): Pro
     return "FAIL";
   }
   const order = await db
-    .prepare("SELECT token, price, status, mul_no FROM report_orders WHERE order_no = ?")
+    .prepare("SELECT token, price, status, mul_no, type, test, phone_last4 FROM report_orders WHERE order_no = ?")
     .bind(orderNo)
-    .first<{ token: string; price: number; status: string; mul_no: string }>();
+    .first<{ token: string; price: number; status: string; mul_no: string; type: string; test: number; phone_last4: string }>();
   if (!order || !order.mul_no || order.mul_no !== get("mul_no") || String(order.price) !== get("price")) {
     await logEvent(db, orderNo, "feedback_rejected", `mismatch mul_no=${get("mul_no")} price=${get("price")} state=${get("pay_state")}`);
     return "FAIL";
@@ -362,10 +378,12 @@ export async function handleFeedback(db: D1Database, form: URLSearchParams): Pro
     const extra = state === "4" ? ", paid_at = ?, pay_type = ?" : "";
     const binds: (string | number)[] = [move.to];
     if (state === "4") binds.push(get("pay_date") || new Date().toISOString(), get("pay_type"));
-    await db
+    const res = (await db
       .prepare(`UPDATE report_orders SET status = ?${extra}, updated_at = CURRENT_TIMESTAMP WHERE token = ? AND status IN (${marks})`)
       .bind(...binds, order.token, ...move.from)
-      .run();
+      .run()) as { meta?: { changes?: number }; changes?: number };
+    // 상태가 실제로 바뀐 통보만 알립니다. 페이앱이 같은 통보를 다시 보내도 알림은 한 번입니다.
+    if (notify && (res?.meta?.changes ?? res?.changes ?? 0) > 0) notify(feedbackMessage(move.to, order, orderNo));
   }
   await logEvent(db, orderNo, "feedback", `state=${state} type=${get("pay_type")} mul_no=${get("mul_no")}`);
   return "SUCCESS";
@@ -393,7 +411,8 @@ export function handleReport(request: Request, url: URL, env: Env, ctx: Ctx): Pr
 
     if (path === "/api/report/payapp" && request.method === "POST") {
       const body = await request.text();
-      return text(await handleFeedback(db, new URLSearchParams(body)));
+      // 알림은 응답 뒤에 보냅니다 — 텔레그램이 느리거나 막혀도 페이앱에는 바로 SUCCESS 가 갑니다.
+      return text(await handleFeedback(db, new URLSearchParams(body), (msg) => ctx.waitUntil(sendTelegram(db, msg))));
     }
 
     if (path === "/api/report/order" && request.method === "POST") {
