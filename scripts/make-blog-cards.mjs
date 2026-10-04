@@ -58,29 +58,46 @@ const text = (value, style) => el("div", { style, children: value });
 /** 카드에 올릴 짧은 항목들을 고릅니다. 멤버별 유형이 있으면 그게 1순위입니다. */
 function chipsFor(post) {
   const listed = post.sections.find((s) => s.bullets && s.bullets.length);
+  // 목록이 짧은 항목일 때만 칩으로 씁니다. 문장 목록(조언 등)은 칩에 넘쳐 겹쳤습니다(2026-10-05).
+  const short = (x) => x.length <= 16;
   if (listed) {
-    return listed.bullets
-      .map((line) => line.split("—")[0].trim())
-      .filter(Boolean)
-      .slice(0, 9);
+    const items = listed.bullets.map((line) => line.split("—")[0].trim()).filter(Boolean);
+    if (items.every(short)) return items.slice(0, 9);
   }
-  return (post.keywords || []).slice(0, 4);
+  return (post.keywords || []).filter((k) => k.length <= 12).slice(0, 4);
 }
 
 /** 멤버별 유형이 있으면 "이름 유형" 형태로 한 줄씩 보여줍니다. */
 function pairsFor(post) {
   const listed = post.sections.find((s) => s.bullets && s.bullets.length);
   if (!listed) return [];
-  return listed.bullets
+  const pairs = listed.bullets
     .map((line) => {
       const [name, value] = line.split("—").map((x) => (x || "").trim());
       return value ? { name, value: value.replace(/\s*\(.*\)$/, "") } : null;
     })
     .filter(Boolean)
     .slice(0, 9);
+  // 「이름 — 짧은 값」(예: RM — ENFP)일 때만 짝 칩. 값이 문장이면 넘쳐서 키워드 칩으로 넘깁니다(2026-10-05).
+  return pairs.every((p) => p.name.length <= 18 && p.value.length <= 10) ? pairs : [];
 }
 
-function card(post, accent) {
+// 2026-10-05 모리 마음숲 톤: 파스텔 바탕 + 오른쪽 위 모리. 제목에 유형이 있으면 그 모리, 없으면 글마다 고정된 모리.
+const MORI16 = ["ENFP", "ISTJ", "INFJ", "ESTP", "ISFP", "ENTJ", "ESFJ", "INTP", "INFP", "ESTJ", "ENFJ", "ISTP", "ESFP", "INTJ", "ISFJ", "ENTP"];
+function moriFor(post, index) {
+  const m = post.title.match(/(?<![A-Z])[EI][SN][TF][JP](?![A-Z])/);
+  return m ? m[0] : MORI16[index % MORI16.length];
+}
+const moriCache = new Map();
+async function moriDataUri(code) {
+  if (!moriCache.has(code)) {
+    const png = await sharp(join(root, "public", "characters", `mori-${code.toLowerCase()}.webp`)).resize(300, 300).png().toBuffer();
+    moriCache.set(code, `data:image/png;base64,${png.toString("base64")}`);
+  }
+  return moriCache.get(code);
+}
+
+function card(post, accent, mori) {
   const pairs = pairsFor(post);
   const chips = pairs.length ? [] : chipsFor(post);
 
@@ -92,11 +109,18 @@ function card(post, accent) {
       flexDirection: "column",
       justifyContent: "space-between",
       padding: "58px 66px",
-      backgroundImage: `linear-gradient(125deg, #101f3c 0%, #241b52 45%, ${accent} 100%)`,
-      color: "#ffffff",
+      position: "relative",
+      backgroundImage: `linear-gradient(135deg, #f1eaff 0%, #fbf7ff 46%, #fff3ea 78%, ${accent}33 100%)`,
+      color: "#172a46",
       fontFamily: "NotoKR",
     },
     children: [
+      el("img", {
+        src: mori,
+        width: 250,
+        height: 250,
+        style: { position: "absolute", top: 54, right: 60, borderRadius: 64, border: "8px solid #ffffff", boxShadow: "0 18px 40px rgba(91,69,176,0.18)" },
+      }),
       el("div", {
         style: { display: "flex", flexDirection: "column" },
         children: [
@@ -110,17 +134,17 @@ function card(post, accent) {
               marginBottom: 26,
             },
           }),
-          text("MBTI 검사 · 트렌드", {
+          text(`16모리 마음숲 · ${post.category}`, {
             fontSize: 24,
-            letterSpacing: 2,
-            color: "rgba(255,255,255,0.66)",
+            letterSpacing: 1,
+            color: "#6a55ae",
             marginBottom: 22,
           }),
           text(post.title.split("—")[0].trim(), {
             fontSize: post.title.length > 26 ? 58 : 70,
             lineHeight: 1.18,
             letterSpacing: -2,
-            maxWidth: 1010,
+            maxWidth: 760,
           }),
         ],
       }),
@@ -138,24 +162,26 @@ function card(post, accent) {
                       gap: 9,
                       padding: "11px 18px",
                       borderRadius: 999,
-                      backgroundColor: "rgba(255,255,255,0.14)",
+                      backgroundColor: "rgba(255,255,255,0.88)",
+                      border: "2px solid #e6def8",
                       fontSize: 25,
                     },
                     children: [
-                      text(p.name, { color: "rgba(255,255,255,0.82)" }),
-                      text(p.value, { color: "#ffffff" }),
+                      text(p.name, { color: "#5c6478" }),
+                      text(p.value, { color: "#172a46" }),
                     ],
                   }),
                 ),
               })
             : el("div", {
-                style: { display: "flex", gap: 10, marginBottom: 30 },
+                style: { display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 30, maxWidth: 1060 },
                 children: chips.map((c) =>
                   text(c, {
                     display: "flex",
                     padding: "12px 22px",
                     borderRadius: 999,
-                    backgroundColor: "rgba(255,255,255,0.14)",
+                    backgroundColor: "rgba(255,255,255,0.88)",
+                      border: "2px solid #e6def8",
                     fontSize: 26,
                   }),
                 ),
@@ -163,8 +189,8 @@ function card(post, accent) {
           el("div", {
             style: { display: "flex", alignItems: "center", gap: 16 },
             children: [
-              text("내 유형도 확인하기", { fontSize: 28 }),
-              text("mbtitest.co.kr", { fontSize: 24, color: "rgba(255,255,255,0.6)" }),
+              text("내 모리 찾기 · 무료 MBTI 검사", { fontSize: 28, color: "#5b45b0" }),
+              text("mbtitest.co.kr", { fontSize: 24, color: "#7d8197" }),
             ],
           }),
         ],
@@ -208,7 +234,7 @@ async function main() {
       continue;
     }
     try {
-      const svg = await satori(card(post, ACCENTS[index % ACCENTS.length]), {
+      const svg = await satori(card(post, ACCENTS[index % ACCENTS.length], await moriDataUri(moriFor(post, index))), {
         width: WIDTH,
         height: HEIGHT,
         fonts,
