@@ -133,7 +133,7 @@ page("", `<div class="inner">
   <div class="howto">
     <div><b>1</b><p>같은 ${CODE}라도 사람마다 다릅니다. 이 책은 ${esc(NAME)} 님의 <b>네 가지 성향 점수</b>에 맞춰 일부 쪽의 글이 달라집니다.</p></div>
     <div><b>2</b><p>${SAJU ? "생년월일로 세운 <b>사주 장</b>이 들어 있어요. 전통 해석을 재미로 읽는 글이에요." : "생년월일을 넣으면 <b>사주 장</b>이 더해져요. 이번 책에는 들어 있지 않아요."}</p></div>
-    <div><b>3</b><p>장마다 <b>써 보는 페이지</b>가 있고, 맨 뒤 <b>소장 페이지</b>의 배경화면과 포스터는 따로 내려받을 수 있어요.</p></div>
+    <div><b>3</b><p>장마다 <b>써 보는 페이지</b>가 있고, 맨 뒤 <b>소장 페이지</b>의 배경화면 3종은 리포트 화면 위쪽 버튼으로 따로 내려받을 수 있어요.</p></div>
   </div>
   <p class="body">모리(森)는 숲이라는 뜻이에요. 모든 사람의 마음속에는 작은 숲의 정령 모리가 살고 있고, ${esc(NAME)} 님의 숲에는 「${esc(T.name)}」가 살고 있어요.</p>
   <div class="notice-box">이 책은 공식 MBTI® 검사 결과가 아니라 자기이해를 돕기 위한 콘텐츠입니다. 의료·심리 진단을 대신하지 않으며, 마음이 오래 힘들다면 전문가와 이야기해 보세요. 사주 장은 전통 해석을 재미로 풀어 쓴 것으로 미래를 단정하지 않습니다. MBTI®는 The Myers-Briggs Company의 등록상표이며 이 책은 공식 검사와 관련이 없습니다.</div>
@@ -281,16 +281,16 @@ page("", `<div class="inner">
 MC.slice(0, 13).forEach((c, i) => textPage(`${ym(MONTHS[i])} · ${TAGN[TAG[i]]}`, c));
 
 // ── 소장 페이지 ──
-chapter("소장 페이지", "휴대폰 배경화면 3종 · 액자용 포스터", SCENE("wall1"));
+chapter("소장 페이지", "휴대폰 배경화면 3종 · 포스터 쪽", SCENE("wall1"));
 [["wall1", "배경화면 1 · 달 위의 모리"], ["wall2", "배경화면 2 · 별 쿠션"], ["wall3", "배경화면 3 · 숲속 산책"]].forEach(([k, cap]) => page("", `<div class="inner">
   ${kick("KEEP")}<h2 class="t">${cap}</h2>
   <div class="phone"><img src="${SCENE(k)}"><div class="clock">9:41</div></div>
-  <p class="body center">1080×2340 크기 파일로 따로 드려요. 휴대폰 잠금화면에 맞춰 위쪽에 시계 자리를 비워 두었어요.</p>
+  <p class="body center">리포트 화면 위쪽 「배경화면」 버튼으로 세로 그림 파일을 따로 받을 수 있어요. 휴대폰 잠금화면에 맞춰 위쪽에 시계 자리를 비워 두었어요.</p>
 </div>`, "KEEP"));
 page("", `<div class="inner">
-  ${kick("POSTER")}<h2 class="t">액자용 포스터</h2>
+  ${kick("POSTER")}<h2 class="t">포스터 쪽</h2>
   <div class="poster-mini"><div class="img"><img src="${SCENE("profile")}"></div><b>${CODE} 모리</b><span>${esc(T.name)}</span></div>
-  <div class="frame-tip">🖼️ <b>액자 팁</b> — A4 포스터는 <b>A4 액자(21×29.7cm)</b>, 여백을 두고 싶으면 <b>A3 액자 + 매트</b>에 넣으면 갤러리 느낌이 나요. 추천 액자는 리포트 페이지 아래쪽 링크에서 볼 수 있어요.</div>
+  <div class="frame-tip">🖼️ <b>액자 팁</b> — PDF로 저장한 뒤 이 쪽만 인쇄하면 A5 크기 포스터가 돼요. <b>A5 액자</b>에 넣거나, 여백을 두고 싶으면 <b>A4 액자 + 매트</b>에 넣으면 갤러리 느낌이 나요.</div>
 </div>`, "POSTER");
 
 // ── 마무리 편지 + 뒤표지 ──
