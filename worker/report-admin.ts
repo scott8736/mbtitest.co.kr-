@@ -129,14 +129,13 @@ export async function handleReportAdmin(request: Request, url: URL, path: string
       const type = val("type").toUpperCase();
       if (!hasBook(type)) return redirect("/admin/report/?err=free");
       const left = ["E", "S", "T", "J"];
-      const scores = (["ei", "sn", "tf", "jp"] as const).map((k, i) => {
+      // 입력은 「내 유형 글자 쪽 %」(50~100)입니다(2026-10-05 — 왼쪽 글자 비율로 받았더니 헷갈려서 막혔습니다).
+      // 저장은 사이트 규칙대로 왼쪽 글자(E·S·T·J) 비율로 바꿉니다.
+      const scores = (["a1", "a2", "a3", "a4"] as const).map((k, i) => {
         const raw = Number(val(k));
-        const fallback = type[i] === left[i] ? 65 : 35;
-        const n = Number.isFinite(raw) && val(k) !== "" ? Math.round(raw) : fallback;
-        return Math.min(100, Math.max(0, n));
+        const mine = Math.min(100, Math.max(50, Number.isFinite(raw) && val(k) !== "" ? Math.round(raw) : 70));
+        return type[i] === left[i] ? mine : 100 - mine;
       }) as [number, number, number, number];
-      // 점수는 「왼쪽 글자(E·S·T·J) 비율」입니다. 유형과 어긋나면 리포트 단계가 틀리게 나오므로 막습니다.
-      if (scores.some((n, i) => (type[i] === left[i] ? n < 50 : n > 50))) return redirect("/admin/report/?err=freescore");
       const birth = /^\d{4}-\d{2}-\d{2}$/.test(val("birth")) ? val("birth") : "";
       const bt = birth ? Math.min(12, Math.max(0, Number(val("bt")) || 0)) : 0;
       const name = (val("name") || "검수").replace(/[^가-힣a-zA-Z0-9 ]/g, "").slice(0, 10) || "검수";
@@ -185,7 +184,6 @@ export async function handleReportAdmin(request: Request, url: URL, path: string
     cancelfail: `페이앱 취소 실패: ${q.get("msg") ?? ""}`,
     contentkey: "원고 해독 키가 맞지 않습니다. report_content.key 파일 내용을 그대로 붙여넣으세요.",
     free: "무료 리포트를 만들지 못했습니다. 유형(원고가 있는 것)을 확인하세요.",
-    freescore: "점수가 유형과 맞지 않습니다. 점수는 왼쪽 글자(E·S·T·J) 비율 — 예: I 유형이면 EI 는 50 이하.",
     tgtoken: "봇 토큰 모양이 아닙니다. BotFather 가 준 「숫자:영문」 토큰 전체를 붙여넣으세요.",
     tgchat: "대화 ID 를 찾지 못했습니다. 텔레그램에서 봇에게 아무 말이나 한 번 보낸 뒤 다시 저장하세요.",
     tgsend: "텔레그램 알림을 보내지 못했습니다. 토큰·대화 ID 를 확인하세요.",
@@ -247,16 +245,30 @@ ${tg.token && tg.chatId ? `<form method="post" action="/admin/report/telegram-te
 
 <div class="box"><h2>검수용 무료 리포트 (결제 없음)</h2>
 <p class="note">관리자만 씁니다. 결제 없이 바로 리포트를 엽니다. 매출·판매 통계에는 잡히지 않고 주문 표에 「(시험) 0원」으로 남습니다.
-점수는 <b>왼쪽 글자 비율(E·S·T·J 쪽 %)</b> — 비우면 유형에 맞춰 65/35 로 넣습니다. 반반(55)·중간(70)·뚜렷(85)을 바꿔 가며 점수 단계 원고를 검수하세요.
-생년월일을 넣으면 사주 장 6쪽이 붙습니다.</p>
-<form method="post" action="/admin/report/free" class="row" autocomplete="off" style="flex-wrap:wrap;gap:8px">
-<select name="type">${MBTI_TYPES.filter((t) => hasBook(t)).map((t) => `<option>${t}</option>`).join("")}</select>
-<input name="ei" placeholder="E %" inputmode="numeric" style="width:70px"><input name="sn" placeholder="S %" inputmode="numeric" style="width:70px">
-<input name="tf" placeholder="T %" inputmode="numeric" style="width:70px"><input name="jp" placeholder="J %" inputmode="numeric" style="width:70px">
-<input name="name" placeholder="이름(기본 검수)" style="width:120px">
-<input name="birth" type="date" style="width:150px">
-<select name="bt">${BIRTH_TIME_SLOTS.map((label, i) => `<option value="${i}">${esc(label)}</option>`).join("")}</select>
-<button type="submit">무료 리포트 만들기</button></form></div>
+점수는 <b>내 유형 글자 쪽 %</b>(50~100)입니다. 유형을 고르면 칸 이름이 바뀌고 숫자가 자동으로 채워집니다. 「단계」로 네 칸을 한 번에 바꾸거나 칸마다 직접 고쳐도 됩니다.
+반반(55)·중간(70)·뚜렷(85)을 바꿔 가며 점수 단계 원고를 검수하세요. 생년월일을 넣으면 사주 장 6쪽이 붙습니다.</p>
+<form method="post" action="/admin/report/free" autocomplete="off" id="free-form">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;align-items:end">
+<label style="display:flex;flex-direction:column;gap:4px;font-size:12px">유형<select name="type" id="free-type">${MBTI_TYPES.filter((t) => hasBook(t)).map((t) => `<option>${t}</option>`).join("")}</select></label>
+<label style="display:flex;flex-direction:column;gap:4px;font-size:12px">단계 (네 칸 한 번에)<select id="free-band"><option value="85">아주 뚜렷 85</option><option value="70" selected>분명한 편 70</option><option value="55">거의 반반 55</option></select></label>
+${[0, 1, 2, 3].map((i) => `<label style="display:flex;flex-direction:column;gap:4px;font-size:12px"><span class="free-letter">-</span> 쪽 %<input name="a${i + 1}" type="number" min="50" max="100" value="70" class="free-score"></label>`).join("")}
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end;margin-top:10px">
+<label style="display:flex;flex-direction:column;gap:4px;font-size:12px">이름<input name="name" placeholder="검수"></label>
+<label style="display:flex;flex-direction:column;gap:4px;font-size:12px">생년월일(선택)<input name="birth" type="date"></label>
+<label style="display:flex;flex-direction:column;gap:4px;font-size:12px">태어난 시각<select name="bt">${BIRTH_TIME_SLOTS.map((label, i) => `<option value="${i}">${esc(label)}</option>`).join("")}</select></label>
+<button type="submit" style="min-height:44px">무료 리포트 만들기</button>
+</div></form>
+<script>
+(() => {
+  const type = document.getElementById("free-type"), band = document.getElementById("free-band");
+  const letters = document.querySelectorAll("#free-form .free-letter"), scores = document.querySelectorAll("#free-form .free-score");
+  const sync = () => { letters.forEach((el, i) => { el.textContent = type.value[i]; }); };
+  type.addEventListener("change", sync);
+  band.addEventListener("change", () => scores.forEach((el) => { el.value = band.value; }));
+  sync();
+})();
+</script></div>
 
 <div class="box"><h2>${REPORT_TEST_PRICE.toLocaleString()}원 시험 결제</h2>
 <p class="note">판매를 열지 않아도 됩니다. 진짜 결제창이 열리고, 결제 완료 통보·열람·취소까지 실제 흐름을 그대로 탑니다. 결제창 링크는 입력한 휴대폰으로 가지 않고(문자 끔) 다음 화면에 나옵니다.</p>
