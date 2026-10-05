@@ -62,6 +62,16 @@ const STATUS_KO: Record<string, string> = {
   pending: "결제 대기", paid: "결제 완료", partial: "부분 취소", refunded: "환불(승인취소)", cancelled: "요청 취소", failed: "결제창 실패",
 };
 
+/**
+ * 주문 표에서 골라 지울 수 있는 주문(2026-10-06).
+ * 시험 주문만 지웁니다 — 손님 주문은 환불 의무·매출 증빙 때문에 남겨야 합니다.
+ * 시험 주문도 돈이 걸린 채로 남아 있으면(1,000원 결제 완료·결제 대기) 먼저 「취소」해야 지울 수 있습니다.
+ */
+function deletable(o: { test: number; price: number; status: string }): boolean {
+  return !!o.test && (o.price === 0 || !["paid", "partial", "pending"].includes(o.status));
+}
+const DELETABLE_SQL = "test = 1 AND (price = 0 OR status NOT IN ('paid','partial','pending'))";
+
 export async function handleReportAdmin(request: Request, url: URL, path: string, db: D1Database, h: Helpers): Promise<Response> {
   await ensureReportSchema(db);
   const { esc, shell, html, redirect } = h;
@@ -144,6 +154,19 @@ export async function handleReportAdmin(request: Request, url: URL, path: string
       return redirect(`/admin/report/?free=${encodeURIComponent(made.orderNo)}`);
     }
 
+    if (path === "/admin/report/delete") {
+      const picked = [...new Set(form.getAll("order_no").map((v) => String(v).trim()).filter(Boolean))].slice(0, 60);
+      let deleted = 0;
+      for (const orderNo of picked) {
+        // 화면을 거치지 않은 요청도 막도록 조건을 SQL 에도 겁니다.
+        const res = await db.prepare(`DELETE FROM report_orders WHERE order_no = ? AND ${DELETABLE_SQL}`).bind(orderNo).run();
+        const n = res.meta?.changes ?? 0;
+        if (n) await logEvent(db, orderNo, "admin_delete", "관리자가 시험 주문을 지움");
+        deleted += n;
+      }
+      return redirect(`/admin/report/?deleted=${deleted}&skipped=${picked.length - deleted}`);
+    }
+
     if (path === "/admin/report/cancel") {
       const orderNo = val("order_no");
       const row = await db.prepare("SELECT * FROM report_orders WHERE order_no = ?").bind(orderNo).first<OrderRow>();
@@ -173,6 +196,10 @@ export async function handleReportAdmin(request: Request, url: URL, path: string
   const tg = await telegramConfig(db);
   const live = await salesOpen(db);
   const orders = (await db.prepare("SELECT * FROM report_orders ORDER BY created_at DESC LIMIT 60").all<OrderRow>()).results ?? [];
+  // 검수용 무료 리포트 발행 이력(2026-10-06): 예전에 만든 것을 다시 만들지 않고 바로 열도록 따로 모읍니다.
+  const freeHistory = (await db
+    .prepare("SELECT * FROM report_orders WHERE pay_type = 'admin-free' ORDER BY created_at DESC LIMIT 200")
+    .all<OrderRow>()).results ?? [];
   const events = (await db.prepare("SELECT order_no, kind, detail, created_at FROM report_events ORDER BY id DESC LIMIT 30").all<{ order_no: string; kind: string; detail: string; created_at: string }>()).results ?? [];
   const sums = (await db.prepare("SELECT status, test, COUNT(*) AS n, SUM(price) AS won FROM report_orders GROUP BY status, test").all<{ status: string; test: number; n: number; won: number }>()).results ?? [];
   const paidReal = sums.filter((s) => !s.test && ["paid", "partial"].includes(s.status));
@@ -204,6 +231,7 @@ export async function handleReportAdmin(request: Request, url: URL, path: string
 <div class="head"><div><h1>리포트 판매</h1><p>${esc(SELLER.name)} · 페이앱 ${esc(PAYAPP_USERID)} · 지금 판매가 ${reportPrice().toLocaleString()}원 (이벤트 ${esc(REPORT_EVENT.from)}~${esc(REPORT_EVENT.to)} ${REPORT_EVENT_PRICE.toLocaleString()}원 · 그 뒤 ${REPORT_REGULAR_PRICE.toLocaleString()}원)</p></div>
 <nav class="ranges"><a href="/admin/">접속 현황</a><a href="/admin/report/" class="on">리포트 판매</a></nav></div>
 ${q.get("saved") ? `<p class="note" style="color:#3f7d5c">저장했습니다.</p>` : ""}
+${q.get("deleted") !== null ? `<p class="note" style="color:#3f7d5c">시험 주문 ${esc(q.get("deleted") ?? "0")}건을 지웠습니다.${Number(q.get("skipped")) > 0 ? ` ${esc(q.get("skipped") ?? "")}건은 지울 수 없는 주문이라 남겼습니다.` : ""}</p>` : ""}
 ${q.get("tgsent") ? `<p class="note" style="color:#3f7d5c">텔레그램으로 시험 알림을 보냈습니다. 휴대폰에서 확인하세요.</p>` : ""}
 ${q.get("err") ? `<p class="note" style="color:#b6483c">${esc(err[q.get("err") ?? ""] ?? "오류")}</p>` : ""}
 ${testBox}
@@ -268,7 +296,32 @@ ${[0, 1, 2, 3].map((i) => `<label style="display:flex;flex-direction:column;gap:
   band.addEventListener("change", () => scores.forEach((el) => { el.value = band.value; }));
   sync();
 })();
-</script></div>
+</script>
+<h3 style="margin:22px 0 6px;font-size:15px">발행 이력 (${freeHistory.length}건)</h3>
+<p class="note" style="margin-top:0">예전에 만든 검수용 리포트를 다시 만들지 않고 「열기」로 바로 봅니다. 점수는 만들 때 넣은 「내 유형 글자 쪽 %」입니다.</p>
+${freeHistory.length ? `<div class="row" style="margin-bottom:8px"><label style="font-size:12px">유형 거르기 <select id="free-hist-type"><option value="">전체</option>${[...new Set(freeHistory.map((o) => o.type))].sort().map((t) => `<option>${esc(t)}</option>`).join("")}</select></label></div>
+<div class="scroll"><table id="free-hist"><thead><tr><th>만든 시각</th><th>유형</th><th>점수 (내 유형 쪽 %)</th><th>이름</th><th>생년월일</th><th>열람</th><th></th></tr></thead><tbody>
+${freeHistory
+  .map((o) => {
+    const left = ["E", "S", "T", "J"];
+    const raw = o.scores.split(",").map(Number);
+    const mine = [0, 1, 2, 3].map((i) => `${esc(o.type[i] ?? "")} ${o.type[i] === left[i] ? raw[i] : 100 - raw[i]}`).join(" · ");
+    return `<tr data-type="${esc(o.type)}"><td><small>${esc(kst(o.created_at))}</small><br><small class="muted">${esc(o.order_no)}</small></td>
+<td><b>${esc(o.type)}</b></td><td><small>${mine}</small></td><td>${esc(o.name || "-")}</td>
+<td><small>${esc(o.birth ? `${o.birth} ${BIRTH_TIME_SLOTS[o.bt] ?? ""}` : "-")}</small></td><td>${o.view_count}</td>
+<td><a href="/report-app/?o=${o.token}" target="_blank" rel="noopener">열기</a></td></tr>`;
+  })
+  .join("")}
+</tbody></table></div>
+<script>
+(() => {
+  const sel = document.getElementById("free-hist-type");
+  sel.addEventListener("change", () => document.querySelectorAll("#free-hist tbody tr").forEach((tr) => {
+    tr.style.display = !sel.value || tr.dataset.type === sel.value ? "" : "none";
+  }));
+})();
+</script>` : `<p class="note muted">아직 만든 검수용 리포트가 없습니다.</p>`}
+</div>
 
 <div class="box"><h2>${REPORT_TEST_PRICE.toLocaleString()}원 시험 결제</h2>
 <p class="note">판매를 열지 않아도 됩니다. 진짜 결제창이 열리고, 결제 완료 통보·열람·취소까지 실제 흐름을 그대로 탑니다. 결제창 링크는 입력한 휴대폰으로 가지 않고(문자 끔) 다음 화면에 나옵니다.</p>
@@ -278,11 +331,21 @@ ${[0, 1, 2, 3].map((i) => `<label style="display:flex;flex-direction:column;gap:
 <button type="submit">시험 주문 만들기</button></form>
 <p class="note">사주 시험값: 1995-01-20 ${esc(BIRTH_TIME_SLOTS[7])}</p></div>
 
-<div class="box"><h2>주문 (최근 60건)</h2><div class="scroll"><table><thead><tr>
+<div class="box"><h2>주문 (최근 60건)</h2>
+<form method="post" action="/admin/report/delete" id="del-form" class="row" style="margin-bottom:10px"
+  onsubmit="const n = this.querySelectorAll('input:checked').length + document.querySelectorAll('input.del-pick:checked').length; if (!n) { alert('지울 주문을 고르세요.'); return false; } return confirm('고른 시험 주문 ' + n + '건을 지울까요? 되돌릴 수 없습니다.')">
+<button type="submit" style="padding:6px 14px">고른 시험 주문 삭제</button>
+<span class="note" style="margin:0">시험 주문만 고를 수 있습니다. 손님 주문은 지우지 않습니다. 1,000원 시험 결제가 아직 「결제 완료」면 먼저 「취소」하세요.</span></form>
+<div class="scroll"><table><thead><tr>
+<th><input type="checkbox" id="del-all" title="지울 수 있는 주문 전체 선택" onclick="document.querySelectorAll('input.del-pick:not(:disabled)').forEach((c) => { c.checked = this.checked; })"></th>
 <th>주문번호</th><th>유형</th><th>금액</th><th>상태</th><th>휴대폰</th><th>유입 경로</th><th>결제</th><th>첫 열람</th><th>열람</th><th></th></tr></thead><tbody>
 ${orders
   .map(
-    (o) => `<tr><td>${esc(o.order_no)}${o.test ? " <small>(시험)</small>" : ""}<br><small class="muted">${esc(kst(o.created_at))}</small></td>
+    (o) => `<tr><td>${
+      deletable(o)
+        ? `<input type="checkbox" class="del-pick" form="del-form" name="order_no" value="${esc(o.order_no)}">`
+        : `<input type="checkbox" class="del-pick" disabled title="${o.test ? "먼저 취소(환불)해야 지울 수 있습니다" : "손님 주문은 지울 수 없습니다"}">`
+    }</td><td>${esc(o.order_no)}${o.test ? " <small>(시험)</small>" : ""}<br><small class="muted">${esc(kst(o.created_at))}</small></td>
 <td>${esc(o.type)}</td><td>${o.price.toLocaleString()}</td><td>${esc(STATUS_KO[o.status] ?? o.status)}</td>
 <td><small>***-${esc(o.phone_last4)}</small></td><td>${sourceCell(o, esc)}</td>
 <td><small>${esc(o.paid_at)}</small></td><td><small>${esc(o.first_viewed_at ? kst(o.first_viewed_at) : "-")}</small></td><td>${o.view_count}</td>
@@ -294,7 +357,7 @@ ${orders
 <input type="hidden" name="order_no" value="${esc(o.order_no)}"><input name="memo" placeholder="취소 사유" style="width:90px;padding:4px 6px"><button type="submit" style="padding:4px 10px">취소</button></form>`
       : ""}</td></tr>`,
   )
-  .join("") || `<tr><td colspan="8" class="muted">아직 주문이 없습니다.</td></tr>`}
+  .join("") || `<tr><td colspan="11" class="muted">아직 주문이 없습니다.</td></tr>`}
 </tbody></table></div></div>
 
 <div class="box"><h2>페이앱 기록 (최근 30건)</h2><div class="scroll"><table><thead><tr><th>시각</th><th>주문번호</th><th>종류</th><th>내용</th></tr></thead><tbody>
