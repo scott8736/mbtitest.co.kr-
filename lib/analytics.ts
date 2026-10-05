@@ -28,6 +28,21 @@ export function isBot(userAgent: string): boolean {
   return BOT_PATTERN.test(userAgent);
 }
 
+/**
+ * 링크에 붙인 utm_source 로 출처를 정합니다(2026-10-06). 인스타·스레드 앱은 리퍼러를 안 보내
+ * 「직접 유입」으로 섞이므로, 꼬리표가 있으면 리퍼러보다 꼬리표를 믿습니다. 모르는 값은 「기타」.
+ */
+export function sourceFromUtm(url: URL): string | null {
+  const v = (url.searchParams.get("utm_source") ?? "").trim().toLowerCase();
+  if (!v) return null;
+  const known: Record<string, string> = {
+    instagram: "instagram", ig: "instagram", threads: "threads", brunch: "brunch",
+    facebook: "facebook", fb: "facebook", youtube: "youtube", naver: "naver", blog: "blog",
+    kakao: "daum", daum: "daum", tiktok: "tiktok", x: "x", twitter: "x", google: "google",
+  };
+  return known[v] ?? "other";
+}
+
 /** 리퍼러를 사람이 읽는 유입 출처로 묶습니다. */
 export function classifySource(referrer: string, host: string): string {
   if (!referrer) return "direct";
@@ -51,6 +66,7 @@ export function classifySource(referrer: string, host: string): string {
     [/(^|\.)twitter\.|(^|\.)x\.com/, "x"],
     [/(^|\.)threads\./, "threads"],
     [/(^|\.)tiktok\./, "tiktok"],
+    [/(^|\.)brunch\.co\.kr$/, "brunch"],
     [/(^|\.)tistory\.|(^|\.)blog\./, "blog"],
   ];
   for (const [pattern, name] of table) if (pattern.test(hostname)) return name;
@@ -70,6 +86,7 @@ export const SOURCE_LABELS: Record<string, string> = {
   threads: "스레드",
   tiktok: "틱톡",
   blog: "블로그",
+  brunch: "브런치",
   direct: "직접 유입",
   internal: "사이트 내부",
   other: "기타",

@@ -10,7 +10,7 @@ import { handleTrending } from "./trending";
 import { handleReport } from "./report";
 import {
   classifyDevice,
-  classifySource,
+  classifySource, sourceFromUtm,
   isBot,
   isTrackablePath,
   RETENTION_DAYS,
@@ -155,7 +155,7 @@ async function recordPageView(request: Request, url: URL, env: Env): Promise<voi
       .bind(
         url.pathname.slice(0, 200),
         referrer.slice(0, 300),
-        classifySource(referrer, url.hostname),
+        sourceFromUtm(url) ?? classifySource(referrer, url.hostname),
         classifyDevice(userAgent),
         cf?.country ?? "",
         cf?.city ?? "",

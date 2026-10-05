@@ -9,16 +9,15 @@ const repoRoot = fileURLToPath(new URL("..", import.meta.url));
  * MBTI 점수 → 유형 매핑에 쓰이는 데이터(lib/mbti-data.ts, lib/mbti-content.ts,
  * lib/mbti-picks.ts)의 경계·정합성 검사.
  *
- * 실제 채점(축별 +1/-1 합산 후 0 이상이면 앞 글자)은
- * components/MbtiQuiz.tsx 안에 있고 export 되지 않아 여기서 직접 부를 수
- * 없습니다. 다만 그 로직이 성립하려면 축마다 문항 수가 짝수여야 "정확히
+ * 채점은 lib/mbti-data.ts 의 scoreType(축별 +1/-1 합산, 동점은 마지막 응답 쪽)이고
+ * 보기 위치는 isFlipped 가 정합니다(2026-10-06). 그 로직이 성립하려면 축마다 문항 수가 짝수여야 "정확히
  * 반반" 동점이 존재할 수 있고, 16개 결과 테이블이 전부 채워져 있어야
  * 어떤 유형이 나와도 화면이 비지 않습니다. 그 전제를 여기서 검사합니다.
  */
 const { outputFiles } = await build({
   stdin: {
     contents: `
-      export { questions, typeData, typeDetails } from "./lib/mbti-data";
+      export { questions, typeData, typeDetails, scoreType, isFlipped } from "./lib/mbti-data";
       export { profiles, mbtiCodes } from "./lib/mbti-content";
       export { mbtiPicks } from "./lib/mbti-picks";
     `,
@@ -30,7 +29,7 @@ const { outputFiles } = await build({
   platform: "neutral",
   write: false,
 });
-const { questions, typeData, typeDetails, profiles, mbtiCodes, mbtiPicks } = await import(
+const { questions, typeData, typeDetails, scoreType, isFlipped, profiles, mbtiCodes, mbtiPicks } = await import(
   `data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString("base64")}`
 );
 
@@ -96,4 +95,26 @@ test("같은 유형이 matches 와 challenges 에 동시에 들어있지 않다"
     if (overlap.length) problems.push(`${key}: ${overlap.join(", ")}`);
   }
   assert.deepEqual(problems, [], `matches 와 challenges 에 동시에 있는 유형:\n${problems.join("\n")}`);
+});
+
+test("보기 위치: 축마다 정확히 절반은 E·S·T·J 문장이 B 자리에 온다", () => {
+  // 2026-10-06 전에는 40문항 모두 A 가 E·S·T·J 였다 → S 86.8%·ISTJ 26.4%.
+  const flipped = {};
+  questions.forEach((q, i) => { if (isFlipped(i)) flipped[q.axis] = (flipped[q.axis] || 0) + 1; });
+  for (const axis of ["EI", "SN", "TF", "JP"]) {
+    const total = questions.filter((q) => q.axis === axis).length;
+    assert.equal(flipped[axis], total / 2, `${axis} 뒤집힌 문항 ${flipped[axis]} / ${total}`);
+  }
+  // 단계(20문항)마다도 섞여 있어야 한다.
+  assert.ok(questions.slice(0, 20).some((_, i) => isFlipped(i)));
+  assert.ok(questions.slice(20).some((_, i) => isFlipped(i + 20)));
+});
+
+test("채점: 동점은 그 축 마지막 응답 쪽, 기록 없으면 예전처럼 왼쪽", () => {
+  assert.equal(scoreType({ EI: 2, SN: -4, TF: 6, JP: -2 }), "ENTP");
+  assert.equal(scoreType({ EI: 0, SN: 0, TF: 0, JP: 0 }, { EI: -1, SN: -1, TF: -1, JP: -1 }), "INFP");
+  assert.equal(scoreType({ EI: 0, SN: 0, TF: 0, JP: 0 }, { EI: 1, SN: -1, TF: 1, JP: -1 }), "ENTP");
+  assert.equal(scoreType({ EI: 0, SN: 0, TF: 0, JP: 0 }), "ESTJ");
+  // 동점이 아니면 마지막 응답은 상관없다.
+  assert.equal(scoreType({ EI: -2, SN: 2, TF: -2, JP: 2 }, { EI: 1, SN: -1, TF: 1, JP: -1 }), "ISFJ");
 });

@@ -1,6 +1,24 @@
 export type Axis = "EI" | "SN" | "TF" | "JP";
 export type Answer = 1 | -1;
 
+/**
+ * 채점 (2026-10-06 수정).
+ * 예전에는 A 보기가 언제나 E·S·T·J 쪽이었고 5:5 동점도 E·S·T·J 로 보내 S 86.8%·ISTJ 26.4%로 쏠렸습니다.
+ * - 보기 위치: 축마다 10문항 중 5문항은 E·S·T·J 문장을 B 자리에 보여 줍니다(flipped).
+ * - 동점: 그 축의 마지막 응답 쪽으로 정합니다. 기록이 없으면(예전 진행분) 예전처럼 왼쪽.
+ * 점수는 그대로 "E·S·T·J 쪽 +1, I·N·F·P 쪽 -1" 이라 결과 화면 %·리포트 계산은 바뀌지 않습니다.
+ */
+export const isFlipped = (questionIndex: number) => Math.floor(questionIndex / 4) % 2 === 1;
+
+export function scoreType(scores: Record<Axis, number>, last?: Partial<Record<Axis, Answer>>): string {
+  const pick = (axis: Axis, left: string, right: string) => {
+    const s = scores[axis];
+    if (s !== 0) return s > 0 ? left : right;
+    return (last?.[axis] ?? 1) > 0 ? left : right;
+  };
+  return pick("EI", "E", "I") + pick("SN", "S", "N") + pick("TF", "T", "F") + pick("JP", "J", "P");
+}
+
 export type TypeInfo = { name: string; tagline: string; description: string; strengths: string[]; watch: string[]; color: string };
 export type TypeDetail = { love: string; work: string; stress: string; growth: string[] };
 

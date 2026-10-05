@@ -35,7 +35,7 @@ export default function MbtiResult() {
       setStored(parsed);
       // 리포트 주문용으로 결과를 이 기기에 오래 남깁니다(탭을 닫아도 다른 페이지에서 「내 리포트」로 이어지게).
       saveLastResult(parsed);
-      // 결과 유형 분포와 동점 축을 함께 남깁니다. 동점(5:5)은 지금 E·S·T·J 쪽으로 가므로 쏠림을 재려는 기록입니다.
+      // 결과 유형 분포와 동점 축을 함께 남깁니다. 동점(5:5)은 10-06 전까지 E·S·T·J 로 갔고, 지금은 그 축 마지막 응답 쪽입니다.
       recordCompletionOnce("mbti", () => {
         recordTestEvent(parsed.result.toLowerCase(), "mbti_type");
         for (const axis of ["EI", "SN", "TF", "JP"] as const) {

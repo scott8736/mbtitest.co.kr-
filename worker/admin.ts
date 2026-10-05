@@ -259,6 +259,10 @@ const RESULT_CLICK_SINCE = "2026-10-05";
  */
 const SHARE_SINCE = "2026-10-05";
 const TYPE_SINCE = "2026-10-04";
+/** 채점 수정(보기 위치 섞기·동점은 마지막 응답 쪽) 배포일. 이 날 전후를 나눠 비교합니다. */
+const SCORING_FIX = "2026-10-06";
+/** 결과 쏠림 경보선(재발 방지 계획 2026-10-06). 넘으면 분포 칸 위에 빨간 줄이 뜹니다. */
+const SKEW_ALERT = { axisPct: 80, typePct: 20, tiePct: 10 };
 
 /** 이보다 표본이 작으면 비율을 내지 않습니다. 몇 건짜리 비율은 뜻이 없습니다. */
 const MIN_SAMPLE = 20;
@@ -468,6 +472,20 @@ async function dashboard(
     .map((code) => ({ code, n: eventCount("mbti_type", code.toLowerCase()) }))
     .sort((a, b) => b.n - a.n);
   const typeTotal = typeRows.reduce((s, r) => s + r.n, 0);
+  const skewAlerts: string[] = [];
+  if (typeTotal >= MIN_SAMPLE) {
+    for (const ax of ["EI", "SN", "TF", "JP"] as const) {
+      const l = typeRows.filter((r) => r.code.includes(ax[0])).reduce((s, r) => s + r.n, 0);
+      for (const [letter, n] of [[ax[0], l], [ax[1], typeTotal - l]] as const) {
+        if ((n / typeTotal) * 100 > SKEW_ALERT.axisPct) skewAlerts.push(`${letter} ${((n / typeTotal) * 100).toFixed(1)}% (경보선 ${SKEW_ALERT.axisPct}%)`);
+      }
+      const tie = eventCount("mbti_tie", ax.toLowerCase());
+      if ((tie / typeTotal) * 100 > SKEW_ALERT.tiePct) skewAlerts.push(`${ax} 동점 ${((tie / typeTotal) * 100).toFixed(1)}% (경보선 ${SKEW_ALERT.tiePct}%)`);
+    }
+    for (const r of typeRows) {
+      if ((r.n / typeTotal) * 100 > SKEW_ALERT.typePct) skewAlerts.push(`${r.code} ${((r.n / typeTotal) * 100).toFixed(1)}% (경보선 ${SKEW_ALERT.typePct}%)`);
+    }
+  }
   // 유형 기록(mbti_type)을 시작하기 전 기간의 추정: 결과 화면의 「내 유형 특징」·「내 궁합」 링크로 넘어간 페이지뷰.
   // 결과 화면 다음 페이지(afterMbti)는 page_views 로 만든 집계라 과거 기간도 나옵니다. 누른 사람만 잡히는 표본입니다.
   const estRows = typeRows
@@ -626,9 +644,11 @@ ${RESULT_CLICK_PLACEMENT_KEYS.map((key) => {
 </div>
 
 <div class="box"><h2>MBTI 결과 분포</h2>
-<p class="note">${TYPE_SINCE} 부터 기록합니다(그 전에는 유형을 남기지 않았습니다). 「동점」은 그 축이 5:5 로 끝난 완주 — 지금 채점은 동점을 E·S·T·J 로 보내므로
-동점 비율이 높을수록 E·S·T·J 쪽이 부풀려져 있다는 뜻입니다. 16유형이 1/16씩 나와야 공평한 것은 아니고, 보기 위치·동점 때문에 결과가 바뀌지 않아야 공평합니다.</p>
-${typeTotal === 0 ? `<p class="empty">아직 기록이 없습니다.</p>` : `<div class="scroll"><table><thead><tr><th>축</th><th>왼쪽</th><th>오른쪽</th><th>동점(→왼쪽으로 감)</th></tr></thead><tbody>
+${skewAlerts.length ? `<p class="note" style="color:#b42318;font-weight:700">⚠ 결과 쏠림 경보: ${skewAlerts.map(esc).join(" · ")}</p>` : ""}
+<p class="note">${TYPE_SINCE} 부터 기록합니다(그 전에는 유형을 남기지 않았습니다). 「동점」은 그 축이 5:5 로 끝난 완주입니다.
+<b>${SCORING_FIX} 채점 수정</b> 전에는 A 보기가 늘 E·S·T·J 였고 동점도 E·S·T·J 로 보냈습니다. 수정 뒤에는 절반 문항의 보기 위치를 바꾸고 동점은 그 축 마지막 응답 쪽으로 정합니다.
+효과는 기간을 ${SCORING_FIX} 이후로 잡아 수정 전과 비교하세요. 경보선: 한 글자 ${SKEW_ALERT.axisPct}% · 한 유형 ${SKEW_ALERT.typePct}% · 동점 ${SKEW_ALERT.tiePct}% 초과(완주 ${MIN_SAMPLE}건 이상일 때).</p>
+${typeTotal === 0 ? `<p class="empty">아직 기록이 없습니다.</p>` : `<div class="scroll"><table><thead><tr><th>축</th><th>왼쪽</th><th>오른쪽</th><th>동점</th></tr></thead><tbody>
 ${(["EI", "SN", "TF", "JP"] as const).map((ax) => { const l = typeRows.filter((r) => r.code.includes(ax[0])).reduce((s, r) => s + r.n, 0); const tie = eventCount("mbti_tie", ax.toLowerCase()); return `<tr><td>${ax}</td><td>${ax[0]} ${l} (${((l / typeTotal) * 100).toFixed(1)}%)</td><td>${ax[1]} ${typeTotal - l} (${(((typeTotal - l) / typeTotal) * 100).toFixed(1)}%)</td><td>${tie} (${((tie / typeTotal) * 100).toFixed(1)}%)</td></tr>`; }).join("")}
 </tbody></table></div>
 <div class="scroll"><table><thead><tr><th>유형</th><th>완주</th><th>비율</th></tr></thead><tbody>

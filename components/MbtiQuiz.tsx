@@ -1,10 +1,10 @@
 "use client";
 
 import ReportQuizStrip from "./ReportQuizStrip";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import AdUnit from "./AdUnit";
 import Mascot, { moodForQuestion } from "./Mascot";
-import { questions, type Answer, type Axis } from "../lib/mbti-data";
+import { isFlipped, questions, scoreType, type Answer, type Axis } from "../lib/mbti-data";
 import { markStep2Reached, markTestCompleted, recordAnswered, recordStep2Once, recordVisitOnce, remainingMinutes } from "../lib/test-events";
 
 export const QUESTIONS_PER_STEP = 20;
@@ -14,7 +14,8 @@ const PROGRESS_KEY = "mbti-progress";
 const RESULT_KEY = "mbti-test-result";
 const FIRST_STEP_PATH = "/tests/mbti/";
 
-type Progress = { scores: Record<Axis, number>; answered: number };
+// last: 축마다 마지막 응답(동점일 때 이쪽으로 정합니다). 예전 진행분에는 없습니다.
+type Progress = { scores: Record<Axis, number>; answered: number; last?: Partial<Record<Axis, Answer>> };
 
 const emptyScores = (): Record<Axis, number> => ({ EI: 0, SN: 0, TF: 0, JP: 0 });
 
@@ -40,6 +41,7 @@ export default function MbtiQuiz({ step = 1 }: { step?: number }) {
   const stepQuestions = questions.slice((step - 1) * QUESTIONS_PER_STEP, step * QUESTIONS_PER_STEP);
   const [index, setIndex] = useState(0);
   const [scores, setScores] = useState<Record<Axis, number>>(emptyScores);
+  const [last, setLast] = useState<Partial<Record<Axis, Answer>>>({});
   const [ready, setReady] = useState(step === 1);
 
   useEffect(() => {
@@ -57,6 +59,7 @@ export default function MbtiQuiz({ step = 1 }: { step?: number }) {
       return;
     }
     setScores(progress.scores);
+    setLast(progress.last ?? {});
     setReady(true);
     if (step === 2) recordStep2Once("mbti");
   }, [step]);
@@ -71,22 +74,24 @@ export default function MbtiQuiz({ step = 1 }: { step?: number }) {
 
     const axis = stepQuestions[index].axis;
     const next = { ...scores, [axis]: scores[axis] + value };
+    const nextLast = { ...last, [axis]: value };
 
     if (index < stepQuestions.length - 1) {
       setScores(next);
+      setLast(nextLast);
       setIndex(index + 1);
       return;
     }
 
     const answered = answeredBefore + stepQuestions.length;
     if (step < TOTAL_STEPS) {
-      sessionStorage.setItem(PROGRESS_KEY, JSON.stringify({ scores: next, answered }));
+      sessionStorage.setItem(PROGRESS_KEY, JSON.stringify({ scores: next, answered, last: nextLast }));
       if (step === 1) markStep2Reached("mbti");
       location.assign(stepPath(step + 1));
       return;
     }
 
-    const type = `${next.EI >= 0 ? "E" : "I"}${next.SN >= 0 ? "S" : "N"}${next.TF >= 0 ? "T" : "F"}${next.JP >= 0 ? "J" : "P"}`;
+    const type = scoreType(next, nextLast);
     sessionStorage.removeItem(PROGRESS_KEY);
     sessionStorage.setItem(RESULT_KEY, JSON.stringify({ result: type, scores: next }));
     markTestCompleted("mbti");
@@ -127,10 +132,14 @@ export default function MbtiQuiz({ step = 1 }: { step?: number }) {
             빠지는 화면이라 사이트에서 여기가 가장 중요합니다. */}
         <Mascot className="question-mascot" mood={moodForQuestion(answeredBefore + index)} size={112} />
         <h2>평소의 나를 떠올리며<br />한 가지를 선택해 주세요.</h2>
+        {/* 절반 문항은 E·S·T·J 문장을 B 자리에 둡니다. 늘 A 가 같은 쪽이면 첫 보기를 고르는 버릇이 결과를 끌고 갑니다. */}
         <div className="answers">
-          <button onClick={() => answer(1)}><span>A</span><strong>{stepQuestions[index].a}</strong><small>이 문장에 더 가까워요</small></button>
-          <em>또는</em>
-          <button onClick={() => answer(-1)}><span>B</span><strong>{stepQuestions[index].b}</strong><small>이 문장에 더 가까워요</small></button>
+          {(isFlipped(answeredBefore + index) ? [-1, 1] as const : [1, -1] as const).map((value, i) => (
+            <Fragment key={value}>
+              {i === 1 && <em>또는</em>}
+              <button onClick={() => answer(value)}><span>{i === 0 ? "A" : "B"}</span><strong>{value === 1 ? stepQuestions[index].a : stepQuestions[index].b}</strong><small>이 문장에 더 가까워요</small></button>
+            </Fragment>
+          ))}
         </div>
       </div>
       <p className="test-tip">생각이 길어지면 처음 마음이 간 문장을 선택해 보세요.</p>
