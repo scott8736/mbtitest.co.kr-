@@ -109,3 +109,20 @@ test("들어온 페이지별 이탈: 가장 이른 조회가 들어온 페이지
   const m = mod.mergeRollups([r, mod.buildRollup("2026-10-06", [page("E", "/blog/x/", "09:00:00")], [])]);
   assert.deepEqual(m.landing["/blog/x/"], { n: 4, b: 3 });
 });
+
+test("국내만 이탈: 첫 조회 국가가 KR 인 사람만 세고, 해외(봇 의심)는 빠진다", () => {
+  const rows = [
+    page("A", "/", "10:00:00"), page("A", "/tests/mbti/", "10:01:00", { source: "internal" }), // 국내, 2페이지
+    page("B", "/", "11:00:00", { source: "naver" }),                                          // 국내, 이탈
+    page("C", "/", "12:00:00", { country: "US" }),                                            // 해외 직접 유입, 이탈
+    page("D", "/", "12:30:00", { country: "US" }),                                            // 해외 직접 유입, 이탈
+    page("E", "/", "13:00:00", { country: "" }),                                              // 국가 모름 → 국내 아님
+  ];
+  const r = mod.buildRollup("2026-10-05", rows, []);
+  assert.equal(r.journey.b0, 4);
+  assert.deepEqual(r.kr, { n: 2, b: 1 });
+  assert.deepEqual(r.landingSourceKr, { direct: { n: 1, b: 0 }, naver: { n: 1, b: 1 } });
+  const m = mod.mergeRollups([r, r, { ...r, kr: undefined, landingSourceKr: undefined }]);
+  assert.deepEqual(m.kr, { n: 4, b: 2 }, "버전 2 집계(kr 없음)는 더하지 않는다");
+  assert.deepEqual(m.landingSourceKr.naver, { n: 2, b: 2 });
+});

@@ -12,7 +12,7 @@
  * 집계 방식을 바꾸면 ROLLUP_VERSION 을 올리세요. 저장된 옛 집계는 버전이 달라 다시 만들어집니다.
  */
 
-export const ROLLUP_VERSION = 2; // 2: 들어온 페이지별 이탈(landing) 추가 — 지난 날짜도 다시 집계해 기준 기간과 비교합니다
+export const ROLLUP_VERSION = 3; // 2: 들어온 페이지별 이탈(landing) 추가 · 3: 국내(KR) 방문자만의 이탈(kr·landingSourceKr) — 지난 날짜도 다시 집계해 기준 기간과 비교합니다
 /** 오늘 집계를 다시 만드는 간격 */
 export const TODAY_TTL_MS = 10 * 60_000;
 /** 한 번 화면을 열 때 새로 만드는 지난 날짜 수. 처음 90일을 채울 때 한 번에 몰아 읽지 않게 합니다 */
@@ -63,6 +63,12 @@ export type Rollup = {
   landing?: Record<string, Bounce>;
   /** 첫 조회의 유입 경로 → n · b. 버전 2부터. */
   landingSource?: Record<string, Bounce>;
+  /**
+   * 첫 조회 국가가 KR 인 방문자만의 n · b. 버전 3부터(2026-10-06).
+   * 해외 접속(10-05 미국 10%, 데이터센터 지역)은 봇이 섞여 1페이지 이탈을 부풀리므로 사람 이탈을 따로 봅니다.
+   */
+  kr?: Bounce;
+  landingSourceKr?: Record<string, Bounce>;
 };
 
 export type Bounce = { n: number; b: number };
@@ -128,9 +134,11 @@ export function buildRollup(day: string, pages: PageRow[], events: EventRow[]): 
     shareTest: { views: 0, visitors: 0, toTest: 0 },
     landing: {},
     landingSource: {},
+    kr: { n: 0, b: 0 },
+    landingSourceKr: {},
   };
 
-  type Visitor = { views: number; first: number; last: number; tests: Set<string>; tookMbti: boolean; mbtiAt: number; otherAt: number; shareAt: number; mbtiStartAt: number; testShareAt: number; introAt: number; landing: string; landingSource: string };
+  type Visitor = { views: number; first: number; last: number; tests: Set<string>; tookMbti: boolean; mbtiAt: number; otherAt: number; shareAt: number; mbtiStartAt: number; testShareAt: number; introAt: number; landing: string; landingSource: string; country: string };
   const visitors = new Map<string, Visitor>();
 
   for (const p of pages) {
@@ -150,7 +158,7 @@ export function buildRollup(day: string, pages: PageRow[], events: EventRow[]): 
     const at = toMs(p.created_at);
     let v = visitors.get(p.visitor_hash);
     if (!v) {
-      v = { views: 0, first: at, last: at, tests: new Set(), tookMbti: false, mbtiAt: Infinity, otherAt: -Infinity, shareAt: Infinity, mbtiStartAt: -Infinity, testShareAt: Infinity, introAt: -Infinity, landing: p.path, landingSource: p.source };
+      v = { views: 0, first: at, last: at, tests: new Set(), tookMbti: false, mbtiAt: Infinity, otherAt: -Infinity, shareAt: Infinity, mbtiStartAt: -Infinity, testShareAt: Infinity, introAt: -Infinity, landing: p.path, landingSource: p.source, country: p.country };
       visitors.set(p.visitor_hash, v);
     }
     v.views += 1;
@@ -158,6 +166,7 @@ export function buildRollup(day: string, pages: PageRow[], events: EventRow[]): 
     if (at < v.first) {
       v.landing = p.path;
       v.landingSource = p.source;
+      v.country = p.country;
     }
     v.first = Math.min(v.first, at);
     v.last = Math.max(v.last, at);
@@ -203,6 +212,12 @@ export function buildRollup(day: string, pages: PageRow[], events: EventRow[]): 
       row.n += 1;
       if (v.views === 1) row.b += 1;
     }
+    if (v.country === "KR") {
+      for (const row of [r.kr!, (r.landingSourceKr![v.landingSource] ??= { n: 0, b: 0 })]) {
+        row.n += 1;
+        if (v.views === 1) row.b += 1;
+      }
+    }
     if (v.views === 1) j.b0 += 1;
     else if (span < 60) j.b1 += 1;
     else if (span < 180) j.b2 += 1;
@@ -228,6 +243,8 @@ export function mergeRollups(list: Rollup[]): Rollup {
     shareTest: { views: 0, visitors: 0, toTest: 0 },
     landing: {},
     landingSource: {},
+    kr: { n: 0, b: 0 },
+    landingSourceKr: {},
   };
   for (const r of list) {
     m.views += r.views;
@@ -242,7 +259,11 @@ export function mergeRollups(list: Rollup[]): Rollup {
       row.result += s.result;
     }
     for (const key of Object.keys(m.journey) as (keyof Journey)[]) m.journey[key] += r.journey[key];
-    for (const key of ["landing", "landingSource"] as const) {
+    if (r.kr) {
+      m.kr!.n += r.kr.n;
+      m.kr!.b += r.kr.b;
+    }
+    for (const key of ["landing", "landingSource", "landingSourceKr"] as const) {
       for (const [k, x] of Object.entries(r[key] ?? {})) {
         const row = (m[key]![k] ??= { n: 0, b: 0 });
         row.n += x.n;

@@ -456,6 +456,10 @@ async function dashboard(
   const landingSources = byBounce(all.landingSource);
   const landingBounces = landingAll.reduce((sum, [, x]) => sum + x.b, 0);
   const landingDays = withData.filter((r) => r.landing).length;
+  // 국내(KR)만의 1페이지 이탈 — 집계 버전 3부터. 해외(봇 의심)를 뺀 사람 이탈입니다.
+  const krDays = withData.filter((r) => r.kr);
+  const krAll = all.kr ?? { n: 0, b: 0 };
+  const krBySource = all.landingSourceKr ?? {};
   // MBTI 결과 화면에서 바로 이어서 연 페이지. 같은 사이트 안 이동만 봅니다.
   const afterMbti = rowsOf(all.afterMbti, 12);
   const afterMbtiTotal = Object.values(all.afterMbti).reduce((sum, n) => sum + n, 0);
@@ -624,9 +628,21 @@ ${landingAll.length === 0 ? "" : `집계 버전 2(${landingDays}일치)만 들�
 ${landingAll.length === 0 ? `<p class="empty">아직 기록이 없습니다. 새로고침하면 지난 날짜를 다시 집계합니다.</p>` : `<div class="grid"><div class="scroll"><table><thead><tr><th>들어온 페이지</th><th>들어온 사람</th><th>1페이지 이탈</th><th>이탈률</th><th>이탈 몫</th></tr></thead><tbody>
 ${landingAll.slice(0, 30).map(([path, x]) => `<tr><td>${esc(path)}</td><td>${x.n.toLocaleString()}</td><td>${x.b.toLocaleString()}</td><td>${pct(x.b, x.n)}</td><td>${landingBounces ? ((x.b / landingBounces) * 100).toFixed(1) + "%" : "-"}</td></tr>`).join("")}
 </tbody></table></div>
-<div class="scroll"><table><thead><tr><th>유입 경로</th><th>들어온 사람</th><th>1페이지 이탈</th><th>이탈률</th></tr></thead><tbody>
-${landingSources.map(([src, x]) => `<tr><td>${esc(SOURCE_LABELS[src] ?? src)}</td><td>${x.n.toLocaleString()}</td><td>${x.b.toLocaleString()}</td><td>${pct(x.b, x.n)}</td></tr>`).join("")}
+<div class="scroll"><table><thead><tr><th>유입 경로</th><th>들어온 사람</th><th>1페이지 이탈</th><th>이탈률</th><th>국내만 이탈률</th></tr></thead><tbody>
+${landingSources.map(([src, x]) => { const k = krBySource[src]; return `<tr><td>${esc(SOURCE_LABELS[src] ?? src)}</td><td>${x.n.toLocaleString()}</td><td>${x.b.toLocaleString()}</td><td>${pct(x.b, x.n)}</td><td>${k ? `${pct(k.b, k.n)} <small>(${k.n.toLocaleString()}명)</small>` : "-"}</td></tr>`; }).join("")}
 </tbody></table></div></div>`}
+<h3 style="margin:22px 0 6px;font-size:16px">사람 이탈만 — 해외 접속을 뺀 1페이지 이탈</h3>
+<p class="note">해외 접속(특히 미국 데이터센터 지역)은 봇이 섞여 한 페이지만 열고 나가므로 이탈률을 부풀립니다. 그날 첫 조회 국가가 한국(KR)인 방문자만 따로 셉니다.
+<b>「국내만 이탈률」이 기준 기간과 비슷하면 이탈 증가는 봇 탓, 같이 올랐으면 진짜 사람 이탈</b>입니다. 집계 버전 3(${krDays.length}일치)만 들어 있습니다 — 지난 날짜가 비면 새로고침할 때마다 7일씩 채웁니다.</p>
+${krDays.length === 0 ? `<p class="empty">아직 기록이 없습니다. 새로고침하면 지난 날짜를 다시 집계합니다.</p>` : `<div class="cards">
+<div><b>${pct(journey.b0, journey.visitors)}</b><span>전체 1페이지 이탈</span></div>
+<div><b>${pct(krAll.b, krAll.n)}</b><span>국내만 1페이지 이탈 (${krAll.b.toLocaleString()} / ${krAll.n.toLocaleString()})</span></div>
+<div><b>${pct(journey.visitors - krAll.n, journey.visitors)}</b><span>해외·알 수 없음 방문자 비율</span></div>
+<div><b>${pct(journey.b0 - krAll.b, journey.visitors - krAll.n)}</b><span>해외 방문자 1페이지 이탈</span></div>
+</div>
+<div class="scroll"><table><thead><tr><th>날짜</th><th>방문자</th><th>전체 이탈률</th><th>해외 비율</th><th>국내 방문자</th><th>국내만 이탈률</th></tr></thead><tbody>
+${krDays.map((d) => `<tr><td>${d.day.slice(5)}</td><td>${d.journey.visitors.toLocaleString()}</td><td>${pct(d.journey.b0, d.journey.visitors)}</td><td>${pct(d.journey.visitors - d.kr!.n, d.journey.visitors)}</td><td>${d.kr!.n.toLocaleString()}</td><td><b>${pct(d.kr!.b, d.kr!.n)}</b></td></tr>`).join("")}
+</tbody></table></div>`}
 </div>
 
 <div class="box"><h2>결과 화면 링크 묶음 클릭</h2>
