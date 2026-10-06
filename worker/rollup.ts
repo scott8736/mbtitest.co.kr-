@@ -281,6 +281,9 @@ export function mergeRollups(list: Rollup[]): Rollup {
   return m;
 }
 
+/** 서울 날짜 day 가 끝나는 순간(다음 날 00:00 KST = 그날 15:00 UTC) + 기록이 늦게 들어오는 여유 1분 */
+export const dayEndMs = (day: string) => Date.parse(day + "T15:00:00Z") + 60_000;
+
 /** 범위 안의 날짜들 (YYYY-MM-DD, 오름차순) */
 export function daysBetween(from: string, to: string): string[] {
   const out: string[] = [];
@@ -325,6 +328,9 @@ export async function loadRollups(
       const parsed = JSON.parse(row.data) as Rollup;
       if (parsed.v !== ROLLUP_VERSION) continue;
       if (row.day === today && now - row.built_at > TODAY_TTL_MS) continue;
+      // 그날이 끝나기 전에 만든 집계(「오늘」로 저장된 중간본)는 날이 지나면 한 번 다시 만듭니다.
+      // 2026-10-06 발견: 이 줄이 없어 10-05 가 저녁 중간본(방문자 939, 실제 1,377)으로 굳어 있었습니다.
+      if (row.day !== today && row.built_at < dayEndMs(row.day)) continue;
       byDay.set(row.day, parsed);
     } catch {
       // 깨진 행은 다시 만듭니다.

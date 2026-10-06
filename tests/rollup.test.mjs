@@ -14,7 +14,7 @@ const repoRoot = fileURLToPath(new URL("..", import.meta.url));
  */
 const { outputFiles } = await build({
   stdin: {
-    contents: `export { buildRollup, mergeRollups, daysBetween, stageOf, isTestIntro } from "./worker/rollup";`,
+    contents: `export { buildRollup, mergeRollups, daysBetween, stageOf, isTestIntro, dayEndMs } from "./worker/rollup";`,
     resolveDir: repoRoot,
     loader: "ts",
   },
@@ -125,4 +125,11 @@ test("국내만 이탈: 첫 조회 국가가 KR 인 사람만 세고, 해외(봇
   const m = mod.mergeRollups([r, r, { ...r, kr: undefined, landingSourceKr: undefined }]);
   assert.deepEqual(m.kr, { n: 4, b: 2 }, "버전 2 집계(kr 없음)는 더하지 않는다");
   assert.deepEqual(m.landingSourceKr.naver, { n: 2, b: 2 });
+});
+
+test("지난 날짜 확정 기준: 서울 기준 그날 자정 + 1분 전에 만든 집계는 중간본이다", () => {
+  // 10-05 를 그날 저녁(KST 21:00 = 12:00Z)에 만든 집계는 다시 만들어야 하고, 다음 날 아침 것은 확정본이다.
+  assert.ok(Date.parse("2026-10-05T12:00:00Z") < mod.dayEndMs("2026-10-05"));
+  assert.ok(Date.parse("2026-10-05T23:00:00Z") > mod.dayEndMs("2026-10-05"));
+  assert.equal(new Date(mod.dayEndMs("2026-10-05")).toISOString(), "2026-10-05T15:01:00.000Z");
 });
