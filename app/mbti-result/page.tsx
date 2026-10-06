@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import AdUnit from "../../components/AdUnit";
 import MbtiResult from "../../components/MbtiResult";
 import SiteFooter from "../../components/SiteFooter";
 import SiteHeader from "../../components/SiteHeader";
@@ -15,7 +14,7 @@ export default function MbtiResultPage() {
   return (
     <main>
       <SiteHeader active="/tests/mbti" />
-      <AdUnit position="resultTop" label="MBTI 결과 최상단 광고" />
+      {/* 최상단 광고는 2026-10-06 사용자 요청으로 뺐습니다 — 결과 첫 화면(모리 그림)이 광고에 밀려 내려갔습니다. 본문·하단 광고는 MbtiResult 안에 그대로 있습니다. */}
       <MbtiResult />
       <SiteFooter />
     </main>

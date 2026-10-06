@@ -392,6 +392,8 @@ async function dashboard(
   const pickBySlug = countsFor("pick_click");
   const reportSeen = eventCount("report_seen", "mbti");
   const reportClick = eventCount("report_click", "mbti");
+  // 미리보기 띠를 둘째 쪽 이상 넘겨 본 사람(2026-10-06~). 누르지 않고 보는 관심.
+  const reportPeek = eventCount("report_peek", "mbti");
   const reportCompleted = completedBySlug.get("mbti") ?? 0;
   // 유료 리포트 판매(2026-10-04~). created_at 은 UTC 라 한국 날짜로 바꿔 기간을 자릅니다. 표가 없으면 0.
   const sales = { orders: 0, paid: 0, won: 0, viewed: 0, refunded: 0, bySource: [] as { src: string; n: number; won: number }[] };
@@ -707,11 +709,12 @@ ${shareClicks.map((row) => `<tr><td>${esc(row.label)}</td><td>${row.clicks}</td>
 카드 「노출」·「클릭」은 탭당 한 번, 판매 페이지는 조회수입니다. <b>결제 ÷ 완주</b>가 최종 전환율이고,
 어느 단계에서 가장 많이 떨어지는지 보고 그 단계만 고칩니다(개선 기록: 리포트_디자인/리포트_판매_개선기록.md).
 10-04 판매 시작 전 수요 측정 기간(카드 가격 6,900원 표시)의 클릭은 같은 칸에 섞여 있으니 날짜를 10-05 부터로 잡아 보세요.
+「미리보기 넘김」은 10-06 부터 카드 안 6쪽 띠(맨 앞이 내 점수 쪽)를 둘째 쪽 이상 넘겨 본 사람입니다 — 누르지 않고 보는 관심이라 「노출 → 넘김 → 클릭」으로 읽습니다.
 </p>
-<div class="scroll"><table><thead><tr><th>완주</th><th>카드 노출</th><th>카드 클릭</th><th>판매 페이지</th><th>결제창 열기</th><th>결제</th><th>매출</th><th>열람</th><th>환불</th></tr></thead><tbody>
-<tr><td>${reportCompleted || "-"}</td><td>${reportSeen}</td><td>${reportClick}</td><td>${all.paths["/report/"] ?? 0}</td>
+<div class="scroll"><table><thead><tr><th>완주</th><th>카드 노출</th><th>미리보기 넘김</th><th>카드 클릭</th><th>판매 페이지</th><th>결제창 열기</th><th>결제</th><th>매출</th><th>열람</th><th>환불</th></tr></thead><tbody>
+<tr><td>${reportCompleted || "-"}</td><td>${reportSeen}</td><td>${reportPeek}</td><td>${reportClick}</td><td>${all.paths["/report/"] ?? 0}</td>
 <td>${sales.orders}</td><td><b>${sales.paid}</b></td><td>${sales.won.toLocaleString()}원</td><td>${sales.viewed}</td><td>${sales.refunded}</td></tr>
-<tr class="muted"><td>비율</td><td>${reportRate(reportSeen, reportCompleted)}</td><td>${reportRate(reportClick, reportSeen)}</td><td>-</td>
+<tr class="muted"><td>비율</td><td>${reportRate(reportSeen, reportCompleted)}</td><td>${reportRate(reportPeek, reportSeen)}</td><td>${reportRate(reportClick, reportSeen)}</td><td>-</td>
 <td>${reportRate(sales.orders, all.paths["/report/"] ?? 0)}</td><td>${reportRate(sales.paid, sales.orders)}</td><td><b>완주 대비 ${reportRate(sales.paid, reportCompleted)}</b></td><td>${reportRate(sales.viewed, sales.paid)}</td><td>${reportRate(sales.refunded, sales.paid)}</td></tr>
 </tbody></table></div>
 ${sales.bySource.length ? `<div class="scroll"><table><thead><tr><th>유입 경로(결제된 주문)</th><th>결제</th><th>매출</th></tr></thead><tbody>

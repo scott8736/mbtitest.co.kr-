@@ -7,10 +7,11 @@
  * - 스크롤을 600px 넘게 내렸을 때만 나타나고, 닫으면 3일 동안 다시 뜨지 않습니다.
  * - 검사 진행 중(/tests/mbti/), 판매·결제·열람(/report…), 마음건강 자가진단(/check), 관리자에는 띄우지 않습니다.
  * - 이 기기에 MBTI 결과가 있고 그 유형이 준비됐으면 바로 /report/, 아니면 무료 검사로 보냅니다.
+ * - 2026-10-06 사용자 요청: 가격(9,900원)은 빼고(누르기 전에 값부터 보이면 안 누름), 더 크게, 주목 모션.
+ *   모션은 몇 초마다 한 번 살짝 튀고 빛 띠가 지나가는 정도이고, 「동작 줄이기」 설정이면 멈춥니다.
  */
 import { useEffect, useState } from "react";
 import { readLastResult } from "../lib/my-mori";
-import { reportPrice } from "../lib/report-config";
 import { REPORT_READY_TYPES } from "../report/content/ready";
 
 const HIDE_KEY = "mori-float-hidden";
@@ -52,7 +53,7 @@ export default function ReportFloat() {
     <div className="report-float" role="complementary" aria-label="유료 리포트 안내">
       <a href={mine ? "/report/?from=float" : "/tests/mbti/"}>
         <b>📖 {mine ? `내 ${mine} 104쪽 리포트` : "무료 검사 → 유료 리포트"}</b>
-        <span>{mine ? `미리보기 6쪽 무료 · ${reportPrice().toLocaleString()}원` : `내 점수로 만든 안내서 · ${reportPrice().toLocaleString()}원`}</span>
+        <span>{mine ? "미리보기 6쪽 무료로 보기 →" : "내 점수로 만든 104쪽 안내서 →"}</span>
       </a>
       <button type="button" onClick={close} aria-label="리포트 안내 닫기">×</button>
     </div>

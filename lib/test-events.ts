@@ -32,6 +32,8 @@ export type TestEventName =
   | "pick_click"
   | "report_seen"
   | "report_click"
+  // 결과 카드 미리보기 띠를 둘째 쪽 이상 넘겨 본 사람(2026-10-06~). 클릭 없이 관심을 잽니다.
+  | "report_peek"
   | "report_follow"
   | "saju_seen"
   | "saju_click"
