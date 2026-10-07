@@ -10,6 +10,7 @@
  * 저장하지 않는 것: IP 원본, 쿠키, 쿼리스트링.
  */
 import { forestStats } from "./forest";
+import { pageLabel, testLabel } from "../lib/page-labels";
 import { handleReportAdmin } from "./report-admin";
 import { SAJULAB_PLACEMENTS, SAJULAB_PLACEMENT_KEYS } from "../lib/sajulab";
 import { RESULT_CLICK_PLACEMENTS, RESULT_CLICK_PLACEMENT_KEYS } from "../lib/result-clicks";
@@ -143,6 +144,7 @@ background:#fff;color:#172a46;font-size:14px;font-weight:600;text-decoration:non
 ul.bars{list-style:none;margin:0;padding:0;display:grid;gap:9px}
 ul.bars li{display:grid;grid-template-columns:minmax(90px,1.4fr) 3fr auto;gap:12px;align-items:center}
 ul.bars span{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kn{font-weight:700;color:#1c2034}.raw{margin-left:6px;color:#9aa0ae;font-size:11px;font-weight:400}
 ul.bars em{height:9px;border-radius:99px;background:#f0edf8;overflow:hidden;display:block}
 ul.bars em i{display:block;height:100%;border-radius:99px;background:#7657d6}
 ul.bars b{font-size:13px;font-variant-numeric:tabular-nums;color:#697184;font-weight:600}
@@ -172,11 +174,16 @@ button.copy:disabled{opacity:.6;cursor:default}
 </style></head><body>${body}</body></html>`;
 }
 
-function bars(rows: { key: string; views: number }[], total: number, labels?: Record<string, string>): string {
+/** 한글 이름을 맨 앞에, 원래 주소·slug 는 뒤에 작게(10-08 사용자 요청). 이름을 모르면 원래 값만 */
+function named(label: string | undefined, raw: string): string {
+  return label ? `<b class="kn">${esc(label)}</b><small class="raw">${esc(raw)}</small>` : esc(raw);
+}
+
+function bars(rows: { key: string; views: number }[], total: number, labels?: Record<string, string>, nameOf?: (key: string) => string | undefined): string {
   if (rows.length === 0) return `<p class="empty">아직 기록이 없습니다.</p>`;
   return `<ul class="bars">${rows
     .map(
-      (r) => `<li><span>${esc(labels?.[r.key] ?? r.key)}</span>
+      (r) => `<li><span title="${esc(r.key)}">${nameOf ? named(nameOf(r.key), r.key) : esc(labels?.[r.key] ?? r.key)}</span>
 <em><i style="width:${total ? (r.views / total) * 100 : 0}%"></i></em>
 <b>${r.views.toLocaleString()}</b></li>`,
     )
@@ -339,7 +346,7 @@ async function liveNow(db: D1Database): Promise<string> {
 <p class="note">마지막 페이지를 연 지 5분이 안 된 사람입니다(같은 날 같은 기기·브라우저를 한 사람으로 셈). 지역은 Cloudflare 가 IP 로 추정한 도시라 실제와 다를 수 있습니다. 새로고침하면 갱신됩니다.</p>
 ${live.length === 0 ? `<p class="empty">지금은 접속 중인 사람이 없습니다.</p>` : `<p style="margin:0 0 10px">${[...places.entries()].sort((a, b) => b[1] - a[1]).map(([p, n]) => `<span style="display:inline-block;margin:0 6px 6px 0;padding:5px 10px;border-radius:99px;background:#f1ecff;color:#4b3d99;font-size:13px">${esc(p)} <b>${n}</b></span>`).join("")}</p>
 <div class="scroll"><table><thead><tr><th>지역</th><th>기기</th><th>유입</th><th>지금 보는 페이지</th><th>본 페이지</th><th>마지막 활동</th></tr></thead><tbody>
-${live.slice(0, 50).map((v) => `<tr><td>${esc(v.place)}</td><td>${v.device === "mobile" ? "모바일" : v.device === "tablet" ? "태블릿" : "PC"}</td><td>${esc(SOURCE_LABELS[v.source] ?? v.source)}</td><td>${esc(v.path)}</td><td>${v.views}</td><td>${ago(v.last)}</td></tr>`).join("")}
+${live.slice(0, 50).map((v) => `<tr><td>${esc(v.place)}</td><td>${v.device === "mobile" ? "모바일" : v.device === "tablet" ? "태블릿" : "PC"}</td><td>${esc(SOURCE_LABELS[v.source] ?? v.source)}</td><td>${named(pageLabel(v.path), v.path)}</td><td>${v.views}</td><td>${ago(v.last)}</td></tr>`).join("")}
 </tbody></table></div>`}
 </div>`;
 }
@@ -565,7 +572,7 @@ ${liveBox}
 <div class="box"><h2>기기</h2>${bars(devices, total.views, { mobile: "모바일", desktop: "데스크톱" })}</div>
 </div>
 
-<div class="box"><h2>많이 본 페이지</h2>${bars(paths, total.views)}</div>
+<div class="box"><h2>많이 본 페이지</h2>${bars(paths, total.views, undefined, pageLabel)}</div>
 
 <div class="box"><h2>테스트 완주율</h2>
 <p class="note">
@@ -591,7 +598,7 @@ ${liveBox}
                 if (whole < MIN_SAMPLE) return "표본 부족";
                 return Math.round((part / whole) * 100) + "%";
               };
-              return `<tr><td>${esc(s.slug)}</td><td>${s.intro}</td><td>${visitedBySlug.get(s.slug) ?? "-"}</td><td>${began || "-"}</td><td>${from >= STEP2_SINCE ? (step2BySlug.get(s.slug) ?? "-") : `<span class="muted">${s.step2}</span>`}</td><td>${s.result}</td><td>${finished || "-"}</td>
+              return `<tr><td>${named(testLabel(s.slug), s.slug)}</td><td>${s.intro}</td><td>${visitedBySlug.get(s.slug) ?? "-"}</td><td>${began || "-"}</td><td>${from >= STEP2_SINCE ? (step2BySlug.get(s.slug) ?? "-") : `<span class="muted">${s.step2}</span>`}</td><td>${s.result}</td><td>${finished || "-"}</td>
 <td>${rate(began, s.intro, ANSWERED_SINCE)}</td><td>${rate(began, visitedBySlug.get(s.slug) ?? 0, VISIT_SINCE)}</td><td>${rate(finished, began, COMPLETED_SINCE)}</td><td>${pickBySlug.get(s.slug) ?? (from >= PICK_SINCE ? 0 : "-")}</td></tr>`;
             })
             .join("")}</tbody></table></div>`
@@ -617,7 +624,7 @@ ${journeyDays.map((d) => `<tr><td>${d.day.slice(5)}</td><td>${d.visitors.toLocal
 
 <div class="grid">
 <div class="box"><h2>체류 시간 분포</h2>${bars(dwellRows, journey.visitors)}</div>
-<div class="box"><h2>MBTI 결과 다음에 연 페이지</h2><p class="note">결과 화면에서 바로 이어서 연 페이지입니다(합계 ${afterMbtiTotal.toLocaleString()}). 「/」 는 다시 검사하기나 로고를 누른 경우입니다.</p>${bars(afterMbti, afterMbtiTotal)}</div>
+<div class="box"><h2>MBTI 결과 다음에 연 페이지</h2><p class="note">결과 화면에서 바로 이어서 연 페이지입니다(합계 ${afterMbtiTotal.toLocaleString()}). 「/」 는 다시 검사하기나 로고를 누른 경우입니다.</p>${bars(afterMbti, afterMbtiTotal, undefined, pageLabel)}</div>
 </div>
 
 <div class="box"><h2>1페이지만 보고 나간 사람은 어디로 들어왔나</h2>
@@ -628,7 +635,7 @@ ${journeyDays.map((d) => `<tr><td>${d.day.slice(5)}</td><td>${d.visitors.toLocal
 ${landingAll.length === 0 ? "" : `집계 버전 2(${landingDays}일치)만 들어 있습니다 — 지난 날짜가 비면 새로고침할 때마다 7일씩 채웁니다.`}
 </p>
 ${landingAll.length === 0 ? `<p class="empty">아직 기록이 없습니다. 새로고침하면 지난 날짜를 다시 집계합니다.</p>` : `<div class="grid"><div class="scroll"><table><thead><tr><th>들어온 페이지</th><th>들어온 사람</th><th>1페이지 이탈</th><th>이탈률</th><th>이탈 몫</th></tr></thead><tbody>
-${landingAll.slice(0, 30).map(([path, x]) => `<tr><td>${esc(path)}</td><td>${x.n.toLocaleString()}</td><td>${x.b.toLocaleString()}</td><td>${pct(x.b, x.n)}</td><td>${landingBounces ? ((x.b / landingBounces) * 100).toFixed(1) + "%" : "-"}</td></tr>`).join("")}
+${landingAll.slice(0, 30).map(([path, x]) => `<tr><td>${named(pageLabel(path), path)}</td><td>${x.n.toLocaleString()}</td><td>${x.b.toLocaleString()}</td><td>${pct(x.b, x.n)}</td><td>${landingBounces ? ((x.b / landingBounces) * 100).toFixed(1) + "%" : "-"}</td></tr>`).join("")}
 </tbody></table></div>
 <div class="scroll"><table><thead><tr><th>유입 경로</th><th>들어온 사람</th><th>1페이지 이탈</th><th>이탈률</th><th>국내만 이탈률</th></tr></thead><tbody>
 ${landingSources.map(([src, x]) => { const k = krBySource[src]; return `<tr><td>${esc(SOURCE_LABELS[src] ?? src)}</td><td>${x.n.toLocaleString()}</td><td>${x.b.toLocaleString()}</td><td>${pct(x.b, x.n)}</td><td>${k ? `${pct(k.b, k.n)} <small>(${k.n.toLocaleString()}명)</small>` : "-"}</td></tr>`; }).join("")}
