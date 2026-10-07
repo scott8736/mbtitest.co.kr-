@@ -18,9 +18,18 @@ import { hasBook } from "./report-books";
 import { readSetting } from "./naver";
 import { allowAttempt, constantEquals, ensureReportSchema, logEvent, newOrderNo, newToken, seoulToday, whoHash } from "./report";
 
-/** 토스 미니앱이 도는 주소. SDK 3.x: 실서비스 <appName>.web.tossmini.com, 콘솔 QR 테스트 <appName>.private-web.tossmini.com */
-export const TOSS_ORIGINS = ["https://mbtitest.web.tossmini.com", "https://mbtitest.private-web.tossmini.com"];
-const TEST_ORIGIN = "https://mbtitest.private-web.tossmini.com";
+/**
+ * 토스 미니앱이 도는 주소. 토스 문서: SDK 3.1.1 번들부터 다시 2.x 주소(apps / private-apps)로 서비스되고,
+ * 그 전 3.x 는 web / private-web 이었다. 둘 다 연다 (10-07 실결제 시험에서 apps 쪽이 막혀 지급 요청이 안 왔다).
+ */
+export const TOSS_ORIGINS = [
+  "https://mbtitest.apps.tossmini.com",
+  "https://mbtitest.private-apps.tossmini.com",
+  "https://mbtitest.web.tossmini.com",
+  "https://mbtitest.private-web.tossmini.com",
+];
+/** 콘솔 QR·테스트 푸시 주소 — 여기서 산 주문은 시험(test=1)으로 표시해 매출에 넣지 않는다 */
+const TEST_ORIGINS = ["https://mbtitest.private-apps.tossmini.com", "https://mbtitest.private-web.tossmini.com"];
 
 /** 토스 쪽 경로만 CORS 를 연다. 웹 사이트 자신의 경로는 지금처럼 같은 출처만. */
 export const TOSS_CORS_PATHS = ["/api/report/toss-grant", "/api/report/book"];
@@ -157,7 +166,7 @@ export async function handleTossGrant(
   }
 
   const origin = request.headers.get("origin");
-  const test = origin === TEST_ORIGIN ? 1 : 0;
+  const test = origin && TEST_ORIGINS.includes(origin) ? 1 : 0;
   const now = new Date();
   const today = seoulToday(now);
   const token = newToken();

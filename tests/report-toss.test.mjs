@@ -42,8 +42,11 @@ function fakeD1() {
 const SKU = "ait.0000012345.abcdefgh.0000000001";
 const SECRET = "s".repeat(48);
 const VERIFY_URL = "https://toss-iap-verify.example.workers.dev/verify";
-const LIVE = "https://mbtitest.web.tossmini.com";
-const PRIVATE = "https://mbtitest.private-web.tossmini.com";
+// SDK 3.1.1+ 번들이 실제로 도는 주소 (10-07 실결제 시험에서 이 주소가 막혀 지급 요청이 안 왔다)
+const LIVE = "https://mbtitest.apps.tossmini.com";
+const PRIVATE = "https://mbtitest.private-apps.tossmini.com";
+const OLD_LIVE = "https://mbtitest.web.tossmini.com";
+const OLD_PRIVATE = "https://mbtitest.private-web.tossmini.com";
 
 let verifyCalls = [];
 let verifyReply = () => ({ status: "PURCHASED", sku: SKU });
@@ -158,6 +161,11 @@ test("콘솔 QR 테스트 주소에서 산 것은 시험 주문으로 표시", a
   verifyReply = () => ({ status: "PURCHASED", sku: SKU });
   assert.equal((await grant(db, { ...body, orderId: "ord_private" }, PRIVATE)).status, 200);
   assert.equal(rows(db)[0].test, 1);
+  assert.equal((await grant(db, { ...body, orderId: "ord_old_private" }, OLD_PRIVATE)).status, 200);
+  assert.equal((await grant(db, { ...body, orderId: "ord_live" }, LIVE)).status, 200);
+  const byId = Object.fromEntries(rows(db).map((r) => [r.mul_no, r.test]));
+  assert.equal(byId["toss:ord_old_private"], 1);
+  assert.equal(byId["toss:ord_live"], 0);
 });
 
 test("CORS: 토스 앱 주소에만 열고, 웹 사이트 다른 경로는 그대로", async () => {
@@ -170,6 +178,7 @@ test("CORS: 토스 앱 주소에만 열고, 웹 사이트 다른 경로는 그�
   assert.equal(ok.status, 204);
   assert.equal(ok.headers.get("access-control-allow-origin"), LIVE);
   assert.equal((await pre(PRIVATE, "/api/report/book")).headers.get("access-control-allow-origin"), PRIVATE);
+  for (const o of [OLD_LIVE, OLD_PRIVATE]) assert.equal((await pre(o, "/api/report/toss-grant")).headers.get("access-control-allow-origin"), o);
   assert.equal((await pre("https://evil.example", "/api/report/toss-grant")).headers.get("access-control-allow-origin"), null);
   const u = new URL("https://mbtitest.co.kr/api/report/status?o=" + "a".repeat(64));
   const status = await R.handleReport(new Request(u, { headers: { origin: LIVE } }), u, { DB: db }, ctx);
