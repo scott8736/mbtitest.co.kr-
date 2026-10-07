@@ -67,21 +67,22 @@
 /* 마을 */
 .mf-village h2 { margin:0 0 8px; color:var(--village); font-size:24px; }
 .mf-village h2 small { margin-left:6px; color:#8a80a6; font-family:Pretendard,sans-serif; font-size:13px; }
-/* 마을 그림은 가로(16:9)라 정사각 칸에 가운데를 채웁니다. 주민은 아래쪽 땅에만 둡니다 */
-.mf-scene { position:relative; isolation:isolate; aspect-ratio:1/1; overflow:hidden; border-radius:22px; background-size:cover; background-position:50% 60%; box-shadow:0 10px 30px rgba(60,40,120,.15); cursor:pointer; touch-action:manipulation; }
-.mf-scene::after { content:""; position:absolute; inset:auto 0 0; height:45%; background:linear-gradient(transparent,rgba(255,255,255,.18)); pointer-events:none; }
-.mf-resident, .mf-me { position:absolute; width:20%; transform:translate(-50%,-100%); }
-.mf-resident { padding:0; border:0; background:none; font:inherit; cursor:pointer; }
-.mf-resident img, .mf-me { height:auto; border-radius:50%; filter:drop-shadow(0 5px 4px rgba(0,0,0,.25)); }
-.mf-resident img { width:100%; animation:mf-idle 2.8s ease-in-out infinite; }
-.mf-resident:nth-child(2) img { animation-delay:.7s; }
-.mf-resident:nth-child(3) img { animation-delay:1.4s; }
-.mf-resident:nth-child(4) img { animation-delay:2.1s; }
-.mf-resident span { position:absolute; left:50%; bottom:-6px; transform:translateX(-50%); padding:1px 7px; border-radius:999px; background:rgba(255,255,255,.92); color:#4b3f75; font-size:11px; font-weight:800; white-space:nowrap; }
-.mf-resident i { position:absolute; top:-6px; left:50%; z-index:1; transform:translateX(-50%); display:grid; place-items:center; width:24px; height:24px; border-radius:50%; background:#ff8a3d; color:#fff; font-size:15px; font-style:normal; font-weight:900; box-shadow:0 2px 6px rgba(0,0,0,.2); animation:mf-bounce 1.2s ease-in-out infinite; }
-.mf-resident.is-done i { background:#38a169; animation:none; }
-.mf-me { width:18%; transition:left .7s ease-in-out, top .7s ease-in-out; transform:translate(-50%,-100%) scaleX(var(--face,1)); pointer-events:none; }
-.mf-me.is-walking { animation:mf-walk .35s ease-in-out infinite; }
+/* 마을 그림은 가로(16:9)라 정사각 칸에 가운데를 채웁니다. 모리는 배경 없는 그림(sprite)으로 땅에 세웁니다(10-07 다시 그림) */
+.mf-scene { position:relative; isolation:isolate; aspect-ratio:5/4; overflow:hidden; border-radius:22px; box-shadow:0 10px 30px rgba(60,40,120,.15); cursor:pointer; touch-action:manipulation; }
+.mf-scene-bg { position:absolute; inset:-3%; z-index:0; background-size:cover; background-position:50% 70%; filter:blur(1.4px) saturate(.9) brightness(1.03); }
+.mf-scene::after { content:""; position:absolute; inset:auto 0 0; z-index:0; height:50%; background:linear-gradient(transparent,rgba(255,250,240,.22)); pointer-events:none; }
+.mf-char { position:absolute; width:calc(19% * var(--s,1)); transform:translate(-50%,-100%); padding:0; border:0; background:none; font:inherit; }
+.mf-char::before { content:""; position:absolute; left:50%; bottom:0; width:78%; aspect-ratio:3/1; transform:translate(-50%,45%); border-radius:50%; background:radial-gradient(closest-side,rgba(40,25,70,.42),rgba(40,25,70,.18) 60%,transparent); z-index:-1; }
+.mf-sprite { position:relative; display:block; width:100%; height:auto; transform-origin:50% 100%; }
+.mf-resident { cursor:pointer; }
+.mf-resident .mf-sprite { animation:mf-breathe 2.8s ease-in-out infinite; animation-delay:var(--delay,0s); }
+.mf-tag { position:absolute; top:100%; left:50%; transform:translate(-50%,6px); padding:1px 8px; border-radius:999px; background:rgba(255,255,255,.88); color:#4b3f75; font-size:11px; font-weight:800; white-space:nowrap; box-shadow:0 1px 4px rgba(0,0,0,.12); }
+.mf-tag.is-me { background:#7657d6; color:#fff; }
+.mf-bubble { position:absolute; bottom:94%; left:70%; z-index:2; display:grid; place-items:center; width:28px; height:28px; border-radius:50% 50% 50% 8%; background:#fff; color:#ff7a1a; font-size:17px; font-weight:900; box-shadow:0 3px 8px rgba(0,0,0,.18); animation:mf-float 1.6s ease-in-out infinite; }
+.mf-resident.is-done .mf-bubble { width:22px; height:22px; color:#2f9e5b; font-size:13px; animation:none; opacity:.9; }
+.mf-me { pointer-events:none; transition:left .7s ease-in-out, top .7s ease-in-out, width .7s ease-in-out; }
+.mf-me .mf-sprite { animation:mf-breathe-face 2.4s ease-in-out infinite; }
+.mf-me.is-walking .mf-sprite { animation:mf-hopwalk .35s ease-in-out infinite; }
 
 /* 대화: 아래쪽 판 */
 .mf-talk { position:fixed; inset:0; z-index:50; display:flex; align-items:flex-end; justify-content:center; background:rgba(30,20,60,.18); cursor:pointer; }
@@ -223,6 +224,10 @@
 @keyframes mf-pop { from { transform:scale(.6); opacity:0; } to { transform:none; opacity:1; } }
 @keyframes mf-stampin { from { transform:scale(2.2) rotate(-20deg); opacity:0; } to { transform:none; opacity:1; } }
 @keyframes mf-blink { 50% { opacity:0; } }
+@keyframes mf-breathe { 0%,100% { transform:scale(1,1); } 50% { transform:scale(1.025,.975); } }
+@keyframes mf-breathe-face { 0%,100% { transform:scaleX(var(--face,1)) scaleY(1); } 50% { transform:scaleX(calc(var(--face,1) * 1.025)) scaleY(.975); } }
+@keyframes mf-hopwalk { 0%,100% { transform:scaleX(var(--face,1)) translateY(0) rotate(-3deg); } 50% { transform:scaleX(var(--face,1)) translateY(-9%) rotate(3deg); } }
+@keyframes mf-float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-4px); } }
 
 @media (prefers-reduced-motion:reduce) {
   .mf *, .mf *::before { animation:none !important; transition:none !important; }

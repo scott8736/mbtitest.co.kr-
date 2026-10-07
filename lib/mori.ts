@@ -51,6 +51,8 @@ export const testMoriImage = (slug: string, resultKey: string): string | null =>
   TEST_MORI[slug]?.includes(resultKey) ? `/characters/tests/${slug}-${resultKey}.webp` : null;
 
 export const moriImage = (code: string) => `/characters/mori-${code.toLowerCase()}.webp`;
+/** 배경을 지운 서 있는 모리(높이 360px, 발밑이 아래 끝). 숲 산책 마을 장면용 — game-forest/make_sprites.py */
+export const moriSprite = (code: string) => `/characters/sprite/mori-${code.toLowerCase()}.webp`;
 export const moriOgImage = (code: string) => `/images/og/mori/${code.toLowerCase()}.jpg`;
 /** 공유 링크가 여는 주소. 결과 화면(/mbti-result/)은 검사한 사람 탭에만 결과가 있어 남에게 보낼 수 없습니다. */
 export const moriSharePath = (code: string) => `/s/${code.toLowerCase()}/`;

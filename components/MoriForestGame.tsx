@@ -11,7 +11,7 @@
  * 탭 처리 함수 안에서 바로 합니다(setTimeout 뒤에서 부르면 아이폰이 막습니다).
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MORI, moriImage, testMoriImage } from "../lib/mori";
+import { MORI, moriImage, moriSprite, testMoriImage } from "../lib/mori";
 import { MORI_WORLD, VILLAGES, villageOf, type VillageKey } from "../lib/mori-world";
 import { readMyMori, saveMyMori } from "../lib/my-mori";
 import { FOREST_QUESTS, readForest, stampsOf, writeForest, type ForestQuest, type ForestSave } from "../lib/mori-forest";
@@ -37,14 +37,34 @@ const PINS: Record<VillageKey, { x: number; y: number }> = {
   sp: { x: 76, y: 72 },
 };
 
-/** 마을 장면 안 주민 네 자리(아래쪽 땅), 장면 기준 %. 모리 그림의 발밑이 이 점에 옵니다 */
+/**
+ * 마을 장면 안 주민 네 자리, 장면 기준 %. 모리 발밑이 이 점에 옵니다.
+ * 뒷줄 둘은 양옆, 앞줄 둘은 바깥쪽 — 가운데를 내 모리가 다니는 통로로 비웁니다(10-07 「엉성하다」 지적 뒤 다시 잡음).
+ * 말 걸 때는 통로 쪽, 상대와 같은 줄에 섭니다(TALK_SPOTS). 그래야 앞줄 모리 뒤에 숨지 않습니다.
+ */
 const SLOTS = [
-  { x: 14, y: 66 },
-  { x: 38, y: 80 },
-  { x: 62, y: 66 },
-  { x: 86, y: 80 },
+  { x: 12, y: 62 },
+  { x: 32, y: 90 },
+  { x: 88, y: 62 },
+  { x: 68, y: 90 },
 ];
-const START = { x: 50, y: 97 };
+const TALK_SPOTS = [
+  { x: 29, y: 63 },
+  { x: 50, y: 89 },
+  { x: 71, y: 63 },
+  { x: 50, y: 89 },
+];
+const START = { x: 50, y: 78 };
+const GROUND_TOP = 52; // 이 위(하늘·지붕)는 못 걸어감
+
+/** 소품 때문에 그림 안에서 몸이 작게 그려진 모리(ENFP 풍선 등)는 그만큼 키워 몸 크기를 맞춥니다 */
+const SPRITE_SCALE: Record<string, number> = { ENFP: 1.32, ESFP: 1.06, ESTP: 1.08, ENFJ: 1.12, ENTJ: 1.12 };
+
+/** 원근: 뒤(위)일수록 작게 */
+const depth = (y: number) => 0.74 + ((y - 60) / 40) * 0.36;
+
+/** 말 걸 때 설 자리 */
+const beside = (slot: { x: number; y: number }) => TALK_SPOTS[SLOTS.indexOf(slot)] ?? { x: 50, y: 80 };
 const WALK_MS = 700;
 
 /** 받침 있으면 「을」, 없으면 「를」 */
@@ -105,7 +125,7 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
       setMapAt(v);
       setScreen("village");
       const slot = SLOTS[questsIn(v).indexOf(quest)];
-      setPos({ x: slot.x > 70 ? slot.x - 15 : slot.x + 15, y: slot.y + 4 });
+      setPos(beside(slot));
       openTalk(quest.mori, s, true);
       // 돌아온 사람은 이미 한 번 탭해서 들어온 사람이라 소리도 그 상태 그대로 둡니다(휴대폰은 다음 탭부터 남).
       entered.current = true;
@@ -265,15 +285,15 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
     const box = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - box.left) / box.width) * 100;
     const y = ((e.clientY - box.top) / box.height) * 100;
-    if (y < 52) return; // 하늘·지붕은 못 걸어감
-    walkTo(Math.min(94, Math.max(6, x)), Math.min(98, y));
+    if (y < GROUND_TOP) return;
+    walkTo(Math.min(94, Math.max(6, x)), Math.min(94, y));
   };
 
   const onResidentTap = (code: string, slot: { x: number; y: number }) => {
     if (talk) return;
     audioCtx();
-    const side = pos.x < slot.x ? -12 : 12;
-    walkTo(Math.min(94, Math.max(6, slot.x + side)), slot.y, () => openTalk(code, save));
+    const to = beside(slot);
+    walkTo(to.x, to.y, () => openTalk(code, save));
   };
 
   const goQuest = (quest: ForestQuest) => {
@@ -405,34 +425,36 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
       {screen === "village" && me && (
         <section className="mf-village" style={{ "--village": VILLAGES[village].color } as React.CSSProperties}>
           <h2>{VILLAGES[village].name} <small>{VILLAGES[village].landmarks}</small></h2>
-          <div className="mf-scene" style={{ backgroundImage: `url(${VILLAGES[village].image})` }} onClick={onGroundTap}>
+          <div className="mf-scene" onClick={onGroundTap}>
+            {/* 배경은 살짝 흐리게 — 그림에 원래 있는 모리들이 뒤로 물러나고 주민이 앞으로 나옵니다 */}
+            <div className="mf-scene-bg" style={{ backgroundImage: `url(${VILLAGES[village].image})` }} aria-hidden="true" />
             {questsIn(village).map((q, i) => {
               const done = q.slug in save.done;
+              const s = SLOTS[i];
               return (
                 <button
                   key={q.mori}
-                  className={`mf-resident${done ? " is-done" : ""}`}
-                  style={{ left: `${SLOTS[i].x}%`, top: `${SLOTS[i].y}%`, zIndex: Math.round(SLOTS[i].y) } as React.CSSProperties}
+                  className={`mf-char mf-resident${done ? " is-done" : ""}`}
+                  style={{ left: `${s.x}%`, top: `${s.y}%`, zIndex: Math.round(s.y), "--s": depth(s.y) * (SPRITE_SCALE[q.mori] ?? 1), "--delay": `${i * 0.6}s` } as React.CSSProperties}
                   onClick={(e) => {
                     e.stopPropagation();
-                    onResidentTap(q.mori, SLOTS[i]);
+                    onResidentTap(q.mori, s);
                   }}
                   aria-label={`${q.mori} 모리와 이야기하기`}
                 >
-                  <i aria-hidden="true">{done ? "✓" : "!"}</i>
-                  <img src={moriImage(q.mori)} width={120} height={120} alt="" />
-                  <span>{q.mori}</span>
+                  <span className="mf-bubble" aria-hidden="true">{done ? "✓" : "!"}</span>
+                  <img className="mf-sprite" src={moriSprite(q.mori)} width={290} height={360} alt="" />
+                  <span className="mf-tag">{q.mori}</span>
                 </button>
               );
             })}
-            <img
-              className={`mf-me${walking ? " is-walking" : ""}`}
-              src={moriImage(me)}
-              width={120}
-              height={120}
-              alt="내 모리"
-              style={{ left: `${pos.x}%`, top: `${pos.y}%`, zIndex: Math.round(pos.y) + 1, "--face": facing } as React.CSSProperties}
-            />
+            <div
+              className={`mf-char mf-me${walking ? " is-walking" : ""}`}
+              style={{ left: `${pos.x}%`, top: `${pos.y}%`, zIndex: Math.round(pos.y) + 1, "--s": depth(pos.y) * (SPRITE_SCALE[me] ?? 1), "--face": facing } as React.CSSProperties}
+            >
+              <img className="mf-sprite" src={moriSprite(me)} width={290} height={360} alt="내 모리" />
+              <span className="mf-tag is-me">나</span>
+            </div>
           </div>
           <p className="mf-hint">땅을 누르면 걸어가요 · 모리를 누르면 이야기해요</p>
         </section>
