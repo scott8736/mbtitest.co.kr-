@@ -211,6 +211,59 @@
 @keyframes fm-shake { 0%,100% { transform:none; } 25% { transform:translateX(-5px); } 75% { transform:translateX(5px); } }
 @keyframes fm-twinkle { 50% { transform:scale(1.35); color:#fff; } }
 
+/* 마음나무 광장 (2026-10-07): 자라는 나무 · 하루 열매 · 짝꿍 카드 · 말버릇 퀴즈 */
+.mf-pin-plaza { min-width:0; padding:5px 10px; border-color:#ff8fab; color:#c2185b; animation-delay:.6s; }
+.mf-plaza h2 { margin:0 0 8px; color:#c2185b; font-size:24px; }
+.mf-plaza h2 small { margin-left:6px; color:#8a80a6; font-family:Pretendard,sans-serif; font-size:13px; }
+.mf-tree { position:relative; display:block; width:100%; padding:0; border:0; border-radius:22px; overflow:hidden; background:#fff; box-shadow:0 10px 30px rgba(60,40,120,.15); cursor:pointer; }
+.mf-tree > img:first-child { display:block; width:100%; height:auto; }
+.mf-tree.is-picked { cursor:default; }
+.mf-tree-fruit { position:absolute; top:22%; left:56%; animation:mf-float 1.4s ease-in-out infinite; filter:drop-shadow(0 0 12px #ffd166); }
+.mf-tree-fruit img { width:56px; height:auto; }
+.mf-fruit-drop { position:absolute; top:22%; left:56%; width:52px; height:auto; animation:mf-fruitdrop 1.1s cubic-bezier(.4,0,.6,1) forwards; pointer-events:none; }
+.mf-tree-cap { position:absolute; left:10px; right:10px; bottom:10px; padding:8px 12px; border-radius:14px; background:rgba(255,255,255,.9); color:#4b3f75; font-size:14px; font-weight:800; }
+.mf-tree-info { display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 10px; margin:10px 2px 0; color:#5a5070; font-size:13px; }
+.mf-tree-info b { color:#c2185b; }
+.mf-plaza-games { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
+.mf-plaza-games button { display:flex; flex-direction:column; align-items:center; gap:2px; padding:14px 8px; border:0; border-radius:18px; background:#fff; color:#2b2540; font:inherit; cursor:pointer; box-shadow:0 4px 14px rgba(60,40,120,.08); }
+.mf-plaza-games button.is-wide { grid-column:1 / -1; flex-direction:row; justify-content:center; gap:8px; background:linear-gradient(135deg,#eaf7ec,#efe9ff); }
+.mf-plaza-games i { font-size:30px; font-style:normal; }
+.mf-plaza-games b { font-family:Jua,sans-serif; font-size:18px; font-weight:400; }
+.mf-plaza-games small { color:#7a6f96; font-size:12px; }
+@keyframes mf-fruitdrop { 0% { transform:none; opacity:1; } 60% { transform:translate(-20px,180%) rotate(-30deg); opacity:1; } 100% { transform:translate(-10px,420%) scale(.4); opacity:0; } }
+
+.fp-hint { position:absolute; top:4px; left:12px; right:12px; margin:0; text-align:center; font-size:15px; font-weight:800; text-shadow:0 2px 6px rgba(0,0,0,.45); }
+.fp-grid { position:absolute; top:34px; left:12px; right:12px; bottom:56px; display:grid; grid-template-columns:repeat(4,1fr); grid-template-rows:repeat(4,1fr); gap:8px; }
+.fp-card { position:relative; padding:0; border:0; border-radius:14px; background:none; perspective:600px; cursor:pointer; touch-action:none; }
+.fp-back, .fp-front { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:14px; backface-visibility:hidden; transition:transform .35s; }
+.fp-back { background:linear-gradient(145deg,#7bc47f,#3f8f5a); box-shadow:inset 0 0 0 3px rgba(255,255,255,.5); font-size:26px; }
+.fp-front { background:#fffdf8; box-shadow:inset 0 0 0 3px var(--mori); transform:rotateY(180deg); }
+.fp-front img { width:62%; height:auto; border-radius:50%; }
+.fp-front b { color:#2b2540; font-size:12px; }
+.fp-card.is-up .fp-back { transform:rotateY(180deg); }
+.fp-card.is-up .fp-front { transform:none; }
+.fp-card.is-done .fp-front { background:#fff4d6; animation:fp-match .5s ease-out; }
+@keyframes fp-match { 50% { box-shadow:inset 0 0 0 3px var(--mori), 0 0 18px 4px #ffd166; } }
+.fp-toast { position:absolute; left:12px; right:12px; bottom:8px; margin:0; padding:8px 12px; border-radius:14px; background:rgba(255,255,255,.95); color:#c2185b; font-size:13px; font-weight:800; text-align:center; word-break:keep-all; animation:mf-up .25s ease-out; }
+
+.fq-box { position:absolute; inset:8px 14px 14px; display:flex; flex-direction:column; }
+.fq-prompt { margin:6px 0 14px; padding:16px 14px; border-radius:18px; background:rgba(255,255,255,.95); color:#2b2540; font-family:Jua,sans-serif; font-size:21px; line-height:1.4; text-align:center; word-break:keep-all; }
+.fq-choices { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.fq-choice { display:flex; flex-direction:column; align-items:center; gap:2px; padding:10px 6px; border:3px solid transparent; border-radius:18px; background:rgba(255,255,255,.92); color:#2b2540; font:inherit; cursor:pointer; transition:transform .1s; }
+.fq-choice:active { transform:scale(.97); }
+.fq-choice img { width:64px; height:64px; border-radius:50%; }
+.fq-choice b { font-size:16px; }
+.fq-choice small { color:#7a6f96; font-size:11px; word-break:keep-all; text-align:center; }
+.fq-choice.is-right { border-color:#2f9e5b; background:#eafff1; }
+.fq-choice.is-wrong { border-color:#e5484d; background:#fff0f0; animation:fm-shake .3s; }
+.fq-choice.is-dim { opacity:.45; }
+.fq-note { margin:12px 0 0; padding:8px 12px; border-radius:12px; background:rgba(255,255,255,.9); color:#4b3f75; font-size:14px; font-weight:700; text-align:center; }
+.fq-review { display:grid; gap:6px; margin:-4px 0 14px; text-align:left; }
+.fq-review small { color:#7a6f96; font-size:12px; }
+.fq-review a { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:12px; background:#f4effc; color:#4b3f75; font-size:14px; font-weight:800; text-decoration:none; }
+.fq-review a img { width:32px; height:32px; border-radius:50%; }
+.fq-result { max-height:calc(100% - 20px); overflow:auto; }
+
 @keyframes mf-wake { from { transform:scale(.4) rotate(-12deg); opacity:0; } to { transform:none; opacity:1; } }
 @keyframes mf-idle { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-5%); } }
 @keyframes mf-glow { 0%,100% { opacity:.25; } 50% { opacity:.5; } }

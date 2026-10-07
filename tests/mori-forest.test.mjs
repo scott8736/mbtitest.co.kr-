@@ -20,6 +20,7 @@ const { outputFiles } = await build({
       export { RESULT_CLICK_PLACEMENT_KEYS } from "./lib/result-clicks";
       export { isKnownEvent } from "./worker/test-events";
       export { screenerSlugs } from "./lib/screeners";
+      export { MATES, mateOf, makeQuiz, quizStars, pairsStars, treeStage, nextStreak, dayKST, QUIZ_LEN } from "./lib/forest-plaza";
       export { MINIGAMES, inviteOf, acornStars, starStars, lanternStars, pickConstellations, CONSTELLATIONS } from "./lib/forest-minigames";
       export { RHYTHM_CHARTS, notesOf, judgeOf, starsOf, RHYTHM_BARS, COUNT_IN_BEATS, LOOP_BEATS } from "./lib/forest-rhythm";
     `,
@@ -183,4 +184,39 @@ test("마을 놀이 채점", () => {
     const t = g.play.targets;
     assert.ok(t[0] < t[1] && t[1] < t[2], `${g.mori} 목표는 점점 길어진다`);
   }
+});
+
+test("광장: 짝꿍 8쌍이 16모리를 한 번씩 덮고, 서로 짝꿍이다", () => {
+  assert.equal(mod.MATES.length, 8);
+  const all = mod.MATES.flatMap((p) => [p.a, p.b]).sort();
+  assert.deepEqual(all, Object.keys(mod.MORI_WORLD).sort());
+  for (const c of all) assert.equal(mod.mateOf(mod.mateOf(c)), c);
+});
+
+test("광장: 말버릇 퀴즈는 8문제, 보기 넷 중 정답이 하나, 같은 모리를 두 번 묻지 않는다", () => {
+  for (let k = 0; k < 20; k++) {
+    const qs = mod.makeQuiz();
+    assert.equal(qs.length, mod.QUIZ_LEN);
+    assert.equal(new Set(qs.map((q) => q.answer)).size, qs.length);
+    for (const q of qs) {
+      assert.equal(q.choices.length, 4);
+      assert.equal(new Set(q.choices).size, 4);
+      assert.ok(q.choices.includes(q.answer));
+      assert.ok(q.prompt.includes(q.kind === "says" ? mod.MORI_WORLD[q.answer].says : mod.MORI_WORLD[q.answer].role));
+      assert.ok(!q.prompt.includes("을(를)"));
+    }
+  }
+});
+
+test("광장: 마음나무 단계·연속 출석·별", () => {
+  assert.deepEqual([0, 3, 4, 7, 8, 11, 12, 16].map(mod.treeStage), [1, 1, 2, 2, 3, 3, 4, 4]);
+  assert.equal(mod.nextStreak(undefined, 0, "2026-10-07"), 1);
+  assert.equal(mod.nextStreak("2026-10-06", 3, "2026-10-07"), 4);
+  assert.equal(mod.nextStreak("2026-10-04", 3, "2026-10-07"), 1);
+  assert.equal(mod.nextStreak("2026-10-31", 2, "2026-11-01"), 3, "달이 바뀌어도 어제는 어제");
+  assert.equal(mod.dayKST(Date.parse("2026-10-07T15:30:00Z")), "2026-10-08", "한국 자정이 지나면 다음 날");
+  assert.equal(mod.pairsStars(8), 3);
+  assert.equal(mod.pairsStars(40), 0);
+  assert.equal(mod.quizStars(8), 3);
+  assert.equal(mod.quizStars(3), 0);
 });

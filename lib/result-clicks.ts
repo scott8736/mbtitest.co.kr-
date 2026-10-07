@@ -21,6 +21,7 @@ export const RESULT_CLICK_PLACEMENTS = {
   "mbti-forest": "MBTI 결과 · 내 모리랑 숲 산책하기",
   "home-mori-forest": "홈 · 모리 영상 아래 숲 산책하기",
   "forest-quest": "숲 산책 · 주민 부탁 → 다른 검사",
+  "forest-types": "숲 산책 · 말버릇 퀴즈 → 헷갈린 유형 페이지",
 } as const;
 
 export type ResultClickPlacement = keyof typeof RESULT_CLICK_PLACEMENTS;

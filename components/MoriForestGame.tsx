@@ -18,11 +18,14 @@ import { FOREST_QUESTS, readForest, stampsOf, writeForest, type ForestQuest, typ
 import { recordResultClick } from "../lib/test-events";
 import { audioCtx, currentMusic, fanfare, playMusic, stopMusic, tone } from "./forest-sound";
 import { chartOf } from "../lib/forest-rhythm";
+import { dayKST } from "../lib/forest-plaza";
 import { inviteOf, minigameOf } from "../lib/forest-minigames";
 import ForestRhythm from "./ForestRhythm";
 import ForestMinigame from "./ForestMinigame";
+import ForestPlaza from "./ForestPlaza";
+import { pairOf } from "../lib/mori-world";
 
-type Screen = "intro" | "pick" | "map" | "village" | "dex";
+type Screen = "intro" | "pick" | "map" | "village" | "dex" | "plaza";
 /** invite: 바람 들판 주민이 리듬 탭을 청하는 대화(끝 버튼이 「한 판 하기」) */
 type Talk = { mori: string; lines: string[]; line: number; shown: number; invite?: boolean };
 
@@ -169,11 +172,25 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
     }
     const first = s.met.includes(code) && code !== me ? [] : [
       code === me ? `어? 너도 ${code} 모리구나! 거울 보는 것 같아.` : `안녕! 나는 ${vName}에서 ${w.role}${eul(w.role)} 맡고 있는 ${code} 모리야.`,
+      ...relationLine(code),
     ];
     // 주민은 처음엔 부탁 대신 마을 놀이를 한 판 청합니다(건너뛰기 가능 — 다른 검사로 가는 길을 막지 않게).
     const invite = inviteOf(code);
     if (invite && !(code in (s.rhythm ?? {}))) return [...first, invite];
     return [...first, quest.ask];
+  }
+
+  /**
+   * 내 유형과 짝꿍·라이벌이면 첫 만남에 한 줄 더(10-07). 이야기는 lib/mori-world.ts 정본의 hook 만 씁니다.
+   * 같은 마을을 다른 유형으로 오면 반응이 달라서 다시 볼 이유가 됩니다.
+   */
+  function relationLine(code: string): string[] {
+    if (!me || code === me) return [];
+    const p = pairOf(me, code);
+    if (!p) return [];
+    return p.kind === "짝꿍"
+      ? [`어, 너 ${me} 모리지? 우리 짝꿍이래! 「${p.hook}」 반가워!`]
+      : [`앗, ${me} 모리다… 우리 좀 티격태격하는 사이래. 「${p.hook}」 그래도 오늘은 잘 지내 보자!`];
   }
 
   function openTalk(code: string, s: ForestSave, thanks = false) {
@@ -257,6 +274,14 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
     setTalk(null);
     playMusic("forest", !!save.muted);
     setScreen("map");
+  };
+
+  const goPlaza = () => {
+    audioCtx();
+    playMusic("forest", !!save.muted);
+    setTalk(null);
+    setScreen("plaza");
+    window.scrollTo({ top: frameTop(), behavior: "smooth" });
   };
 
   const goDex = () => {
@@ -400,6 +425,10 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
                 <small>{questsIn(v).filter((q) => q.slug in save.done).length}/4</small>
               </button>
             ))}
+            <button className="mf-pin mf-pin-plaza" style={{ left: "50%", top: "40%" }} onClick={goPlaza}>
+              <b>🌳 마음나무 광장</b>
+              <small>{save.fruitDay === dayKST() ? "놀이 2가지" : "🍎 열매 열림!"}</small>
+            </button>
             <img
               className="mf-map-me"
               src={moriImage(me)}
@@ -458,6 +487,10 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
           </div>
           <p className="mf-hint">땅을 누르면 걸어가요 · 모리를 누르면 이야기해요</p>
         </section>
+      )}
+
+      {screen === "plaza" && me && (
+        <ForestPlaza me={me} names={names} save={save} update={update} doneCount={doneCount} />
       )}
 
       {screen === "dex" && (

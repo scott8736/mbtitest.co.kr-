@@ -52,6 +52,12 @@ export type ForestSave = {
   stamped?: string[];
   /** 마을 놀이 최고 별(주민 유형 → 0~3). 이름은 처음 만든 리듬 탭 때 것 — 네 마을 놀이 모두 여기 적습니다 */
   rhythm?: Record<string, number>;
+  /** 마음나무 광장(10-07): 모은 열매 · 마지막으로 주운 날(한국 날짜) · 연속 일수 · 놀이 최고 별 */
+  fruits?: number;
+  fruitDay?: string;
+  streak?: number;
+  pairsBest?: number;
+  quizBest?: number;
 };
 
 const KEY = "mori-forest";
@@ -68,6 +74,11 @@ export function readForest(): ForestSave {
       muted: typeof v?.muted === "boolean" ? v.muted : true,
       stamped: Array.isArray(v?.stamped) ? v.stamped : [],
       rhythm: v?.rhythm && typeof v.rhythm === "object" ? v.rhythm : {},
+      fruits: typeof v?.fruits === "number" ? v.fruits : 0,
+      fruitDay: typeof v?.fruitDay === "string" ? v.fruitDay : undefined,
+      streak: typeof v?.streak === "number" ? v.streak : 0,
+      pairsBest: typeof v?.pairsBest === "number" ? v.pairsBest : undefined,
+      quizBest: typeof v?.quizBest === "number" ? v.quizBest : undefined,
     };
   } catch {
     return { met: [], done: {}, stamped: [], muted: true };
