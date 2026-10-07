@@ -32,7 +32,7 @@ export default function MoriForestPage() {
   );
   return (
     <main className="mf-page">
-      <ContentHeader active="/mori" />
+      <ContentHeader active="/mori/forest" />
       <MoriForestGame names={names} testTitles={testTitles} />
 
       <section className="mf-about">

@@ -825,7 +825,7 @@ main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% -
 }
 .article-share button:first-of-type { border-color:var(--violet); background:var(--violet); color:white; }
 
-@media (max-width:1180px) { /* 메뉴 9개(16모리 마음숲 추가)라 1,180px 아래는 접는다 */
+@media (max-width:1300px) { /* 메뉴 10개(16모리 마음숲·모리 게임 추가)라 1,300px 아래는 접는다 */
   .global-header { padding:0 24px; }
   .desktop-nav,.header-cta { display:none; }
   .menu-toggle {
