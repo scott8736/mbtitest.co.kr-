@@ -255,7 +255,8 @@ export function ForestInvite({ names }: { names: Record<string, string> }) {
       <span className="of-eyebrow">🌳 우리 숲 초대장</span>
       <h1>{name}에 초대받았어요</h1>
       <p className="of-lead">{view.owner.type} 모리가 사는 숲이에요. 지금 <b>{have}/16</b>칸이 찼어요. 내 모리를 심어 숲을 채워 주세요!</p>
-      <ForestGrid view={view} fresh={fresh} />
+      {/* 심기 전에는 버튼을 숲 그림보다 위에 — 16칸이 길어 버튼이 첫 화면 밖으로 밀렸습니다(10-07 실사이트 확인) */}
+      {state !== "ready" && state !== "pick" && <ForestGrid view={view} fresh={fresh} />}
 
       {state === "ready" && (
         <div className="of-join">
@@ -299,6 +300,8 @@ export function ForestInvite({ names }: { names: Record<string, string> }) {
           <button className="mf-text" onClick={() => setState("ready")}>← 돌아가기</button>
         </div>
       )}
+
+      {(state === "ready" || state === "pick") && <ForestGrid view={view} />}
 
       {(state === "done" || state === "joined" || state === "own") && (
         <div className="of-after">
