@@ -363,7 +363,6 @@ async function dashboard(
   };
   const withData = rollups.filter((r) => r.views > 0);
   const total = { views: all.views, visitors: all.visitors, days: withData.length };
-  const daily = withData.map((r) => ({ day: r.day, views: r.views, visitors: r.visitors }));
   const sources = rowsOf(all.sources);
   const devices = rowsOf(all.devices);
   const paths = rowsOf(all.paths, 20);
@@ -527,7 +526,6 @@ async function dashboard(
     return ((click / whole) * 100).toFixed(1) + "%";
   };
 
-  const peak = Math.max(1, ...daily.map((d) => d.views));
   const ranges = [1, 7, 30, 90]
     .map((d) => `<a href="/admin/?days=${d}" class="${!range && d === days ? "on" : ""}">${d === 1 ? "오늘" : `${d}일`}</a>`)
     .join("");
@@ -549,16 +547,7 @@ ${liveBox}
 <div><b>${total.visitors ? (total.views / total.visitors).toFixed(1) : "0"}</b><span>방문당 페이지수</span></div>
 </div>
 
-<div class="box"><h2>일자별</h2>${
-      daily.length === 0
-        ? `<p class="empty">아직 기록이 없습니다. 배포 후 방문이 쌓이면 표시됩니다.</p>`
-        : `<div class="chart">${daily
-            .map(
-              (d) =>
-                `<div title="${d.day} · ${d.views} PV · ${d.visitors} 방문자"><i style="height:${(d.views / peak) * 100}%"></i><small>${d.day.slice(5)}</small></div>`,
-            )
-            .join("")}</div>`
-    }</div>
+<!-- 「일자별」 막대 상자는 10-07 사용자 요청으로 뺐다(하루만 고르면 화면을 꽉 채운 보라 막대 하나라 쓸모가 없었음) -->
 
 <div class="grid">
 <div class="box"><h2>유입 경로</h2>${bars(sources, total.views, SOURCE_LABELS)}</div>
