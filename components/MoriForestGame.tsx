@@ -516,7 +516,8 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
                     <button className="mf-primary" onClick={goDex}>도감 보기</button>
                   ) : (
                     <a className="mf-primary" href={`/tests/${quest.slug}/`} onClick={() => goQuest(quest)}>
-                      {testTitles[quest.slug]} 해 보기 →
+                      {/* 「직업적성 해 보기」처럼 이름만 붙이면 어색해서 「테스트 하러 가기」로 (10-07 사용자 지적) */}
+                      {testTitles[quest.slug].endsWith("테스트") ? testTitles[quest.slug] : `${testTitles[quest.slug]} 테스트`} 하러 가기 →
                     </a>
                   )}
                   <button className="mf-text" onClick={() => setTalk(null)}>{done ? "닫기" : "다음에 할게"}</button>
