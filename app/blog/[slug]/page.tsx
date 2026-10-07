@@ -6,6 +6,7 @@ import ContentHeader from "../../../components/ContentHeader";
 import SiteFooter from "../../../components/SiteFooter";
 import ShareButtons from "../../../components/ShareButtons";
 import { blogPosts, getBlogPost } from "../../../lib/blog-posts";
+import { clipDescription } from "../../../lib/meta-text";
 
 export const dynamicParams = false;
 
@@ -25,7 +26,7 @@ export async function generateMetadata({
   const url = `https://mbtitest.co.kr/blog/${post.slug}/`;
   return {
     title: post.title,
-    description: post.description,
+    description: clipDescription(post.description),
     keywords: post.keywords,
     alternates: { canonical: `/blog/${post.slug}/` },
     openGraph: {

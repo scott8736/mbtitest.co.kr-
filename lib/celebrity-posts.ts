@@ -156,7 +156,7 @@ export const celebrityPosts: BlogPost[] = [
     category: "트렌드",
     title: "유재석 MBTI는 ISFP, 본인이 방송에서 직접 확인한 결과",
     description:
-      "유재석이 유 퀴즈 온 더 블럭에서 검사받아 공개한 ISFP 결과와 당시 발언, 2026년 9월 예능방송인 브랜드평판 1위 기록을 원출처 기준으로 정리했습니다.",
+      "유재석이 유 퀴즈 온 더 블럭에서 검사받아 공개한 ISFP 결과와 당시 발언, 2026년 9월 예능방송인 브랜드평판 1위 기록을 정리했습니다.",
     keywords: ["유재석 MBTI", "유재석 ISFP", "유재석 성격", "예능인 MBTI", "유재석 브랜드평판"],
     readTime: "약 6분",
     publishedAt: septReputationAt,
@@ -304,7 +304,7 @@ export const celebrityPosts: BlogPost[] = [
     category: "트렌드",
     title: "리센느 멤버 MBTI 정리 — 다섯 명 전원 P형, 메이만 T형",
     description:
-      "팬 커뮤니티와 프로필 사이트에 정리된 기준으로 리센느 원이·리브·미나미·메이·제나의 MBTI와, 2026년 9월 신인 아이돌그룹 브랜드평판 1위 기록을 함께 정리했습니다.",
+      "리센느 다섯 멤버의 MBTI(팬 커뮤니티·프로필 사이트 기준)와 2026년 9월 신인 아이돌그룹 브랜드평판 1위 기록을 정리했습니다.",
     keywords: ["리센느 MBTI", "리센느 멤버 MBTI", "RESCENE MBTI", "아이돌 MBTI", "리센느 브랜드평판"],
     readTime: "약 6분",
     publishedAt: septReputationAt,
@@ -741,7 +741,7 @@ export const celebrityPosts: BlogPost[] = [
     category: "트렌드",
     title: "손흥민 MBTI는? 팬 사이에서는 ESFJ 로 정리됩니다",
     description:
-      "손흥민의 MBTI 로 알려진 ESFJ 가 어디서 나온 값인지와, 2026년 9월 광고모델 브랜드평판 12위·스포츠 스타 10위 기록을 함께 정리했습니다.",
+      "손흥민의 MBTI로 알려진 ESFJ의 출처와 2026년 9월 광고모델 브랜드평판 12위·스포츠 스타 10위 기록을 정리했습니다.",
     keywords: ["손흥민 MBTI", "손흥민 성격", "축구선수 MBTI", "손흥민 브랜드평판", "스포츠 스타 MBTI"],
     readTime: "약 5분",
     publishedAt: septReputationAt,

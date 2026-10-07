@@ -4,6 +4,7 @@ import SharedResult from "../../../../../components/SharedResult";
 import { genericTests } from "../../../../../lib/generic-tests";
 import { testCatalog } from "../../../../../lib/test-catalog";
 import "./shared-result.css";
+import { clipDescription } from "../../../../../lib/meta-text";
 
 export const dynamicParams = false;
 
@@ -31,7 +32,7 @@ export async function generateMetadata({
 
   const item = testCatalog.find((entry) => entry.slug === slug);
   const title = `${result.name} — ${item?.title || test.title}`;
-  const description = `${result.tagline}. ${result.summary}`;
+  const description = clipDescription(`${result.tagline}. ${result.summary}`);
   // scripts/make-og.mjs 가 구워 둔 결과별 카드입니다. 없으면 공유 썸네일에
   // 사이트 로고가 떠서 클릭률이 떨어집니다.
   const image = `https://mbtitest.co.kr/images/og/r/${slug}-${resultKey}.png`;

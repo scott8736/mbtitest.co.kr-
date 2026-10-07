@@ -4,6 +4,7 @@ import GenericTestRunner from "../../../components/GenericTestRunner";
 import { genericTests } from "../../../lib/generic-tests";
 import { newTestSlugs } from "../../../lib/test-meta";
 import { testCatalog } from "../../../lib/test-catalog";
+import { clipDescription } from "../../../lib/meta-text";
 
 export const dynamicParams = false;
 
@@ -24,7 +25,7 @@ export async function generateMetadata({
     title: `${item.title} 무료`,
     // 설명이 이미 "36문항으로…" 로 시작하면 문항 수를 두 번 쓰지 않습니다.
     // 소요 시간은 테스트마다 달라서(2~5분) 고정 문구를 쓰지 않습니다.
-    description: `${/^\d+문항/.test(item.description) ? "" : `${item.questionCount}개 질문으로 `}${item.description} 회원가입 없이 ${item.duration} 만에 결과를 확인하세요.`,
+    description: clipDescription(`${/^\d+문항/.test(item.description) ? "" : `${item.questionCount}개 질문으로 `}${item.description} 회원가입 없이 ${item.duration} 만에 결과를 확인하세요.`),
     keywords: item.keywords,
     alternates: { canonical: `/tests/${slug}/` },
     openGraph: {

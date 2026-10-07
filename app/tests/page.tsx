@@ -18,7 +18,7 @@ import { testCatalog } from "../../lib/test-catalog";
 export const metadata: Metadata = {
   title: "성향 테스트 모음 — 무료 심리테스트 50가지",
   description:
-    "성향 테스트는 성격의 우열이 아니라 반응 방식의 차이를 봅니다. 연애·소비·업무·성격 성향 테스트와 MBTI, 애착유형, 자존감까지 무료로 한곳에 모았습니다.",
+    "연애·소비·업무·성격 성향 테스트와 MBTI, 애착유형, 자존감까지 무료 심리테스트를 한곳에 모았습니다. 회원가입 없이 바로 시작합니다.",
   keywords: [
     "성향테스트",
     "성향 테스트",

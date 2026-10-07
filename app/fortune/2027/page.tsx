@@ -10,7 +10,7 @@ import styles from "../../../lib/fortune.module.css";
 export const metadata: Metadata = {
   title: "2027 신년운세 | 정미년 띠별 운세·삼재 총정리",
   description:
-    "2027년은 정미년, 붉은 양의 해입니다. 정미년이 어떤 해인지, 12띠별로 무엇이 달라지는지, 삼재와 본명년은 어느 띠인지 한 번에 정리했습니다.",
+    "2027년은 정미년, 붉은 양의 해입니다. 12띠별로 달라지는 흐름과 삼재·본명년에 해당하는 띠를 한 번에 정리했습니다.",
   keywords: ["2027 신년운세", "2027년 운세", "정미년", "2027 토정비결", "2027 띠별운세", "2027 삼재"],
   alternates: { canonical: "/fortune/2027/" },
   openGraph: {
