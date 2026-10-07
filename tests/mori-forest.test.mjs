@@ -20,6 +20,7 @@ const { outputFiles } = await build({
       export { RESULT_CLICK_PLACEMENT_KEYS } from "./lib/result-clicks";
       export { isKnownEvent } from "./worker/test-events";
       export { screenerSlugs } from "./lib/screeners";
+      export { MINIGAMES, inviteOf, acornStars, starStars, lanternStars, pickConstellations, CONSTELLATIONS } from "./lib/forest-minigames";
       export { RHYTHM_CHARTS, notesOf, judgeOf, starsOf, RHYTHM_BARS, COUNT_IN_BEATS, LOOP_BEATS } from "./lib/forest-rhythm";
     `,
     resolveDir: repoRoot,
@@ -147,4 +148,39 @@ test("리듬 탭 판정·별점", () => {
   assert.equal(mod.starsOf(10, 5, 20), 2);
   assert.equal(mod.starsOf(0, 0, 20), 0);
   assert.equal(mod.starsOf(0, 0, 0), 0);
+});
+
+test("마을 놀이: 주민 16모리 모두 놀이가 하나씩 있고, 마을마다 놀이 종류가 같다", () => {
+  const kindOf = (m) => mod.RHYTHM_CHARTS.some((c) => c.mori === m) ? "rhythm" : mod.MINIGAMES.find((g) => g.mori === m)?.play.kind;
+  const want = { sp: "rhythm", sj: "acorn", nt: "stars", nf: "lantern" };
+  for (const q of Q) {
+    assert.equal(kindOf(q.mori), want[mod.villageOf(q.mori)], q.mori);
+    const invite = mod.inviteOf(q.mori);
+    assert.ok(invite?.startsWith(mod.MORI_WORLD[q.mori].says), `${q.mori} 초대: ${invite}`);
+  }
+  for (const g of mod.MINIGAMES) assert.equal(g.react.length, 4, `${g.mori} 별 0~3 반응`);
+});
+
+test("별자리: 점 개수마다 모양이 셋 이상이라 한 판에 서로 다른 별자리 셋이 나온다", () => {
+  for (const g of mod.MINIGAMES.filter((x) => x.play.kind === "stars")) {
+    const picked = mod.pickConstellations(g.play.points);
+    assert.equal(picked.length, 3, g.mori);
+    assert.equal(new Set(picked.map((c) => c.name)).size, 3);
+    for (const c of picked) for (const [x, y] of c.pts) assert.ok(x >= 8 && x <= 92 && y >= 8 && y <= 92, `${c.name} 점이 가장자리에 붙었다`);
+  }
+});
+
+test("마을 놀이 채점", () => {
+  assert.equal(mod.acornStars({ good: 10, bonus: 0, bad: 0 }, { good: 10, bonus: 0 }), 3);
+  assert.equal(mod.acornStars({ good: 10, bonus: 0, bad: 10 }, { good: 10, bonus: 0 }), 0, "벌레를 다 받으면 깎인다");
+  assert.equal(mod.acornStars({ good: 4, bonus: 3, bad: 0 }, { good: 6, bonus: 3 }), 3, "컵케이크는 2점");
+  assert.equal(mod.acornStars({ good: 0, bonus: 0, bad: 0 }, { good: 0, bonus: 0 }), 0);
+  assert.equal(mod.starStars(2), 2);
+  assert.equal(mod.lanternStars(5, [3, 5, 6]), 2);
+  assert.equal(mod.lanternStars(2, [3, 5, 6]), 0);
+  assert.equal(mod.lanternStars(7, [4, 5, 7]), 3);
+  for (const g of mod.MINIGAMES.filter((x) => x.play.kind === "lantern")) {
+    const t = g.play.targets;
+    assert.ok(t[0] < t[1] && t[1] < t[2], `${g.mori} 목표는 점점 길어진다`);
+  }
 });

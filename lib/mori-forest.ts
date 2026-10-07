@@ -50,7 +50,7 @@ export type ForestSave = {
   muted?: boolean;
   /** 도장 축하를 이미 보여 준 마을(nt·nf·sj·sp). 같은 축하가 두 번 뜨지 않게 */
   stamped?: string[];
-  /** 바람 들판 리듬 탭 최고 별(주민 유형 → 0~3). 한 번이라도 놀면(건너뛰지 않으면) 생깁니다 */
+  /** 마을 놀이 최고 별(주민 유형 → 0~3). 이름은 처음 만든 리듬 탭 때 것 — 네 마을 놀이 모두 여기 적습니다 */
   rhythm?: Record<string, number>;
 };
 
@@ -63,12 +63,14 @@ export function readForest(): ForestSave {
       met: Array.isArray(v?.met) ? v.met : [],
       done: v?.done && typeof v.done === "object" ? v.done : {},
       pending: v?.pending,
-      muted: !!v?.muted,
+      // 처음 오는 사람은 소리 꺼진 채 시작합니다(10-07 사용자 결정 — 조용한 곳에서 열면 갑자기 소리가 나서).
+      // 한 번 켜거나 끈 사람은 그 선택을 따릅니다.
+      muted: typeof v?.muted === "boolean" ? v.muted : true,
       stamped: Array.isArray(v?.stamped) ? v.stamped : [],
       rhythm: v?.rhythm && typeof v.rhythm === "object" ? v.rhythm : {},
     };
   } catch {
-    return { met: [], done: {}, stamped: [] };
+    return { met: [], done: {}, stamped: [], muted: true };
   }
 }
 

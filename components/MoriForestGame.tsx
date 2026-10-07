@@ -18,7 +18,9 @@ import { FOREST_QUESTS, readForest, stampsOf, writeForest, type ForestQuest, typ
 import { recordResultClick } from "../lib/test-events";
 import { audioCtx, currentMusic, fanfare, playMusic, stopMusic, tone } from "./forest-sound";
 import { chartOf } from "../lib/forest-rhythm";
+import { inviteOf, minigameOf } from "../lib/forest-minigames";
 import ForestRhythm from "./ForestRhythm";
+import ForestMinigame from "./ForestMinigame";
 
 type Screen = "intro" | "pick" | "map" | "village" | "dex";
 /** invite: 바람 들판 주민이 리듬 탭을 청하는 대화(끝 버튼이 「한 판 하기」) */
@@ -62,7 +64,7 @@ function blip(code: string) {
 export default function MoriForestGame({ names, testTitles }: { names: Record<string, string>; testTitles: Record<string, string> }) {
   const [ready, setReady] = useState(false);
   const [me, setMe] = useState<string | null>(null);
-  const [save, setSave] = useState<ForestSave>({ met: [], done: {}, stamped: [] });
+  const [save, setSave] = useState<ForestSave>({ met: [], done: {}, stamped: [], muted: true });
   const [screen, setScreen] = useState<Screen>("intro");
   const [village, setVillage] = useState<VillageKey>("nt");
   const [mapAt, setMapAt] = useState<VillageKey>("nt");
@@ -148,15 +150,15 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
     const first = s.met.includes(code) && code !== me ? [] : [
       code === me ? `어? 너도 ${code} 모리구나! 거울 보는 것 같아.` : `안녕! 나는 ${vName}에서 ${w.role}${eul(w.role)} 맡고 있는 ${code} 모리야.`,
     ];
-    // 바람 들판 주민은 처음엔 부탁 대신 무대에서 한 판 놀자고 합니다(건너뛰기 가능 — 다른 검사로 가는 길을 막지 않게).
-    const chart = chartOf(code);
-    if (chart && !(code in (s.rhythm ?? {}))) return [...first, chart.invite];
+    // 주민은 처음엔 부탁 대신 마을 놀이를 한 판 청합니다(건너뛰기 가능 — 다른 검사로 가는 길을 막지 않게).
+    const invite = inviteOf(code);
+    if (invite && !(code in (s.rhythm ?? {}))) return [...first, invite];
     return [...first, quest.ask];
   }
 
   function openTalk(code: string, s: ForestSave, thanks = false) {
     const lines = linesFor(code, s, thanks);
-    const invite = !!chartOf(code)?.invite && lines[lines.length - 1] === chartOf(code)?.invite;
+    const invite = !!inviteOf(code) && lines[lines.length - 1] === inviteOf(code);
     setTalk({ mori: code, lines, line: 0, shown: 0, invite });
     if (!s.met.includes(code)) update((x) => ({ ...x, met: [...x.met, code] }));
   }
@@ -193,10 +195,13 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
 
   /* ----- 화면 전환 ----- */
 
-  const enterForest = () => {
+  /** withSound: 시작 화면의 「소리 켜고 들어가기」 — 소리 설정을 켜고 들어갑니다 */
+  const enterForest = (withSound = false) => {
     entered.current = true;
     audioCtx(); // 첫 탭에서 소리 잠금 풀기
-    playMusic("forest", !!save.muted);
+    const muted = withSound ? false : !!save.muted;
+    if (withSound && save.muted) update((s) => ({ ...s, muted: false }));
+    playMusic("forest", muted);
     setScreen("map");
   };
 
@@ -211,17 +216,17 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
     }, 450);
   };
 
-  const openRhythm = (code: string) => {
+  const openGame = (code: string) => {
     setTalk(null);
     audioCtx();
     stopMusic();
     setRhythm(code);
   };
 
-  /** 리듬 탭을 닫을 때(버튼 탭 안이라 배경곡을 바로 다시 틀 수 있습니다) */
-  const closeRhythm = (code: string, stars: number | null, ask: boolean) => {
+  /** 마을 놀이를 닫을 때(버튼 탭 안이라 배경곡을 바로 다시 틀 수 있습니다) */
+  const closeGame = (code: string, stars: number | null, ask: boolean) => {
     setRhythm(null);
-    playMusic("sp", !!save.muted);
+    playMusic(villageOf(code), !!save.muted);
     if (stars === null && !(code in (save.rhythm ?? {}))) return;
     const quest = FOREST_QUESTS.find((q) => q.mori === code) as ForestQuest;
     update((s) => ({ ...s, rhythm: { ...(s.rhythm ?? {}), [code]: Math.max(stars ?? 0, s.rhythm?.[code] ?? 0) } }));
@@ -308,10 +313,17 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
                 <br />네 마을을 돌며 친구 모리 16명의 부탁을 들어 주세요.
               </p>
               <div className="mf-actions">
-                <button className="mf-primary" onClick={enterForest}>숲에 들어가기 →</button>
+                {save.muted ? (
+                  <>
+                    <button className="mf-primary" onClick={() => enterForest(true)}>🔊 소리 켜고 들어가기</button>
+                    <button className="mf-secondary" onClick={() => enterForest()}>🔇 조용히 들어가기</button>
+                  </>
+                ) : (
+                  <button className="mf-primary" onClick={() => enterForest()}>숲에 들어가기 →</button>
+                )}
                 <button className="mf-text" onClick={() => setScreen("pick")}>내 유형이 아니에요</button>
               </div>
-              <p className="mf-hint">🔊 소리가 나요 · 진행은 이 휴대폰에만 저장돼요</p>
+              <p className="mf-hint">배경곡·효과음이 있어요 · 소리는 오른쪽 위 버튼으로 언제든 켜고 꺼요 · 진행은 이 휴대폰에만 저장돼요</p>
             </>
           )}
           {ready && !me && (
@@ -485,7 +497,7 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
                 <div className="mf-talk-actions" onClick={(e) => e.stopPropagation()}>
                   {talk.invite ? (
                     <>
-                      <button className="mf-primary" onClick={() => openRhythm(talk.mori)}>🎵 무대에서 한 판 하기</button>
+                      <button className="mf-primary" onClick={() => openGame(talk.mori)}>{playLabel(talk.mori)} 한 판 하기</button>
                       <button className="mf-text" onClick={() => setTalk({ mori: talk.mori, lines: [quest.ask], line: 0, shown: 0 })}>그냥 부탁 들을래</button>
                     </>
                   ) : done ? (
@@ -497,8 +509,8 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
                     </a>
                   )}
                   {!talk.invite && <button className="mf-text" onClick={() => setTalk(null)}>{done ? "닫기" : "다음에 할게"}</button>}
-                  {!talk.invite && chartOf(talk.mori) && (
-                    <button className="mf-text" onClick={() => openRhythm(talk.mori)}>🎵 무대에서 한 판 더 {save.rhythm?.[talk.mori] !== undefined ? `(최고 ${"★".repeat(save.rhythm[talk.mori])})` : ""}</button>
+                  {!talk.invite && inviteOf(talk.mori) && (
+                    <button className="mf-text" onClick={() => openGame(talk.mori)}>{playLabel(talk.mori)} 한 판 더 {save.rhythm?.[talk.mori] !== undefined ? `(최고 ${"★".repeat(save.rhythm[talk.mori])})` : ""}</button>
                   )}
                 </div>
               );
@@ -508,7 +520,11 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
       )}
 
       {rhythm && me && (
-        <ForestRhythm mori={rhythm} me={me} muted={!!save.muted} best={save.rhythm?.[rhythm]} onClose={(stars, ask) => closeRhythm(rhythm, stars, ask)} />
+        chartOf(rhythm) ? (
+          <ForestRhythm mori={rhythm} me={me} muted={!!save.muted} best={save.rhythm?.[rhythm]} onClose={(stars, ask) => closeGame(rhythm, stars, ask)} />
+        ) : (
+          <ForestMinigame mori={rhythm} me={me} muted={!!save.muted} best={save.rhythm?.[rhythm]} onClose={(stars, ask) => closeGame(rhythm, stars, ask)} />
+        )
       )}
 
       {stamp && (
@@ -543,6 +559,13 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
       )}
     </div>
   );
+}
+
+/** 대화 끝 버튼 이름: 「🎵 무대에서」 「🌰 도토리 받기」 … */
+function playLabel(code: string): string {
+  if (chartOf(code)) return "🎵 무대에서";
+  const g = minigameOf(code);
+  return g ? `${g.play.kind === "acorn" ? "🌰" : g.play.kind === "stars" ? "⭐" : "🏮"} ${g.title}` : "";
 }
 
 function frameTop(): number {
