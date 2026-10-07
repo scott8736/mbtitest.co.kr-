@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import SiteFooter from "../../components/SiteFooter";
+import { ContactText } from "../../components/SellerInfo";
 import { SELLER } from "../../lib/report-config";
 
 export const metadata: Metadata = {
@@ -49,7 +50,7 @@ export default function PrivacyPage() {
         <h2>8. 개인정보 보호책임자·문의</h2>
         <ul>
           <li><b>보호책임자</b> — {SELLER.owner} ({SELLER.name} 대표)</li>
-          <li><b>연락처</b> — {SELLER.contact}</li>
+          <li><b>연락처</b> — <ContactText /></li>
         </ul>
         <p>개인정보와 관련한 문의는 위 연락처나 <Link href="/contact/">문의하기</Link> 페이지로 접수할 수 있습니다.</p>
       </article>

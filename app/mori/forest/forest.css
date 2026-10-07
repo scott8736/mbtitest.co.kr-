@@ -78,8 +78,8 @@
 .mf-resident .mf-sprite { animation:mf-breathe 2.8s ease-in-out infinite; animation-delay:var(--delay,0s); }
 .mf-tag { position:absolute; top:100%; left:50%; transform:translate(-50%,6px); padding:1px 8px; border-radius:999px; background:rgba(255,255,255,.88); color:#4b3f75; font-size:11px; font-weight:800; white-space:nowrap; box-shadow:0 1px 4px rgba(0,0,0,.12); }
 .mf-tag.is-me { background:#7657d6; color:#fff; }
-.mf-bubble { position:absolute; bottom:94%; left:70%; z-index:2; display:grid; place-items:center; width:28px; height:28px; border-radius:50% 50% 50% 8%; background:#fff; color:#ff7a1a; font-size:17px; font-weight:900; box-shadow:0 3px 8px rgba(0,0,0,.18); animation:mf-float 1.6s ease-in-out infinite; }
-.mf-resident.is-done .mf-bubble { width:22px; height:22px; color:#2f9e5b; font-size:13px; animation:none; opacity:.9; }
+.mf-bubble { position:absolute; bottom:94%; left:70%; z-index:2; display:grid; place-items:center; width:28px; height:28px; border-radius:50% 50% 50% 8%; background:#fff; color:#b85000; font-size:17px; font-weight:900; box-shadow:0 3px 8px rgba(0,0,0,.18); animation:mf-float 1.6s ease-in-out infinite; }
+.mf-resident.is-done .mf-bubble { width:22px; height:22px; color:#237a45; font-size:13px; animation:none; opacity:.9; }
 .mf-me { pointer-events:none; transition:left .7s ease-in-out, top .7s ease-in-out, width .7s ease-in-out; }
 .mf-me .mf-sprite { animation:mf-breathe-face 2.4s ease-in-out infinite; }
 .mf-me.is-walking .mf-sprite { animation:mf-hopwalk .35s ease-in-out infinite; }
@@ -269,7 +269,7 @@
 .of-panel h2 small { margin-left:6px; color:#8a80a6; font-family:Pretendard,sans-serif; font-size:14px; }
 .of-invite { padding-top:8px; text-align:center; }
 .of-invite h1 { font-size:27px; line-height:1.3; }
-.of-eyebrow { display:inline-block; margin-bottom:6px; padding:3px 12px; border-radius:999px; background:#e3f4e8; color:#2f7d4f; font-size:13px; font-weight:800; }
+.of-eyebrow { display:inline-block; margin-bottom:6px; padding:3px 12px; border-radius:999px; background:#e3f4e8; color:#2a7347; font-size:13px; font-weight:800; }
 .of-lead { margin:0 0 14px; color:#5a5070; font-size:15px; line-height:1.7; word-break:keep-all; }
 .of-grid { display:grid; gap:8px; padding:12px 10px; border-radius:22px; background:linear-gradient(#e9f7ec,#f4eefc); box-shadow:inset 0 0 0 2px #d8ecd9; }
 .of-row { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; position:relative; padding-top:14px; }

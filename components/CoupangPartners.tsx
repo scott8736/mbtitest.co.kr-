@@ -17,7 +17,8 @@ const widgetDocument = `<!doctype html>
 <body>
   <script src="https://ads-partners.coupang.com/g.js"><\/script>
   <script>
-    new PartnersCoupang.G({
+    // 광고 차단기가 g.js 를 막으면 PartnersCoupang 이 없어 오류가 납니다(10-08 점검) — 없으면 조용히 건너뜁니다
+    if (window.PartnersCoupang) new PartnersCoupang.G({
       "id":1010349,
       "template":"carousel",
       "trackingCode":"AF1836025",
