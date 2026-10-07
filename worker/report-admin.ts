@@ -17,6 +17,7 @@ import {
   reportPrice,
   REPORT_TEST_PRICE,
   SELLER,
+  TOSS_REPORT_PRICE,
 } from "../lib/report-config";
 import { bookTypes, hasBook, keyWorks } from "./report-books";
 import { readSetting, writeSetting } from "./naver";
@@ -110,6 +111,19 @@ export async function handleReportAdmin(request: Request, url: URL, path: string
       return redirect("/admin/report/?saved=1");
     }
 
+    if (path === "/admin/report/toss") {
+      // 토스 미니앱 인앱결제(2026-10-07). 빈 칸은 기존 값을 지우지 않습니다.
+      const verifyUrl = val("toss_verify_url").replace(/\s+/g, "");
+      const secret = val("toss_verify_secret").replace(/\s+/g, "");
+      const sku = val("toss_report_sku").replace(/\s+/g, "");
+      if (verifyUrl && !/^https:\/\/[^\s/]+\.workers\.dev\/verify$/.test(verifyUrl)) return redirect("/admin/report/?err=tossurl");
+      if (secret && secret.length < 32) return redirect("/admin/report/?err=tosssecret");
+      if (verifyUrl) await writeSetting(db, "toss_verify_url", verifyUrl);
+      if (secret) await writeSetting(db, "toss_verify_secret", secret);
+      if (sku) await writeSetting(db, "toss_report_sku", sku);
+      return redirect("/admin/report/?saved=1");
+    }
+
     if (path === "/admin/report/telegram-test") {
       const ok = await sendTelegram(db, "mbtitest 리포트 판매 알림 시험입니다. 이 메시지가 보이면 결제·환불 알림이 여기로 옵니다.");
       return redirect(ok ? "/admin/report/?tgsent=1" : "/admin/report/?err=tgsend");
@@ -171,6 +185,12 @@ export async function handleReportAdmin(request: Request, url: URL, path: string
       const orderNo = val("order_no");
       const row = await db.prepare("SELECT * FROM report_orders WHERE order_no = ?").bind(orderNo).first<OrderRow>();
       if (!row || !row.mul_no || !["paid", "partial", "pending"].includes(row.status)) return redirect("/admin/report/?err=cancel");
+      if (row.pay_type === "toss-iap") {
+        // 토스 인앱결제 환불은 토스 앱(구글·애플 정책)에서 처리된다. 여기서는 우리 쪽 열람만 막는다(페이앱을 부르지 않음).
+        await db.prepare("UPDATE report_orders SET status = 'refunded', updated_at = CURRENT_TIMESTAMP WHERE token = ? AND status = ?").bind(row.token, row.status).run();
+        await logEvent(db, orderNo, "toss_mark_refunded", (val("memo") || "관리자가 환불 처리로 표시").slice(0, 100));
+        return redirect("/admin/report/?saved=1");
+      }
       const keys = await payappKeys(db);
       const res = await payappPost({
         cmd: "paycancel",
@@ -214,6 +234,13 @@ export async function handleReportAdmin(request: Request, url: URL, path: string
     tgtoken: "봇 토큰 모양이 아닙니다. BotFather 가 준 「숫자:영문」 토큰 전체를 붙여넣으세요.",
     tgchat: "대화 ID 를 찾지 못했습니다. 텔레그램에서 봇에게 아무 말이나 한 번 보낸 뒤 다시 저장하세요.",
     tgsend: "텔레그램 알림을 보내지 못했습니다. 토큰·대화 ID 를 확인하세요.",
+    tossurl: "확인 워커 주소는 https://….workers.dev/verify 모양이어야 합니다.",
+    tosssecret: "확인 키가 너무 짧습니다(32자 이상).",
+  };
+  const toss = {
+    url: await readSetting(db, "toss_verify_url"),
+    secret: await readSetting(db, "toss_verify_secret"),
+    sku: await readSetting(db, "toss_report_sku"),
   };
   const testOrder = q.get("test") ? orders.find((o) => o.order_no === q.get("test")) : null;
   const freeOrder = q.get("free") ? orders.find((o) => o.order_no === q.get("free")) : null;
@@ -270,6 +297,16 @@ ${freeBox}
 <label><span>대화 ID</span><input name="tg_chat" autocomplete="off" spellcheck="false" placeholder="${tg.chatId ? "바꿀 때만 입력" : "비워 두면 자동으로 찾음"}"></label>
 </div><button type="submit" style="margin-top:12px">저장</button></form>
 ${tg.token && tg.chatId ? `<form method="post" action="/admin/report/telegram-test" style="margin-top:10px"><button type="submit">시험 알림 보내기</button></form>` : ""}</div>
+
+<div class="box"><h2>토스 미니앱 인앱결제 (MBTI 검사 앱)</h2>
+<p class="note">토스 앱 안에서 산 리포트를 여기서 확인해 열어 줍니다. 가격은 ${TOSS_REPORT_PRICE.toLocaleString()}원 고정입니다.
+지금: 확인 워커 ${toss.url ? "등록됨" : "<b style='color:#b6483c'>미등록</b>"} · 확인 키 ${toss.secret ? "등록됨" : "<b style='color:#b6483c'>미등록</b>"} · 상품 ID ${toss.sku ? esc(toss.sku) : "<b style='color:#b6483c'>미등록</b>"}<br>
+확인 워커는 토스 mTLS 인증서를 가진 Cloudflare 워커(toss-iap-verify)이고, 확인 키는 그 워커의 VERIFY_SECRET 과 같은 값입니다. 저장된 키는 다시 보여주지 않습니다.</p>
+<form method="post" action="/admin/report/toss" autocomplete="off"><div class="fields">
+<label><span>확인 워커 주소</span><input name="toss_verify_url" autocomplete="off" spellcheck="false" placeholder="${toss.url ? esc(toss.url) : "https://toss-iap-verify.….workers.dev/verify"}"></label>
+<label><span>확인 키</span><input name="toss_verify_secret" autocomplete="off" spellcheck="false" placeholder="${toss.secret ? "바꿀 때만 입력" : "붙여넣으세요"}"></label>
+<label><span>상품 ID (sku)</span><input name="toss_report_sku" autocomplete="off" spellcheck="false" placeholder="${toss.sku ? "바꿀 때만 입력" : "토스 콘솔 상품 ID"}"></label>
+</div><button type="submit" style="margin-top:12px">저장</button></form></div>
 
 <div class="box"><h2>검수용 무료 리포트 (결제 없음)</h2>
 <p class="note">관리자만 씁니다. 결제 없이 바로 리포트를 엽니다. 매출·판매 통계에는 잡히지 않고 주문 표에 「(시험) 0원」으로 남습니다.

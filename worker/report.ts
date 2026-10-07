@@ -30,6 +30,7 @@ import { classifyDevice, classifySource } from "../lib/analytics";
 import { hasBook, loadBook } from "./report-books";
 import { readSetting } from "./naver";
 import { sendTelegram } from "./telegram";
+import { handleTossGrant, TOSS_CORS_PATHS, withCors } from "./report-toss";
 
 const PAYAPP_API = "https://api.payapp.kr/oapi/apiLoad.html";
 
@@ -148,14 +149,14 @@ export function seoulToday(at: Date = new Date()): string {
   return `${y}-${m}-${d}`;
 }
 
-async function whoHash(request: Request): Promise<string> {
+export async function whoHash(request: Request): Promise<string> {
   const ip = request.headers.get("cf-connecting-ip") ?? "";
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`report:${ip}:${seoulToday()}`));
   return hex(new Uint8Array(digest)).slice(0, 32);
 }
 
 /** 한 시간 안에 같은 사람의 시도가 limit 번을 넘으면 false. */
-async function allowAttempt(db: D1Database, who: string, kind: string, limit: number): Promise<boolean> {
+export async function allowAttempt(db: D1Database, who: string, kind: string, limit: number): Promise<boolean> {
   const since = Date.now() - 3600_000;
   const row = await db
     .prepare("SELECT COUNT(*) AS n FROM report_attempts WHERE who = ? AND kind = ? AND at > ?")
@@ -414,10 +415,24 @@ const PAID = ["paid", "partial"];
 export function handleReport(request: Request, url: URL, env: Env, ctx: Ctx): Promise<Response> | null {
   const path = url.pathname.replace(/\/+$/, "");
   if (!path.startsWith("/api/report/")) return null;
+  // 토스 미니앱(다른 출처)이 부르는 경로만 CORS 를 붙인다 (report-toss.ts).
+  const origin = request.headers.get("origin");
+  if (TOSS_CORS_PATHS.includes(path)) {
+    if (request.method === "OPTIONS") return Promise.resolve(withCors(new Response(null, { status: 204 }), origin));
+    return routeReport(request, url, env, ctx, path).then((res) => withCors(res, origin));
+  }
+  return routeReport(request, url, env, ctx, path);
+}
+
+function routeReport(request: Request, url: URL, env: Env, ctx: Ctx, path: string): Promise<Response> {
   return (async () => {
     const db = env?.DB;
     if (!db) return json({ error: "준비 중이에요." }, 503);
     await ensureReportSchema(db);
+
+    if (path === "/api/report/toss-grant" && request.method === "POST") {
+      return handleTossGrant(request, db, (msg) => ctx.waitUntil(sendTelegram(db, msg)));
+    }
 
     if (path === "/api/report/payapp" && request.method === "POST") {
       const body = await request.text();

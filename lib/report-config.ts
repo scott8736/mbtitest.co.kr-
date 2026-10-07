@@ -19,6 +19,11 @@ export const REPORT_EVENT_PRICE = 9900;
 export const REPORT_REGULAR_PRICE = 14900;
 /** 관리자 시험 결제 금액. 페이앱 최소 금액입니다. */
 export const REPORT_TEST_PRICE = 1000;
+/**
+ * 토스 미니앱 인앱결제 가격(사용자 결정 2026-10-07: "무조건 9,900원" — 웹처럼 11/1 에 올리지 않는다).
+ * 토스 콘솔 상품 가격과 같아야 한다. 수수료 20%(앱마켓 15% + 토스 5%)는 정산에서 빠진다.
+ */
+export const TOSS_REPORT_PRICE = 9900;
 /** 이벤트 기간. 비워 두면 「이벤트」 문구 없이 가격만 보입니다. */
 export const REPORT_EVENT = { label: "오픈 기념 특별 이벤트", from: "2026-10-05", to: "2026-10-31" };
 
@@ -110,7 +115,12 @@ export type CleanOrder = {
  * 주문 입력 검사. 통과하면 정리된 값을, 아니면 사용자에게 보여 줄 이유를 돌려줍니다.
  * 이름은 표지에 그대로 찍히므로 글자·숫자·공백만 남기고 10자로 자릅니다.
  */
-export function validateOrder(raw: Partial<ReportOrderInput>, today: string): { ok: true; value: CleanOrder } | { ok: false; error: string } {
+export function validateOrder(
+  raw: Partial<ReportOrderInput>,
+  today: string,
+  /** 토스 인앱결제(2026-10-07)는 결제를 토스가 확인하므로 휴대폰 번호를 받지 않습니다. 웹(페이앱) 주문은 그대로 필수. */
+  opts: { phone: boolean } = { phone: true },
+): { ok: true; value: CleanOrder } | { ok: false; error: string } {
   const type = String(raw.type ?? "").toUpperCase();
   if (!(MBTI_TYPES as readonly string[]).includes(type)) return { ok: false, error: "검사 결과 유형을 찾지 못했어요. 검사를 다시 해 주세요." };
 
@@ -138,8 +148,8 @@ export function validateOrder(raw: Partial<ReportOrderInput>, today: string): { 
   const bt = Number(raw.bt ?? 0);
   if (!Number.isInteger(bt) || bt < 0 || bt > 12) return { ok: false, error: "태어난 시간을 다시 골라 주세요." };
 
-  const phone = String(raw.phone ?? "").replace(/\D/g, "");
-  if (!/^01[016789]\d{7,8}$/.test(phone)) return { ok: false, error: "휴대폰 번호를 다시 확인해 주세요." };
+  const phone = opts.phone ? String(raw.phone ?? "").replace(/\D/g, "") : "";
+  if (opts.phone && !/^01[016789]\d{7,8}$/.test(phone)) return { ok: false, error: "휴대폰 번호를 다시 확인해 주세요." };
 
   if (raw.agree !== true || raw.consentVersion !== REPORT_CONSENT_VERSION) {
     return { ok: false, error: "환불 안내에 동의해 주세요." };
