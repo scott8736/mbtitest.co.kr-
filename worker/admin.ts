@@ -655,8 +655,8 @@ ${krDays.map((d) => `<tr><td>${d.day.slice(5)}</td><td>${d.journey.visitors.toLo
 </p>
 <div class="scroll"><table><thead><tr><th>묶음</th><th>클릭</th><th>분모</th><th>클릭률</th></tr></thead><tbody>
 ${RESULT_CLICK_PLACEMENT_KEYS.map((key) => {
-  const whole = key.startsWith("mbti-") ? mbtiCompleted : key.startsWith("home-") ? homeViews : otherCompleted;
-  return `<tr><td>${esc(RESULT_CLICK_PLACEMENTS[key])}</td><td>${clicksFor(key)}</td><td>${whole || "-"}</td><td>${clickRate(clicksFor(key), whole)}</td></tr>`;
+  const whole = key.startsWith("mbti-") ? mbtiCompleted : key.startsWith("home-") ? homeViews : key.startsWith("forest-") ? 0 : otherCompleted;
+  return `<tr><td>${esc(RESULT_CLICK_PLACEMENTS[key])}</td><td>${clicksFor(key)}</td><td>${whole || "-"}</td><td>${key.startsWith("forest-") ? "-" : clickRate(clicksFor(key), whole)}</td></tr>`;
 }).join("")}
 </tbody></table></div>
 </div>

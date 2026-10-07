@@ -73,6 +73,8 @@ export function siteUrls(now: Date = new Date()): SiteUrl[] {
     })),
     // 모리 세계관 한 장 (2026-10-04)
     { path: "/mori/", lastModified: now, changeFrequency: "monthly" as const, priority: 0.8 },
+    // 모리 게임은 소개를 겸한 한 장만 색인합니다(기획안 8절). 숲·초대 페이지는 3단계에서 noindex 로 붙습니다.
+    { path: "/mori/forest/", lastModified: now, changeFrequency: "monthly" as const, priority: 0.6 },
     // 유료 리포트 판매 안내 (2026-10-04)
     { path: "/report/", lastModified: now, changeFrequency: "monthly" as const, priority: 0.7 },
     ...["result", "types", "compatibility", "blog"].map((page) => ({

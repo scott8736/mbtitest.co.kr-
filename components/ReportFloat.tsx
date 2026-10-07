@@ -15,7 +15,8 @@ import { readLastResult } from "../lib/my-mori";
 import { REPORT_READY_TYPES } from "../report/content/ready";
 
 const HIDE_KEY = "mori-float-hidden";
-const SKIP = [/^\/tests\/mbti\//, /^\/test\//, /^\/report/, /^\/check/, /^\/admin/, /^\/refund/];
+// 숲 산책 게임에는 결제로 이어지는 버튼을 두지 않습니다(기획안 5절 — 10대 이용자, 게임 중간 팝업 금지).
+const SKIP = [/^\/tests\/mbti\//, /^\/test\//, /^\/report/, /^\/check/, /^\/admin/, /^\/refund/, /^\/mori\/forest/];
 
 export default function ReportFloat() {
   const [show, setShow] = useState(false);

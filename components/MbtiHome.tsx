@@ -4,6 +4,7 @@ import ReportCrossSell from "./ReportCrossSell";
 import TrendingTests from "./TrendingTests";
 import AdUnit from "./AdUnit";
 import MoriLoopVideo from "./MoriLoopVideo";
+import ForestEntry from "./ForestEntry";
 import { typeData } from "../lib/mbti-data";
 import { moriImage } from "../lib/mori";
 
@@ -32,6 +33,7 @@ export default function MbtiHome() {
           {/* 검사가 끝나면 무엇을 받는지(16가지 모리 중 내 캐릭터) 15초로 보여 줍니다 (2026-10-04).
               시작 버튼은 히어로에 그대로 두고, 그 바로 아래 작게 둡니다 — 시작률을 밀지 않게. */}
           <MoriLoopVideo variant="home" />
+          <ForestEntry placement="home-mori-forest" title="모리랑 마음숲 산책하기" />
           <ReportCrossSell from="home" />
           <SeasonStrip />
           <TrendingTests />

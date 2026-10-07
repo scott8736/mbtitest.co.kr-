@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import AdUnit from "../../components/AdUnit";
 import ContentHeader from "../../components/ContentHeader";
+import ForestEntry from "../../components/ForestEntry";
 import MoriLoopVideo from "../../components/MoriLoopVideo";
 import SiteFooter from "../../components/SiteFooter";
 import { typeData } from "../../lib/mbti-data";
@@ -45,6 +46,7 @@ export default function MoriWorldPage() {
         </p>
         <img className="world-map" src="/images/world/map.webp" width={1200} height={900} alt="마음나무 광장과 네 마을이 있는 마음숲 지도" />
         <a className="primary-button" href="/tests/mbti/">내 모리 깨우기 · 무료 검사 <span>→</span></a>
+        <ForestEntry title="이 숲을 직접 걸어 보기" />
       </section>
 
       <section className="world-body">

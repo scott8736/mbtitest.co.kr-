@@ -16,6 +16,7 @@ import SajuLabBanner from "./SajuLabBanner";
 import ReportCrossSell from "./ReportCrossSell";
 import TestShareCard from "./TestShareCard";
 import Mascot, { moodForQuestion } from "./Mascot";
+import ForestReturn from "./ForestReturn";
 
 const PROGRESS_KEY = (slug: string) => `test-progress:${slug}`;
 
@@ -214,6 +215,8 @@ export default function GenericTestRunner({ test, resultOnly = false, part = 1 }
 
       {screen === "result" && (
         <section className="rich-result">
+          {/* 숲 산책 게임에서 온 사람에게만 보입니다. 광고보다 위 — 게임으로 돌아가는 길이 광고에 밀리지 않게. */}
+          <ForestReturn slug={test.slug} resultKey={resultKey} />
           <AdUnit key={`result-top-${resultKey}`} position="resultTop" label={`${test.title} 결과 최상단 광고`} />
           <span className="result-kicker">테스트가 완료되었습니다</span>
           <Mascot className="result-mascot" mood="celebrate" size={96} accent={result.color} />

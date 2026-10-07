@@ -1782,3 +1782,17 @@ main.tarot .generic-intro { min-height:auto; padding-bottom:64px; }
 @keyframes rt-grow { from { transform:scaleX(0); } to { transform:scaleX(1); } }
 @keyframes rt-glow { 0%,100% { box-shadow:0 8px 20px rgba(0,0,0,.12); } 50% { box-shadow:0 8px 26px color-mix(in srgb,var(--result-color) 45%,transparent); } }
 @media (prefers-reduced-motion: reduce) { .rt-myscores, .rt-bar i { animation:none; } }
+
+/* 모리 게임 「마음숲 산책」 들어가는 버튼 · 검사 마치고 돌아가는 버튼 (2026-10-07). 게임 화면 자체는 app/mori/forest/forest.css */
+.forest-entry, .forest-return { display:flex; align-items:center; gap:12px; max-width:560px; margin:18px auto; padding:12px 16px; border-radius:22px; text-align:left; text-decoration:none; box-sizing:border-box; }
+.forest-entry { background:linear-gradient(135deg,#eaf7ec,#efe9ff); border:2px solid #cfe6d3; color:#1c3a2c; box-shadow:0 8px 20px rgba(40,90,60,.10); }
+.forest-entry img, .forest-return img { flex:none; width:56px; height:56px; border-radius:50%; background:#fff; }
+.forest-entry span, .forest-return span { flex:1; min-width:0; }
+.forest-entry b, .forest-return b { display:block; font-family:Jua,Pretendard,sans-serif; font-size:19px; font-weight:400; word-break:keep-all; }
+.forest-entry small, .forest-return small { display:block; margin-top:2px; color:#5d6b63; font-size:13px; word-break:keep-all; }
+.forest-entry i { font-size:30px; font-style:normal; animation:forest-sway 2.4s ease-in-out infinite; }
+.forest-return { position:sticky; top:8px; z-index:20; margin:4px auto 14px; background:#7657d6; color:#fff; box-shadow:0 8px 22px rgba(90,63,179,.35); }
+.forest-return small { color:#e4dcff; }
+.forest-return i { flex:none; padding:8px 12px; border-radius:999px; background:#fff; color:#5a3fb3; font-size:14px; font-style:normal; font-weight:800; }
+@keyframes forest-sway { 0%,100% { transform:rotate(-6deg); } 50% { transform:rotate(6deg); } }
+@media (prefers-reduced-motion: reduce) { .forest-entry i { animation:none; } }
