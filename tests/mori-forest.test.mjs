@@ -20,6 +20,7 @@ const { outputFiles } = await build({
       export { RESULT_CLICK_PLACEMENT_KEYS } from "./lib/result-clicks";
       export { isKnownEvent } from "./worker/test-events";
       export { screenerSlugs } from "./lib/screeners";
+      export { RHYTHM_CHARTS, notesOf, judgeOf, starsOf, RHYTHM_BARS, COUNT_IN_BEATS, LOOP_BEATS } from "./lib/forest-rhythm";
     `,
     resolveDir: repoRoot,
     loader: "ts",
@@ -110,4 +111,40 @@ test("마을 도장은 그 마을 넷을 다 풀어야 나온다", () => {
   const three = Object.fromEntries(Object.entries(sp).slice(0, 3));
   assert.deepEqual(mod.stampsOf(three), []);
   assert.deepEqual(mod.stampsOf(Object.fromEntries(Q.map((q) => [q.slug, "x"]))), ["nt", "nf", "sj", "sp"]);
+});
+
+test("리듬 탭: 바람 들판 주민 넷만 악보가 있고, 초대 대사는 말버릇으로 시작한다", () => {
+  const sp = Q.filter((q) => mod.villageOf(q.mori) === "sp").map((q) => q.mori).sort();
+  assert.deepEqual(mod.RHYTHM_CHARTS.map((c) => c.mori).sort(), sp);
+  for (const c of mod.RHYTHM_CHARTS) {
+    assert.ok(c.invite.startsWith(mod.MORI_WORLD[c.mori].says), c.mori);
+    assert.equal(c.react.length, 4, `${c.mori} 별 0~3 반응`);
+  }
+});
+
+test("리듬 탭 악보: 8마디·마디당 8칸(마지막만 마무리 한 방 9칸), 곡 루프 안에서 끝난다", () => {
+  for (const c of mod.RHYTHM_CHARTS) {
+    assert.equal(c.bars.length, mod.RHYTHM_BARS, c.mori);
+    c.bars.forEach((bar, i) => {
+      assert.match(bar, /^[LR.]+$/, `${c.mori} ${i + 1}마디`);
+      assert.equal(bar.length, i === c.bars.length - 1 ? 9 : 8, `${c.mori} ${i + 1}마디 길이`);
+    });
+    const notes = mod.notesOf(c);
+    assert.ok(notes.length >= 12, `${c.mori} 음표가 너무 적다`);
+    assert.ok(notes[0].beat >= mod.COUNT_IN_BEATS, "준비 마디에는 음표가 없다");
+    assert.ok(notes.at(-1).beat + 2 < mod.LOOP_BEATS, "곡이 한 바퀴 돌기 전에 끝난다");
+  }
+  // 난이도: 느긋 < 기본 < 빠름 (음표 수)
+  const n = (m) => mod.notesOf(mod.RHYTHM_CHARTS.find((c) => c.mori === m)).length;
+  assert.ok(n("ISFP") < n("ESFP") && n("ESFP") < n("ESTP"));
+});
+
+test("리듬 탭 판정·별점", () => {
+  assert.equal(mod.judgeOf(0.03), "perfect");
+  assert.equal(mod.judgeOf(-0.12), "good");
+  assert.equal(mod.judgeOf(0.3), "miss");
+  assert.equal(mod.starsOf(20, 0, 20), 3);
+  assert.equal(mod.starsOf(10, 5, 20), 2);
+  assert.equal(mod.starsOf(0, 0, 20), 0);
+  assert.equal(mod.starsOf(0, 0, 0), 0);
 });

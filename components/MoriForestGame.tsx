@@ -16,9 +16,13 @@ import { MORI_WORLD, VILLAGES, villageOf, type VillageKey } from "../lib/mori-wo
 import { readMyMori, saveMyMori } from "../lib/my-mori";
 import { FOREST_QUESTS, readForest, stampsOf, writeForest, type ForestQuest, type ForestSave } from "../lib/mori-forest";
 import { recordResultClick } from "../lib/test-events";
+import { audioCtx, currentMusic, fanfare, playMusic, stopMusic, tone } from "./forest-sound";
+import { chartOf } from "../lib/forest-rhythm";
+import ForestRhythm from "./ForestRhythm";
 
 type Screen = "intro" | "pick" | "map" | "village" | "dex";
-type Talk = { mori: string; lines: string[]; line: number; shown: number };
+/** invite: 바람 들판 주민이 리듬 탭을 청하는 대화(끝 버튼이 「한 판 하기」) */
+type Talk = { mori: string; lines: string[]; line: number; shown: number; invite?: boolean };
 
 const ORDER: VillageKey[] = ["nt", "nf", "sj", "sp"];
 const CODES = Object.keys(MORI_WORLD);
@@ -47,66 +51,10 @@ const eul = (word: string) => {
   return c >= 0xac00 && c <= 0xd7a3 && (c - 0xac00) % 28 !== 0 ? "을" : "를";
 };
 
-/* ---------- 소리 ---------- */
-
-let ctx: AudioContext | null = null;
-let music: HTMLAudioElement | null = null;
-let musicKey = "";
-
-function audioCtx(): AudioContext | null {
-  if (typeof window === "undefined") return null;
-  try {
-    if (!ctx) ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    if (ctx.state === "suspended") void ctx.resume();
-    return ctx;
-  } catch {
-    return null;
-  }
-}
-
-function tone(freq: number, at: number, len: number, gain: number, type: OscillatorType = "triangle") {
-  const ac = audioCtx();
-  if (!ac) return;
-  const o = ac.createOscillator();
-  const g = ac.createGain();
-  o.type = type;
-  o.frequency.value = freq;
-  const t = ac.currentTime + at;
-  g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(gain, t + 0.01);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + len);
-  o.connect(g).connect(ac.destination);
-  o.start(t);
-  o.stop(t + len + 0.02);
-}
-
 /** 모리 말소리. 유형마다 음 높이가 다르고 글자마다 살짝 흔들립니다(웅얼웅얼). */
 function blip(code: string) {
   const base = 300 + CODES.indexOf(code) * 22;
   tone(base * (0.92 + Math.random() * 0.18), 0, 0.06, 0.05, "square");
-}
-
-function fanfare() {
-  [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, i * 0.11, 0.35, 0.09));
-}
-
-function playMusic(key: string, muted: boolean) {
-  if (typeof window === "undefined") return;
-  if (!music) {
-    music = new Audio();
-    music.loop = true;
-    music.volume = 0.45;
-  }
-  if (musicKey !== key) {
-    musicKey = key;
-    music.src = `/audio/forest/${key}.m4a`;
-  }
-  if (muted) music.pause();
-  else void music.play().catch(() => {});
-}
-
-function stopMusic() {
-  music?.pause();
 }
 
 /* ---------- 게임 ---------- */
@@ -123,6 +71,7 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
   const [facing, setFacing] = useState<1 | -1>(1);
   const [talk, setTalk] = useState<Talk | null>(null);
   const [stamp, setStamp] = useState<VillageKey | "all" | null>(null);
+  const [rhythm, setRhythm] = useState<string | null>(null);
   const walkTimer = useRef<number | undefined>(undefined);
   const entered = useRef(false);
 
@@ -163,7 +112,7 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
     setReady(true);
     const onHide = () => {
       if (document.hidden) stopMusic();
-      else if (entered.current && musicKey) playMusic(musicKey, readForest().muted ?? false);
+      else if (entered.current && currentMusic()) playMusic(currentMusic(), readForest().muted ?? false);
     };
     document.addEventListener("visibilitychange", onHide);
     return () => {
@@ -177,7 +126,7 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
   // 도장: 마을 네 부탁을 다 풀었는데 아직 축하하지 않았으면 마을 화면에서 한 번 띄웁니다.
   useEffect(() => {
     // 숲 안(지도·마을·도감)에서만 띄웁니다 — 시작 화면에 축하창이 먼저 뜨면 무슨 일인지 모릅니다.
-    if (!ready || talk || stamp || screen === "intro" || screen === "pick") return;
+    if (!ready || talk || stamp || rhythm || screen === "intro" || screen === "pick") return;
     const earned = stampsOf(save.done);
     const fresh = earned.find((v) => !(save.stamped ?? []).includes(v));
     if (fresh) {
@@ -185,7 +134,7 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
       if (!save.muted) fanfare();
       update((s) => ({ ...s, stamped: [...(s.stamped ?? []), fresh] }));
     }
-  }, [ready, talk, stamp, screen, save.done, save.stamped, save.muted, update]);
+  }, [ready, talk, stamp, rhythm, screen, save.done, save.stamped, save.muted, update]);
 
   const questsIn = (v: VillageKey) => FOREST_QUESTS.filter((q) => villageOf(q.mori) === v);
 
@@ -199,11 +148,16 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
     const first = s.met.includes(code) && code !== me ? [] : [
       code === me ? `어? 너도 ${code} 모리구나! 거울 보는 것 같아.` : `안녕! 나는 ${vName}에서 ${w.role}${eul(w.role)} 맡고 있는 ${code} 모리야.`,
     ];
+    // 바람 들판 주민은 처음엔 부탁 대신 무대에서 한 판 놀자고 합니다(건너뛰기 가능 — 다른 검사로 가는 길을 막지 않게).
+    const chart = chartOf(code);
+    if (chart && !(code in (s.rhythm ?? {}))) return [...first, chart.invite];
     return [...first, quest.ask];
   }
 
   function openTalk(code: string, s: ForestSave, thanks = false) {
-    setTalk({ mori: code, lines: linesFor(code, s, thanks), line: 0, shown: 0 });
+    const lines = linesFor(code, s, thanks);
+    const invite = !!chartOf(code)?.invite && lines[lines.length - 1] === chartOf(code)?.invite;
+    setTalk({ mori: code, lines, line: 0, shown: 0, invite });
     if (!s.met.includes(code)) update((x) => ({ ...x, met: [...x.met, code] }));
   }
 
@@ -257,6 +211,23 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
     }, 450);
   };
 
+  const openRhythm = (code: string) => {
+    setTalk(null);
+    audioCtx();
+    stopMusic();
+    setRhythm(code);
+  };
+
+  /** 리듬 탭을 닫을 때(버튼 탭 안이라 배경곡을 바로 다시 틀 수 있습니다) */
+  const closeRhythm = (code: string, stars: number | null, ask: boolean) => {
+    setRhythm(null);
+    playMusic("sp", !!save.muted);
+    if (stars === null && !(code in (save.rhythm ?? {}))) return;
+    const quest = FOREST_QUESTS.find((q) => q.mori === code) as ForestQuest;
+    update((s) => ({ ...s, rhythm: { ...(s.rhythm ?? {}), [code]: Math.max(stars ?? 0, s.rhythm?.[code] ?? 0) } }));
+    if (ask) setTalk({ mori: code, lines: quest.slug in save.done ? ["또 놀러 와! 무대는 늘 열려 있어."] : [quest.ask], line: 0, shown: 0 });
+  };
+
   const goMap = () => {
     setTalk(null);
     playMusic("forest", !!save.muted);
@@ -272,7 +243,7 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
     const muted = !save.muted;
     update((s) => ({ ...s, muted }));
     if (muted) stopMusic();
-    else if (entered.current && musicKey) playMusic(musicKey, false);
+    else if (entered.current && currentMusic()) playMusic(currentMusic(), false);
   };
 
   const pickType = (code: string) => {
@@ -512,7 +483,12 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
               const done = quest.slug in save.done;
               return (
                 <div className="mf-talk-actions" onClick={(e) => e.stopPropagation()}>
-                  {done ? (
+                  {talk.invite ? (
+                    <>
+                      <button className="mf-primary" onClick={() => openRhythm(talk.mori)}>🎵 무대에서 한 판 하기</button>
+                      <button className="mf-text" onClick={() => setTalk({ mori: talk.mori, lines: [quest.ask], line: 0, shown: 0 })}>그냥 부탁 들을래</button>
+                    </>
+                  ) : done ? (
                     <button className="mf-primary" onClick={goDex}>도감 보기</button>
                   ) : (
                     <a className="mf-primary" href={`/tests/${quest.slug}/`} onClick={() => goQuest(quest)}>
@@ -520,12 +496,19 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
                       {testTitles[quest.slug].endsWith("테스트") ? testTitles[quest.slug] : `${testTitles[quest.slug]} 테스트`} 하러 가기 →
                     </a>
                   )}
-                  <button className="mf-text" onClick={() => setTalk(null)}>{done ? "닫기" : "다음에 할게"}</button>
+                  {!talk.invite && <button className="mf-text" onClick={() => setTalk(null)}>{done ? "닫기" : "다음에 할게"}</button>}
+                  {!talk.invite && chartOf(talk.mori) && (
+                    <button className="mf-text" onClick={() => openRhythm(talk.mori)}>🎵 무대에서 한 판 더 {save.rhythm?.[talk.mori] !== undefined ? `(최고 ${"★".repeat(save.rhythm[talk.mori])})` : ""}</button>
+                  )}
                 </div>
               );
             })()}
           </div>
         </div>
+      )}
+
+      {rhythm && me && (
+        <ForestRhythm mori={rhythm} me={me} muted={!!save.muted} best={save.rhythm?.[rhythm]} onClose={(stars, ask) => closeRhythm(rhythm, stars, ask)} />
       )}
 
       {stamp && (

@@ -68,7 +68,7 @@
 .mf-village h2 { margin:0 0 8px; color:var(--village); font-size:24px; }
 .mf-village h2 small { margin-left:6px; color:#8a80a6; font-family:Pretendard,sans-serif; font-size:13px; }
 /* 마을 그림은 가로(16:9)라 정사각 칸에 가운데를 채웁니다. 주민은 아래쪽 땅에만 둡니다 */
-.mf-scene { position:relative; aspect-ratio:1/1; overflow:hidden; border-radius:22px; background-size:cover; background-position:50% 60%; box-shadow:0 10px 30px rgba(60,40,120,.15); cursor:pointer; touch-action:manipulation; }
+.mf-scene { position:relative; isolation:isolate; aspect-ratio:1/1; overflow:hidden; border-radius:22px; background-size:cover; background-position:50% 60%; box-shadow:0 10px 30px rgba(60,40,120,.15); cursor:pointer; touch-action:manipulation; }
 .mf-scene::after { content:""; position:absolute; inset:auto 0 0; height:45%; background:linear-gradient(transparent,rgba(255,255,255,.18)); pointer-events:none; }
 .mf-resident, .mf-me { position:absolute; width:20%; transform:translate(-50%,-100%); }
 .mf-resident { padding:0; border:0; background:none; font:inherit; cursor:pointer; }
@@ -131,6 +131,46 @@
 .mf-about ul { padding-left:18px; }
 .mf-about a { color:#5a3fb3; font-weight:700; }
 @media (max-width:520px) { .mf-about { margin:8px 16px 40px; } }
+
+/* 바람 들판 축제 무대 리듬 탭 (2026-10-07). 화면 전체를 덮고, 누르는 칸은 아래 엄지 자리에 크게 */
+.fr { position:fixed; inset:0; z-index:70; display:flex; flex-direction:column; background:linear-gradient(rgba(40,20,60,.55),rgba(40,20,60,.75)), url(/images/world/village-sp.webp) center/cover; color:#fff; touch-action:manipulation; overscroll-behavior:contain; }
+.fr-head { display:flex; align-items:center; gap:10px; max-width:480px; width:100%; margin:0 auto; padding:12px 16px 6px; box-sizing:border-box; }
+.fr-head > div { flex:1; min-width:0; }
+.fr-head b { display:block; font-family:Jua,sans-serif; font-size:18px; font-weight:400; }
+.fr-head b small { margin-left:4px; padding:1px 8px; border-radius:999px; background:#ff8a3d; font-family:Pretendard,sans-serif; font-size:11px; font-weight:800; }
+.fr-head span { display:block; margin-top:2px; color:#ffe2b8; font-size:13px; font-weight:700; }
+.fr-host, .fr-me { border-radius:50%; border:3px solid #fff; transition:transform .12s ease-out; }
+.fr-host { width:64px; height:64px; }
+.fr-me { width:52px; height:52px; }
+.fr-host.is-up, .fr-me.is-up { transform:translateY(-6px) scale(1.06); }
+.fr-lane { position:relative; flex:1; max-width:480px; width:100%; margin:0 auto; overflow:hidden; }
+.fr-split { position:absolute; top:0; bottom:0; left:50%; width:2px; background:rgba(255,255,255,.18); }
+.fr-line { position:absolute; left:8%; right:8%; top:86%; height:6px; margin-top:-3px; border-radius:3px; background:linear-gradient(90deg,#ff8a3d,#ffd23c,#ff8a3d); box-shadow:0 0 16px #ffb347; }
+.fr-note { position:absolute; top:0; width:30%; height:34px; margin-top:-17px; border-radius:17px; opacity:0; will-change:transform; }
+.fr-note.is-l { left:25%; background:radial-gradient(circle at 35% 30%,#ffd0a8,#f99a3d); box-shadow:0 0 0 3px #fff,0 4px 12px rgba(0,0,0,.3); }
+.fr-note.is-r { left:75%; background:radial-gradient(circle at 35% 30%,#fff5b0,#f2d23c); box-shadow:0 0 0 3px #fff,0 4px 12px rgba(0,0,0,.3); }
+.fr-count { position:absolute; top:34%; left:0; right:0; text-align:center; font-family:Jua,sans-serif; font-size:64px; font-weight:400; text-shadow:0 4px 16px rgba(0,0,0,.4); animation:fr-pop .5s ease-out both; }
+.fr-flash { position:absolute; top:62%; left:0; right:0; text-align:center; font-family:Jua,sans-serif; font-size:34px; font-style:normal; animation:fr-rise .5s ease-out both; }
+.fr-flash.is-perfect { color:#ffe066; text-shadow:0 0 14px #ff9f1c; }
+.fr-flash.is-good { color:#a8f0c6; }
+.fr-flash.is-miss { color:#c9c3d9; }
+.fr-combo { position:absolute; top:48%; left:0; right:0; text-align:center; color:#fff; font-family:Jua,sans-serif; font-size:22px; opacity:.9; animation:fr-pop .25s ease-out; }
+.fr-card { position:absolute; left:16px; right:16px; top:50%; transform:translateY(-50%); padding:22px 18px 16px; border-radius:24px; background:#fffdf8; color:#2b2540; text-align:center; box-shadow:0 12px 40px rgba(0,0,0,.35); }
+.fr-card p { margin:0 0 16px; font-size:16px; line-height:1.7; word-break:keep-all; }
+.fr-card .fr-warn { margin-top:-8px; color:#b45309; font-size:14px; }
+.fr-stars { display:flex; justify-content:center; gap:6px; margin-bottom:10px; }
+.fr-stars span { color:#e5ddf3; font-size:46px; line-height:1; }
+.fr-stars span.is-on { color:#ffc531; text-shadow:0 2px 0 #e09b00; animation:fr-star .5s cubic-bezier(.3,1.6,.5,1) both; }
+.fr-card .fr-react { font-size:17px; font-weight:700; }
+.fr-card .fr-sum { margin-top:-8px; color:#7a6f96; font-size:13px; }
+.fr-pads { display:grid; grid-template-columns:1fr 1fr; gap:10px; max-width:480px; width:100%; margin:0 auto; padding:8px 16px calc(16px + env(safe-area-inset-bottom)); box-sizing:border-box; }
+.fr-pad { height:112px; border:0; border-radius:24px; color:#2b2540; font:inherit; font-size:20px; font-weight:900; cursor:pointer; -webkit-user-select:none; user-select:none; touch-action:none; transition:transform .06s; }
+.fr-pad.is-l { background:#f99a3d; box-shadow:0 8px 0 #c76a14; }
+.fr-pad.is-r { background:#f2d23c; box-shadow:0 8px 0 #b89a10; }
+.fr-pad:active { transform:translateY(6px); box-shadow:0 2px 0 rgba(0,0,0,.25); filter:brightness(1.12); }
+@keyframes fr-pop { from { transform:scale(1.6); opacity:0; } to { transform:none; opacity:1; } }
+@keyframes fr-rise { from { transform:translateY(10px) scale(.8); opacity:0; } 30% { opacity:1; } to { transform:translateY(-18px); opacity:0; } }
+@keyframes fr-star { from { transform:scale(0) rotate(-40deg); } to { transform:none; } }
 
 @keyframes mf-wake { from { transform:scale(.4) rotate(-12deg); opacity:0; } to { transform:none; opacity:1; } }
 @keyframes mf-idle { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-5%); } }

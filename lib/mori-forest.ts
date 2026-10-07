@@ -50,6 +50,8 @@ export type ForestSave = {
   muted?: boolean;
   /** 도장 축하를 이미 보여 준 마을(nt·nf·sj·sp). 같은 축하가 두 번 뜨지 않게 */
   stamped?: string[];
+  /** 바람 들판 리듬 탭 최고 별(주민 유형 → 0~3). 한 번이라도 놀면(건너뛰지 않으면) 생깁니다 */
+  rhythm?: Record<string, number>;
 };
 
 const KEY = "mori-forest";
@@ -63,6 +65,7 @@ export function readForest(): ForestSave {
       pending: v?.pending,
       muted: !!v?.muted,
       stamped: Array.isArray(v?.stamped) ? v.stamped : [],
+      rhythm: v?.rhythm && typeof v.rhythm === "object" ? v.rhythm : {},
     };
   } catch {
     return { met: [], done: {}, stamped: [] };
