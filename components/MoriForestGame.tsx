@@ -23,9 +23,10 @@ import { inviteOf, minigameOf } from "../lib/forest-minigames";
 import ForestRhythm from "./ForestRhythm";
 import ForestMinigame from "./ForestMinigame";
 import ForestPlaza from "./ForestPlaza";
+import { OurForestPanel } from "./OurForest";
 import { pairOf } from "../lib/mori-world";
 
-type Screen = "intro" | "pick" | "map" | "village" | "dex" | "plaza";
+type Screen = "intro" | "pick" | "map" | "village" | "dex" | "plaza" | "ours";
 /** invite: 바람 들판 주민이 리듬 탭을 청하는 대화(끝 버튼이 「한 판 하기」) */
 type Talk = { mori: string; lines: string[]; line: number; shown: number; invite?: boolean };
 
@@ -133,7 +134,12 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
       // 돌아온 사람은 이미 한 번 탭해서 들어온 사람이라 소리도 그 상태 그대로 둡니다(휴대폰은 다음 탭부터 남).
       entered.current = true;
     }
-    if (back) history.replaceState(null, "", location.pathname);
+    // 초대 페이지의 「나도 내 숲 만들기」(?ours=1): 내 모리가 있으면 바로 우리 숲으로
+    if (mine && new URLSearchParams(location.search).get("ours")) {
+      setScreen("ours");
+      entered.current = true;
+    }
+    if (back || location.search) history.replaceState(null, "", location.pathname);
     setReady(true);
     const onHide = () => {
       if (document.hidden) stopMusic();
@@ -490,8 +496,10 @@ export default function MoriForestGame({ names, testTitles }: { names: Record<st
       )}
 
       {screen === "plaza" && me && (
-        <ForestPlaza me={me} names={names} save={save} update={update} doneCount={doneCount} />
+        <ForestPlaza me={me} names={names} save={save} update={update} doneCount={doneCount} onOurForest={() => setScreen("ours")} />
       )}
+
+      {screen === "ours" && me && <OurForestPanel me={me} />}
 
       {screen === "dex" && (
         <section className="mf-dex">

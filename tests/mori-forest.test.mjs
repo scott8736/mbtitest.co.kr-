@@ -20,6 +20,9 @@ const { outputFiles } = await build({
       export { RESULT_CLICK_PLACEMENT_KEYS } from "./lib/result-clicks";
       export { isKnownEvent } from "./worker/test-events";
       export { screenerSlugs } from "./lib/screeners";
+      export { cleanNickname, cleanType, cleanDevice, newForestId, isForestId, forestOgTitle, rewriteInviteHtml, typesIn } from "./worker/forest";
+      export { fruitsOf, typeCounts } from "./lib/our-forest";
+      export { SHARE_CHANNEL_KEYS } from "./lib/mori";
       export { MATES, mateOf, makeQuiz, quizStars, pairsStars, treeStage, nextStreak, dayKST, QUIZ_LEN } from "./lib/forest-plaza";
       export { MINIGAMES, inviteOf, acornStars, starStars, lanternStars, pickConstellations, CONSTELLATIONS } from "./lib/forest-minigames";
       export { RHYTHM_CHARTS, notesOf, judgeOf, starsOf, RHYTHM_BARS, COUNT_IN_BEATS, LOOP_BEATS } from "./lib/forest-rhythm";
@@ -219,4 +222,43 @@ test("광장: 마음나무 단계·연속 출석·별", () => {
   assert.equal(mod.pairsStars(40), 0);
   assert.equal(mod.quizStars(8), 3);
   assert.equal(mod.quizStars(3), 0);
+});
+
+test("우리 숲 서버: 입력 정리", () => {
+  assert.equal(mod.cleanNickname("  달빛<b>&\"  "), "달빛b");
+  assert.equal(mod.cleanNickname("열두글자가넘는별명입니다"), "열두글자가넘는별");
+  assert.equal(mod.cleanNickname(123), "");
+  assert.equal(mod.cleanType("enfp"), "ENFP");
+  assert.equal(mod.cleanType("XXXX"), null);
+  assert.equal(mod.cleanDevice("short"), null);
+  assert.equal(mod.cleanDevice("abcDEF123_-xyz"), "abcDEF123_-xyz");
+  for (let i = 0; i < 50; i++) assert.ok(mod.isForestId(mod.newForestId()));
+  assert.equal(mod.isForestId("../admin"), false);
+  assert.equal(mod.isForestId("ABCDEFGH"), false);
+});
+
+test("우리 숲: 미리보기 제목과 HTML 바꾸기(꺾쇠·따옴표 막기)", () => {
+  const view = { id: "abcdefgh", owner: { type: "INFP", nickname: "달빛" }, members: [{ type: "ENFJ", nickname: "", via: "known" }, { type: "ENFJ", nickname: "", via: "test" }] };
+  assert.deepEqual(mod.typesIn(view).sort(), ["ENFJ", "INFP"]);
+  const og = mod.forestOgTitle(view);
+  assert.equal(og.title, "달빛님의 숲 2/16 🌳");
+  assert.ok(og.description.startsWith("아직 없는 모리 ISTJ·ISFJ·INFJ·INTJ…"));
+  assert.equal(mod.forestOgTitle({ ...view, owner: { type: "INFP", nickname: "" } }).title, "INFP 모리의 숲 2/16 🌳");
+  const html = '<title>우리 숲 초대장</title><meta property="og:title" content="old"/><meta name="twitter:title" content="old"/><meta property="og:description" content="d"/><meta name="description" content="d"/>';
+  const out = mod.rewriteInviteHtml(html, { title: 'a"<b>', description: "x&y" });
+  assert.ok(out.includes("<title>a&quot;&lt;b&gt;</title>"));
+  assert.ok(out.includes('property="og:title" content="a&quot;&lt;b&gt;"'));
+  assert.ok(out.includes('name="twitter:title" content="a&quot;&lt;b&gt;"'));
+  assert.ok(out.includes('name="description" content="x&amp;y"'));
+});
+
+test("우리 숲: 열매는 짝꿍·라이벌 12쌍 정본에서만, 공유 채널이 등록돼 있다", () => {
+  assert.deepEqual(mod.fruitsOf(["INFP", "ENFJ", "ESTJ"]).map((p) => p.kind).sort(), ["라이벌", "짝꿍"]);
+  assert.equal(mod.fruitsOf(["INFP", "ENTP"]).length, 0);
+  assert.equal(mod.fruitsOf(Object.keys(mod.MORI_WORLD)).length, 12);
+  for (const k of ["forest-invite", "forest-threads", "forest-copy"]) {
+    assert.ok(mod.SHARE_CHANNEL_KEYS.includes(k), k);
+    assert.ok(mod.isKnownEvent(k, "share_click"), k);
+  }
+  for (const k of ["forest-invite-known", "forest-invite-test", "forest-invite-mine", "forest-types"]) assert.ok(mod.isKnownEvent(k, "result_click"), k);
 });

@@ -9,6 +9,7 @@
  * 저장하는 것: 경로·리퍼러·기기·국가·날짜별 방문자 해시.
  * 저장하지 않는 것: IP 원본, 쿠키, 쿼리스트링.
  */
+import { forestStats } from "./forest";
 import { handleReportAdmin } from "./report-admin";
 import { SAJULAB_PLACEMENTS, SAJULAB_PLACEMENT_KEYS } from "../lib/sajulab";
 import { RESULT_CLICK_PLACEMENTS, RESULT_CLICK_PLACEMENT_KEYS } from "../lib/result-clicks";
@@ -356,6 +357,16 @@ async function dashboard(
   // 예전처럼 쿼리마다 page_views 기간 전체를 훑으면 30일 조회 한 번에 약 150만 행을 읽습니다.
   const { days: rollups, pending } = await loadRollups(db, from, to, seoulDay());
   const liveBox = await liveNow(db);
+  // 모리 게임 「우리 숲」(2026-10-07~). 표가 작아 전체를 셉니다(기간과 무관한 누적).
+  const fs = await forestStats(db);
+  const forestBox = fs ? `<div class="box"><h2>우리 숲 (누적)</h2>
+<p class="note">한 사람이 데려온 새 참여자 = 들어온 사람 ÷ 숲 수. 목표 1명 이상(기획안). 검사로 알아보고 온 비율은 초대 문턱이 높은지 봅니다.</p>
+<div class="cards">
+<div><b>${fs.forests.toLocaleString()}</b><span>만든 숲</span></div>
+<div><b>${fs.members.toLocaleString()}</b><span>초대로 들어온 사람</span></div>
+<div><b>${fs.forests ? (fs.members / fs.forests).toFixed(2) : "0"}</b><span>숲 하나당 데려온 사람</span></div>
+<div><b>${fs.members ? Math.round((fs.viaTest / fs.members) * 100) : 0}%</b><span>검사 거쳐 들어온 비율</span></div>
+</div></div>` : "";
   const all = mergeRollups(rollups);
   const rowsOf = (map: Record<string, number>, limit?: number) => {
     const list = Object.entries(map).map(([key, views]) => ({ key, views })).sort((a, b) => b.views - a.views);
@@ -635,6 +646,8 @@ ${krDays.length === 0 ? `<p class="empty">아직 기록이 없습니다. 새로�
 ${krDays.map((d) => `<tr><td>${d.day.slice(5)}</td><td>${d.journey.visitors.toLocaleString()}</td><td>${pct(d.journey.b0, d.journey.visitors)}</td><td>${pct(d.journey.visitors - d.kr!.n, d.journey.visitors)}</td><td>${d.kr!.n.toLocaleString()}</td><td><b>${pct(d.kr!.b, d.kr!.n)}</b></td></tr>`).join("")}
 </tbody></table></div>`}
 </div>
+
+${forestBox}
 
 <div class="box"><h2>결과 화면 링크 묶음 클릭</h2>
 <p class="note">

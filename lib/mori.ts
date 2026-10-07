@@ -83,6 +83,10 @@ export const SHARE_CHANNELS = {
   "tarot-link": "타로 · 링크 공유",
   "tarot-threads": "타로 · 스레드",
   "tarot-copy": "타로 · 링크 복사",
+  // 모리 게임 「우리 숲」 친구 초대(2026-10-07~). 분모는 숲 수 — 관리자 「우리 숲」 표에서 봅니다.
+  "forest-invite": "우리 숲 · 친구 초대(공유창)",
+  "forest-threads": "우리 숲 · 스레드",
+  "forest-copy": "우리 숲 · 링크 복사",
 } as const;
 
 export type ShareChannel = keyof typeof SHARE_CHANNELS;

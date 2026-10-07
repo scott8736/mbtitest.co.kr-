@@ -25,6 +25,7 @@ import { ensureSchema } from "./schema";
 import { handleTestEvent } from "./test-events";
 import { handleTrending } from "./trending";
 import { handleReport } from "./report";
+import { forestOgTitle, handleForest, isForestId, loadForest, rewriteInviteHtml } from "./forest";
 
 interface Env {
   ASSETS: Fetcher;
@@ -71,6 +72,10 @@ const worker = {
     const report = handleReport(request, url, env, ctx);
     if (report) return report;
 
+    // 모리 게임 「우리 숲」 (/api/forest/*, 2026-10-07)
+    const forest = handleForest(request, url, env, ctx);
+    if (forest) return forest;
+
     try {
       const admin = await handleAdmin(request, url, env?.DB);
       if (admin) return admin;
@@ -84,7 +89,24 @@ const worker = {
       }
     }
 
-    const response = await env.ASSETS.fetch(request);
+    let response = await env.ASSETS.fetch(request);
+
+    // 우리 숲 초대 페이지: 미리보기 제목을 그 숲 것으로(「달빛님의 숲 5/16」). 실패하면 원래 페이지 그대로.
+    const forestId = url.searchParams.get("id") ?? "";
+    if (request.method === "GET" && url.pathname === "/mori/forest/f/" && isForestId(forestId) && env?.DB && response.status === 200) {
+      try {
+        const view = await loadForest(env.DB, forestId);
+        if (view) {
+          const html = rewriteInviteHtml(await response.clone().text(), forestOgTitle(view));
+          const headers = new Headers(response.headers);
+          headers.delete("content-length");
+          headers.set("cache-control", "no-store");
+          response = new Response(html, { status: 200, headers });
+        }
+      } catch {
+        // 표가 아직 없거나 D1 이 막혀도 페이지는 그대로 나갑니다.
+      }
+    }
 
     if (request.method === "GET" && isTrackablePath(url.pathname)) {
       const contentType = response.headers.get("content-type") ?? "";

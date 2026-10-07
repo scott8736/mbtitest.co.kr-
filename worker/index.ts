@@ -8,6 +8,7 @@ import { ensureSchema } from "./schema";
 import { handleTestEvent } from "./test-events";
 import { handleTrending } from "./trending";
 import { handleReport } from "./report";
+import { handleForest } from "./forest";
 import {
   classifyDevice,
   classifySource, sourceFromUtm,
@@ -93,6 +94,8 @@ const worker = {
     if (testEvent) return testEvent;
 
     // 유료 리포트 주문·페이앱 통보·열람 (/api/report/*)
+    const forest = handleForest(request, url, env, ctx);
+    if (forest) return forest;
     const report = handleReport(request, url, env, ctx);
     if (report) return report;
 

@@ -22,6 +22,10 @@ export const RESULT_CLICK_PLACEMENTS = {
   "home-mori-forest": "홈 · 모리 영상 아래 숲 산책하기",
   "forest-quest": "숲 산책 · 주민 부탁 → 다른 검사",
   "forest-types": "숲 산책 · 말버릇 퀴즈 → 헷갈린 유형 페이지",
+  // 우리 숲 초대 페이지: 「내 유형 알아요」와 「검사로 알아보기」 중 무엇을 누르나(기획안 4-2, 두 버튼 비교)
+  "forest-invite-known": "우리 숲 초대 · 내 유형 알아요(바로 심기)",
+  "forest-invite-test": "우리 숲 초대 · 검사로 알아보기",
+  "forest-invite-mine": "우리 숲 초대 → 나도 내 숲 만들기",
 } as const;
 
 export type ResultClickPlacement = keyof typeof RESULT_CLICK_PLACEMENTS;

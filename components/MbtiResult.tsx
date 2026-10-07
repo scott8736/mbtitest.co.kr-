@@ -6,6 +6,7 @@ import { MoriPortrait, MoriShare } from "./MoriCard";
 import MoriVideoShare from "./MoriVideoShare";
 import { MoriForestCard } from "./MoriWorld";
 import ForestEntry from "./ForestEntry";
+import { ForestInviteReturn } from "./OurForest";
 import MbtiResultPick from "./MbtiResultPick";
 import ReportTeaser from "./ReportTeaser";
 import SajuLabBanner from "./SajuLabBanner";
@@ -76,6 +77,8 @@ export default function MbtiResult() {
       {/* 결과 화면 첫 그림은 유형별 모리 캐릭터입니다(2026-10-04). 예전 1200x630 결과 카드는
           글자뿐이라 공유할 맛이 없었습니다. 공유 카드는 아래 MoriShare 가 9:16 으로 그립니다. */}
       <MoriPortrait code={result} name={resultInfo.name} />
+      {/* 친구 「우리 숲」 초대에서 「검사로 알아보기」로 온 사람만 보입니다(2026-10-07). */}
+      <ForestInviteReturn code={result} />
       <h1>{resultInfo.name}</h1>
       <p className="result-tagline">{resultInfo.tagline}</p>
       <p className="result-description">{resultInfo.description}</p>
