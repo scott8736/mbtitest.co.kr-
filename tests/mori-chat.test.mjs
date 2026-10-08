@@ -75,6 +75,14 @@ test("모리 이름은 정본(lib/mbti-content.ts)과 같고 16모리가 다 있
   assert.equal(Object.keys(C.MORI_NICK).length, 16);
 });
 
+test("첫인사 조사: 받침 있는 이름은 「이야」 (돌봄 요정이야 · 마음 등대야)", () => {
+  assert.match(C.greeting("ISFJ"), /돌봄 요정이야\./);
+  assert.match(C.greeting("ENTJ"), /길잡이 대장이야\./);
+  assert.match(C.greeting("INFJ"), /마음 등대야\./);
+  assert.match(C.greeting("ENFP"), /아이디어 뱅크야\./);
+  for (const code of Object.keys(C.MORI_NICK)) assert.doesNotMatch(C.greeting(code), /(요정|대장|반장|단장|질문왕|이야기꾼)야\./, code);
+});
+
 test("시스템 지시문: 그 모리 설정 + 지킬 것(AI 밝히기·진단 금지·유형 비하 금지)", () => {
   const p = C.systemPrompt("INFP", "ENFJ");
   assert.match(p, /INFP 모리/);

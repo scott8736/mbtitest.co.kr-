@@ -6,6 +6,7 @@
  * 특별한 날은 날짜가 확실한 것만 둡니다 — 음력 명절은 korean-lunar-calendar 로 해마다 계산합니다.
  */
 import KoreanLunarCalendar from "korean-lunar-calendar";
+import { iya } from "./mori-chat";
 
 export type SlotKey = "dawn" | "morning" | "lunch" | "afternoon" | "evening" | "night";
 export type WeatherKind = "clear" | "cloudy" | "rain" | "snow";
@@ -98,13 +99,6 @@ export function sceneLine(s: Scene): string {
   if (s.weather) parts.push(`${WEATHER_NAMES[s.weather.kind]} 날${s.weather.temp !== null ? `(${Math.round(s.weather.temp)}도)` : ""}`);
   if (s.special) parts.push(`오늘은 ${s.special.name}`);
   return `지금 상황: ${parts.join(", ")}. 대화에 어울릴 때만 가끔 자연스럽게 꺼내(첫인사나 안부 정도). 시간·날씨를 지어내지 마.`;
-}
-
-/** 받침이 있으면 「이야」, 없으면 「야」 */
-export function iya(word: string): string {
-  const c = word.charCodeAt(word.length - 1);
-  if (c < 0xac00 || c > 0xd7a3) return "이야";
-  return (c - 0xac00) % 28 ? "이야" : "야";
 }
 
 /** 화면 첫인사 앞머리(AI 를 부르지 않는다) */

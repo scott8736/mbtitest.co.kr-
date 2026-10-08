@@ -69,11 +69,18 @@ export const MORI_NICK: Record<string, string> = {
 
 export const isMoriCode = (code: string): boolean => Boolean(MORI[code] && MORI_WORLD[code]);
 
+/** 받침이 있으면 「이야」, 없으면 「야」 (돌봄 요정이야 · 마음 등대야). 10-08 운영 첫인사에서 「돌봄 요정야」가 나와 고쳤다. */
+export function iya(word: string): string {
+  const c = word.charCodeAt(word.length - 1);
+  if (c < 0xac00 || c > 0xd7a3) return "이야";
+  return (c - 0xac00) % 28 ? "이야" : "야";
+}
+
 /** 처음 열었을 때 모리가 먼저 하는 말(AI 를 부르지 않는다 — 횟수도 안 든다). */
 export function greeting(code: string): string {
   const w = MORI_WORLD[code];
   const v = VILLAGES[villageOf(code)];
-  return `안녕! 나는 ${v.name}에 사는 ${code} 모리, ${MORI_NICK[code]}야. ${w.says} 오늘 마음은 어때? 아무 얘기나 들려줘.`;
+  return `안녕! 나는 ${v.name}에 사는 ${code} 모리, ${MORI_NICK[code]}${iya(MORI_NICK[code])}. ${w.says} 오늘 마음은 어때? 아무 얘기나 들려줘.`;
 }
 
 /** 시스템 지시문. 세계관 정본(lib/mori-world.ts)에서 그 모리 몫만 꺼내 넣는다. */
