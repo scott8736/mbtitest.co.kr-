@@ -21,10 +21,12 @@
  */
 import { mkdir, readFile, writeFile, access } from "node:fs/promises";
 import { dirname, join } from "node:path";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 import satori from "satori";
 import sharp from "sharp";
+const SITE_DOMAIN = JSON.parse(readFileSync(new URL("../site.config.json", import.meta.url), "utf8")).brand.domain;
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const OUT_DIR = join(root, "public", "images", "og", "r");
@@ -131,7 +133,7 @@ function card({ eyebrow, name, tagline, traits, color }) {
             style: { display: "flex", alignItems: "center", gap: 18 },
             children: [
               text("나도 테스트하기", { fontSize: 30 }),
-              text("mbtitest.co.kr", {
+              text(SITE_DOMAIN, {
                 fontSize: 26,
                 color: "rgba(255,255,255,0.66)",
               }),

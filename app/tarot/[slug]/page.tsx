@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import TarotDaily from "../../../components/TarotDaily";
 import { tarotFortuneBySlug, tarotSlugs } from "../../../lib/tarot";
 import "../tarot.css";
+import { SITE_ORIGIN } from "../../../lib/site-config";
 
 export const dynamicParams = false;
 
@@ -26,7 +27,7 @@ export async function generateMetadata({
     alternates: { canonical: `/tarot/${slug}/` },
     openGraph: {
       type: "website",
-      url: `https://mbtitest.co.kr/tarot/${slug}/`,
+      url: `${SITE_ORIGIN}/tarot/${slug}/`,
       title: `${fortune.title} 무료`,
       description: fortune.description,
       images: [

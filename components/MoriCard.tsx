@@ -6,6 +6,7 @@ import { cardFont as font, inkOn, loadImage, mix, mixRgb, rgb } from "../lib/car
 import { MORI, moriImage, moriSharePath, shareText } from "../lib/mori";
 import { MORI_WORLD, VILLAGES, villageOf } from "../lib/mori-world";
 import { saveMyMori } from "../lib/my-mori";
+import { SITE_DOMAIN } from "../lib/site-config";
 
 type Percent = { axis: string; left: string; right: string; value: number };
 
@@ -93,7 +94,7 @@ async function drawStoryCard(code: string, name: string, tagline: string, percen
   ctx.fillText(`찰떡궁합은 ${best} 모리`, 540, 1790);
   ctx.fillStyle = "#4b5266";
   ctx.font = font(700, 34);
-  ctx.fillText("너는 어떤 모리? · mbtitest.co.kr", 540, 1860);
+  ctx.fillText(`너는 어떤 모리? · ${SITE_DOMAIN}`, 540, 1860);
 
   return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
 }

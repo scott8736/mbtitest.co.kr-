@@ -3,9 +3,10 @@ import ReportFloat from "../components/ReportFloat";
 import TouchRecorder from "../components/TouchRecorder";
 import "./globals.css";
 import "./mascot.css";
+import { SITE, SITE_ORIGIN } from "../lib/site-config";
 
-const siteUrl = "https://mbtitest.co.kr";
-const adsenseClient = "ca-pub-8646375689901020";
+const siteUrl = SITE_ORIGIN;
+const adsenseClient = SITE.adsenseClient;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

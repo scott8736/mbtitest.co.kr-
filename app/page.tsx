@@ -1,6 +1,7 @@
 import MbtiHome from "../components/MbtiHome";
 import SiteFooter from "../components/SiteFooter";
 import SiteHeader from "../components/SiteHeader";
+import { SITE_ORIGIN } from "../lib/site-config";
 
 export default function Home() {
   const jsonLd = {
@@ -8,7 +9,7 @@ export default function Home() {
     "@type": "WebApplication",
     name: "MBTI 검사",
     alternateName: ["엠비티아이 검사", "성격테스트"],
-    url: "https://mbtitest.co.kr/",
+    url: `${SITE_ORIGIN}/`,
     applicationCategory: "LifestyleApplication",
     operatingSystem: "All",
     inLanguage: "ko-KR",

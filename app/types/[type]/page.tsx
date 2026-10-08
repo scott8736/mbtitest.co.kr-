@@ -13,6 +13,7 @@ import { moriImage, moriOgImage } from "../../../lib/mori";
 import SiteFooter from "../../../components/SiteFooter";
 import { mbtiCodes, getProfile, profiles, type MbtiCode } from "../../../lib/mbti-content";
 import styles from "../../../lib/mbti.module.css";
+import { SITE_ORIGIN } from "../../../lib/site-config";
 
 export const dynamicParams = false;
 export function generateStaticParams(){ return mbtiCodes.map((type)=>({type})); }
@@ -40,11 +41,11 @@ export default async function TypePage({params}:{params:Promise<{type:string}>})
     [`${p.code}가 스트레스받을 때는?`,p.stress],
   ];
   const jsonLd={"@context":"https://schema.org","@graph":[
-    {"@type":"Article",headline:`${p.code} 특징 총정리: 연애·직업·궁합`,description:p.summary,inLanguage:"ko-KR",mainEntityOfPage:`https://mbtitest.co.kr/types/${code}/`,dateModified:"2026-07-25",author:{"@type":"Organization",name:"MBTI 검사"}},
+    {"@type":"Article",headline:`${p.code} 특징 총정리: 연애·직업·궁합`,description:p.summary,inLanguage:"ko-KR",mainEntityOfPage:`${SITE_ORIGIN}/types/${code}/`,dateModified:"2026-07-25",author:{"@type":"Organization",name:"MBTI 검사"}},
     {"@type":"BreadcrumbList",itemListElement:[
-      {"@type":"ListItem",position:1,name:"MBTI 검사",item:"https://mbtitest.co.kr/"},
-      {"@type":"ListItem",position:2,name:"16가지 유형",item:"https://mbtitest.co.kr/types/"},
-      {"@type":"ListItem",position:3,name:p.code,item:`https://mbtitest.co.kr/types/${code}/`}
+      {"@type":"ListItem",position:1,name:"MBTI 검사",item:`${SITE_ORIGIN}/`},
+      {"@type":"ListItem",position:2,name:"16가지 유형",item:`${SITE_ORIGIN}/types/`},
+      {"@type":"ListItem",position:3,name:p.code,item:`${SITE_ORIGIN}/types/${code}/`}
     ]}
   ]};
   return <main className={styles.page}><ContentHeader active="/types"/>
@@ -57,7 +58,7 @@ export default async function TypePage({params}:{params:Promise<{type:string}>})
     </header>
     <article className={styles.body}>
       <section className={styles.answer}><strong>{p.code}는 어떤 성격인가요?</strong><p>{p.summary}</p></section>
-      <ShareButtons title={`${p.code} 모리 · ${p.name} — 특징·연애·궁합`} url={`https://mbtitest.co.kr/types/${code}/`} label={`${p.code} 친구에게 공유하기`} />
+      <ShareButtons title={`${p.code} 모리 · ${p.name} — 특징·연애·궁합`} url={`${SITE_ORIGIN}/types/${code}/`} label={`${p.code} 친구에게 공유하기`} />
       <MoriForestCard code={p.code} />
       <MoriVideoShare code={p.code} channel="type-video" label={`${p.code} 모리 15초 영상`} />
       <AdUnit position="articleTop" label={`${p.code} 유형 상단 광고`} />

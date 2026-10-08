@@ -1,4 +1,6 @@
-export const ADSENSE_CLIENT = "ca-pub-8646375689901020";
+import { SITE } from "./site-config";
+
+export const ADSENSE_CLIENT = SITE.adsenseClient;
 
 /**
  * 자리별 광고 슬롯 등록표.

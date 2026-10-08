@@ -15,6 +15,9 @@
 import os
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
+import json as _json
+from pathlib import Path as _Path
+SITE_DOMAIN = _json.loads((_Path(__file__).resolve().parent.parent / "site.config.json").read_text(encoding="utf-8"))["brand"]["domain"]  # 도메인은 site.config.json
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CHAR = os.path.join(ROOT, "public", "characters")
@@ -89,7 +92,7 @@ d.text((L + 180, 176), "MBTI", font=font(84, 900), fill=VIOLET)
 d.text((L - 4, 280), "검사", font=font(84, 900), fill=INK)
 d.text((L, 412), "16가지 모리 중", font=font(36, 800), fill=INK)
 d.text((L, 460), "나는 누구일까?", font=font(36, 800), fill=INK)
-d.text((L, 530), "mbtitest.co.kr", font=font(26, 700), fill=(98, 104, 120))
+d.text((L, 530), SITE_DOMAIN, font=font(26, 700), fill=(98, 104, 120))
 
 for path in (OUT, OLD):
     bg.convert("RGB").save(path, "JPEG", quality=88)

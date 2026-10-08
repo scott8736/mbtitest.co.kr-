@@ -12,6 +12,7 @@ import SiteFooter from "../../../components/SiteFooter";
 import { typeData } from "../../../lib/mbti-data";
 import { mbtiCodes, getProfile, profiles, pairInsight, type MbtiCode } from "../../../lib/mbti-content";
 import styles from "../../../lib/mbti.module.css";
+import { SITE_ORIGIN } from "../../../lib/site-config";
 
 export const dynamicParams=false;
 export function generateStaticParams(){return mbtiCodes.map(type=>({type}));}
@@ -22,7 +23,7 @@ export async function generateMetadata({params}:{params:Promise<{type:string}>})
 export default async function CompatibilityTypePage({params}:{params:Promise<{type:string}>}){
   const {type}=await params; const p=getProfile(type); if(!p)notFound(); const code=type.toLowerCase() as MbtiCode;
   const others=mbtiCodes.filter(x=>x!==code);
-  const jsonLd={"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"MBTI 검사","item":"https://mbtitest.co.kr/"},{"@type":"ListItem","position":2,"name":"MBTI 궁합","item":"https://mbtitest.co.kr/compatibility/"},{"@type":"ListItem","position":3,"name":`${p.code} 궁합`,"item":`https://mbtitest.co.kr/compatibility/${code}/`}]};
+  const jsonLd={"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"MBTI 검사","item":`${SITE_ORIGIN}/`},{"@type":"ListItem","position":2,"name":"MBTI 궁합","item":`${SITE_ORIGIN}/compatibility/`},{"@type":"ListItem","position":3,"name":`${p.code} 궁합`,"item":`${SITE_ORIGIN}/compatibility/${code}/`}]};
   return <main className={styles.page}><ContentHeader active="/compatibility"/><script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(jsonLd)}}/>
     <header className={styles.hero}><div className={styles.crumbs}><a href="/">MBTI 검사</a> / <a href="/compatibility/">MBTI 궁합</a> / {p.code}</div><img className="type-hero-mori" src={moriImage(p.code)} width={720} height={720} alt={`${p.code} 모리 캐릭터`} /><span className={styles.eyebrow}>MBTI COMPATIBILITY</span><h1>{p.code} 궁합<br/>15개 유형 총정리</h1><p>{p.code}와 각 유형의 관계를 연애, 소통, 갈등 해결 관점에서 살펴봅니다. 궁합은 등급이 아니라 서로 다른 사용 설명서를 이해하는 자료입니다.</p><div className={styles.actions}><a href={`/types/${code}/`}>{p.code} 특징 보기</a><a href="/">내 유형 검사하기</a></div></header>
     <article className={styles.body}><section className={styles.answer}><strong>{p.code}와 잘 맞는 MBTI는?</strong><p>{p.code}는 {p.matches.map(x=>profiles[x].code).join(", ")}와 서로의 강점을 보완하기 쉽습니다. 하지만 실제 관계의 만족도는 유형보다 가치관, 애착 방식, 대화 습관과 갈등 후 회복 방식에 더 크게 영향을 받습니다.</p></section>

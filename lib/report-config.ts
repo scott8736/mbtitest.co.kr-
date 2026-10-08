@@ -8,24 +8,27 @@
  * 하나라도 비어 있으면 일반 손님 주문은 열리지 않습니다(관리자 시험 결제만 가능) — isSellerInfoComplete().
  */
 
-export const REPORT_PRODUCT = "모리 마음숲 안내서";
+import { PAYMENT, PRODUCT, SELLER_INFO } from "./site-config";
+
+/** 값은 site.config.json 에 있습니다. */
+export const REPORT_PRODUCT = PRODUCT.name;
 
 /**
  * 가격(사용자 결정 2026-10-05): 오픈 이벤트 기간 9,900원, 11월 1일부터 14,900원.
  * 「이벤트가」 표시는 끝난 뒤 실제로 오르는 가격이 있어야 사실이 됩니다(표시광고법). 판 적 없는 「정가」 취소선은 쓰지 않습니다.
  * 결제 금액은 서버가 주문 시각으로 reportPrice() 를 불러 정하고 주문에 저장합니다. 페이앱 통보는 저장된 금액과 대조합니다.
  */
-export const REPORT_EVENT_PRICE = 9900;
-export const REPORT_REGULAR_PRICE = 14900;
+export const REPORT_EVENT_PRICE = PRODUCT.eventPrice;
+export const REPORT_REGULAR_PRICE = PRODUCT.regularPrice;
 /** 관리자 시험 결제 금액. 페이앱 최소 금액입니다. */
-export const REPORT_TEST_PRICE = 1000;
+export const REPORT_TEST_PRICE = PRODUCT.testPrice;
 /**
  * 토스 미니앱 인앱결제 가격(사용자 결정 2026-10-07: "무조건 9,900원" — 웹처럼 11/1 에 올리지 않는다).
  * 토스 콘솔 상품 가격과 같아야 한다. 수수료 20%(앱마켓 15% + 토스 5%)는 정산에서 빠진다.
  */
-export const TOSS_REPORT_PRICE = 9900;
+export const TOSS_REPORT_PRICE = PRODUCT.tossPrice;
 /** 이벤트 기간. 비워 두면 「이벤트」 문구 없이 가격만 보입니다. */
-export const REPORT_EVENT = { label: "오픈 기념 특별 이벤트", from: "2026-10-05", to: "2026-10-31" };
+export const REPORT_EVENT = PRODUCT.event;
 
 /**
  * 지금(한국 시각) 이벤트 기간인가. 기간이 지나면 화면에서 이벤트 문구가 저절로 빠집니다
@@ -58,22 +61,12 @@ export const REPORT_CONSENT_TEXT =
   "디지털 콘텐츠 특성상 결제 후 리포트를 열람하면 청약철회(환불)가 제한됨을 확인했고, 무료 미리보기로 내용을 확인했습니다.";
 
 /** 가상계좌는 취소가 안 되어 뺍니다(페이앱 관리자 「결제 설정」이 우선하니 거기서도 꺼 두세요). */
-export const REPORT_PAY_TYPES = "card,kakaopay,naverpay,tosspay,applepay,smilepay,payco,phone";
+export const REPORT_PAY_TYPES = PAYMENT.payTypes;
 
-export const PAYAPP_USERID = "charry333";
+export const PAYAPP_USERID = PAYMENT.payappUserid;
 
-export const SELLER = {
-  name: "챠리몰",
-  owner: "김영훈",
-  bizNo: "543-24-01142",
-  /** 통신판매업 신고번호 (사용자 제공 2026-10-04) */
-  mailOrderNo: "제2021-경남사천-0189호",
-  /** 사업장 주소 */
-  address: "경상남도 사천시 용현면 용현로 87, 108동 404호",
-  /** 고객 문의 연락처 — 사용자 지정 이메일(2026-10-04). 문의 창구는 오픈채팅도 함께 씁니다(/contact/). */
-  contact: "010-2776-8898 · tiredddq492@naver.com",
-  hosting: "Cloudflare, Inc.",
-};
+/** 판매자 표시 정보. 통신판매업 신고번호(사용자 제공 2026-10-04)·문의 연락처 등 — 값은 site.config.json seller. */
+export const SELLER = SELLER_INFO;
 
 export function isSellerInfoComplete(): boolean {
   return Boolean(SELLER.name && SELLER.owner && SELLER.bizNo && SELLER.mailOrderNo && SELLER.address && SELLER.contact);

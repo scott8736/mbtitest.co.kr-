@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import GenericTestRunner from "../../../components/GenericTestRunner";
 import { genericTests } from "../../../lib/generic-tests";
+import { SITE_ORIGIN } from "../../../lib/site-config";
 
 // title.absolute 를 쓰는 이유: layout.tsx 의 template "%s | MBTI 검사" 가 뒤에 붙으면
 // 파이프가 두 번 들어가 검색결과에서 잘립니다.
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/tests/egen-teto/" },
   openGraph: {
     type: "website",
-    url: "https://mbtitest.co.kr/tests/egen-teto/",
+    url: `${SITE_ORIGIN}/tests/egen-teto/`,
     title: "에겐테토 테스트 20문항 무료 | 나는 에겐녀·테토남일까?",
     description: "에겐녀·에겐남·테토녀·테토남 중 나는 어떤 유형일까요? 20문항 무료 성향 테스트",
     images: [

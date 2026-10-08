@@ -17,7 +17,8 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-const HOST = "mbtitest.co.kr";
+// 도메인은 site.config.json 에서 읽습니다.
+const HOST = JSON.parse(readFileSync(new URL("../site.config.json", import.meta.url), "utf8")).brand.domain;
 const repo = fileURLToPath(new URL("..", import.meta.url));
 // 보낸 기록은 검색엔진마다 따로 둡니다. 한쪽이 실패해도 다른 쪽에 중복으로 가지 않습니다.
 const ENDPOINTS = [

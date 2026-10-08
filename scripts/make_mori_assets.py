@@ -17,6 +17,9 @@ import os
 import sys
 
 from PIL import Image, ImageDraw, ImageFont
+import json as _json
+from pathlib import Path as _Path
+SITE_DOMAIN = _json.loads((_Path(__file__).resolve().parent.parent / "site.config.json").read_text(encoding="utf-8"))["brand"]["domain"]  # 도메인은 site.config.json
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = sys.argv[1] if len(sys.argv) > 1 else r"D:\00 cloud\mbtitest.co.kr\캐릭터_견본\16유형_A"
@@ -70,7 +73,7 @@ for code, (color, name) in TYPES.items():
     d.text((684, 300), name, font=name_font, fill=ink)
     d.rounded_rectangle((680, 430, 1140, 520), radius=45, fill=ink)
     d.text((910, 475), "너는 어떤 모리? →", font=font(38), fill=(255, 255, 255), anchor="mm")
-    d.text((684, 556), "mbtitest.co.kr 무료 MBTI 검사", font=font(26, 600), fill=(98, 104, 120))
+    d.text((684, 556), f"{SITE_DOMAIN} 무료 MBTI 검사", font=font(26, 600), fill=(98, 104, 120))
     og.save(os.path.join(OG_DIR, f"{code.lower()}.jpg"), "JPEG", quality=86)
     print(code)
 print("done")

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import SiteFooter from "../components/SiteFooter";
+import { SITE_ORIGIN } from "../lib/site-config";
 
 /**
  * 404 화면.
@@ -70,7 +71,7 @@ export default function NotFound() {
         </div>
       </article>
 
-      <SiteFooter ads={false} shareTitle="MBTI 검사 · 무료 심리테스트" shareUrl="https://mbtitest.co.kr/" />
+      <SiteFooter ads={false} shareTitle="MBTI 검사 · 무료 심리테스트" shareUrl={`${SITE_ORIGIN}/`} />
     </main>
   );
 }

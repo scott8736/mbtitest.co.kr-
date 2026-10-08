@@ -19,6 +19,7 @@ import {
 import { api, deviceId, forestName, guessTally, inviteUrl, myForestId, setMyForestId, type ForestMine, type ForestView } from "../lib/our-forest";
 import { recordResultClick, recordShare } from "../lib/test-events";
 import type { ResultClickPlacement } from "../lib/result-clicks";
+import { SITE_DOMAIN } from "../lib/site-config";
 
 const CODES = Object.keys(MORI_WORLD);
 const whoOf = (v: ForestView) => (v.owner.nickname ? `${v.owner.nickname}님` : "이 친구");
@@ -223,7 +224,7 @@ async function shareCard(view: ForestView): Promise<void> {
   if (t.words.length) g.fillText(`친구들이 고른 말: ${t.words.slice(0, 3).map(([w]) => w).join(", ")}`, 540, 1140);
   g.font = "bold 40px sans-serif";
   g.fillStyle = "#ffffff";
-  g.fillText("너도 맞혀 봐 → mbtitest.co.kr", 540, 1280);
+  g.fillText(`너도 맞혀 봐 → ${SITE_DOMAIN}`, 540, 1280);
   const blob = await new Promise<Blob | null>((ok) => c.toBlob(ok, "image/png"));
   if (!blob) return;
   const file = new File([blob], `friends-mori-${view.id}.png`, { type: "image/png" });

@@ -7,6 +7,7 @@ import SiteFooter from "../../../components/SiteFooter";
 import ShareButtons from "../../../components/ShareButtons";
 import { blogPosts, getBlogPost } from "../../../lib/blog-posts";
 import { clipDescription } from "../../../lib/meta-text";
+import { SITE_ORIGIN } from "../../../lib/site-config";
 
 export const dynamicParams = false;
 
@@ -23,7 +24,7 @@ export async function generateMetadata({
   const post = getBlogPost(slug);
   if (!post) return {};
 
-  const url = `https://mbtitest.co.kr/blog/${post.slug}/`;
+  const url = `${SITE_ORIGIN}/blog/${post.slug}/`;
   return {
     title: post.title,
     description: clipDescription(post.description),
@@ -66,7 +67,7 @@ export default async function BlogArticlePage({
   const post = getBlogPost(slug);
   if (!post) notFound();
 
-  const url = `https://mbtitest.co.kr/blog/${post.slug}/`;
+  const url = `${SITE_ORIGIN}/blog/${post.slug}/`;
   const related = post.relatedSlugs
     .map((relatedSlug) => getBlogPost(relatedSlug))
     .filter((item): item is NonNullable<typeof item> => Boolean(item));
@@ -89,14 +90,14 @@ export default async function BlogArticlePage({
     dateModified: post.updatedAt,
     mainEntityOfPage: url,
     author: { "@type": "Organization", name: "MBTI 검사 편집팀" },
-    publisher: { "@type": "Organization", name: "MBTI 검사", url: "https://mbtitest.co.kr/" },
+    publisher: { "@type": "Organization", name: "MBTI 검사", url: `${SITE_ORIGIN}/` },
   };
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "홈", item: "https://mbtitest.co.kr/" },
-      { "@type": "ListItem", position: 2, name: "MBTI·심리 콘텐츠", item: "https://mbtitest.co.kr/blog/" },
+      { "@type": "ListItem", position: 1, name: "홈", item: `${SITE_ORIGIN}/` },
+      { "@type": "ListItem", position: 2, name: "MBTI·심리 콘텐츠", item: `${SITE_ORIGIN}/blog/` },
       { "@type": "ListItem", position: 3, name: post.title, item: url },
     ],
   };

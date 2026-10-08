@@ -6,6 +6,7 @@ import { cardFont as font, centerWrap, inkOn, loadImage, mix, mixRgb, rgb } from
 import { MORI, moriImage } from "../lib/mori";
 import { readMyMori } from "../lib/my-mori";
 import { onResultLinkClick } from "../lib/test-events";
+import { SITE_DOMAIN } from "../lib/site-config";
 
 /**
  * 성향 테스트 밖의 결과 화면(IQ·자가진단·운세·사주·궁합·타로)에 붙이는 공유 카드 (2026-10-04).
@@ -147,7 +148,7 @@ async function drawResultCard(c: ResultShareProps, myMori: string | null): Promi
   ctx.fillText(myMori ? "너는 어떤 결과야?" : "너도 해 봐! 나는 어떤 결과일까?", 540, 1790);
   ctx.fillStyle = "#4b5266";
   ctx.font = font(700, 34);
-  ctx.fillText("mbtitest.co.kr 무료 심리테스트·운세", 540, 1860);
+  ctx.fillText(`${SITE_DOMAIN} 무료 심리테스트·운세`, 540, 1860);
 
   return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import MbtiQuiz from "../../../components/MbtiQuiz";
 import SiteFooter from "../../../components/SiteFooter";
 import SiteHeader from "../../../components/SiteHeader";
+import { SITE_ORIGIN } from "../../../lib/site-config";
 
 export const metadata: Metadata = {
   title: "무료 MBTI 검사 40문항",
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
   openGraph: {
     type: "website",
-    url: "https://mbtitest.co.kr/tests/mbti/",
+    url: `${SITE_ORIGIN}/tests/mbti/`,
     title: "무료 MBTI 검사 40문항 | MBTI 검사",
     description: "가입 없이 바로 시작하는 40문항 무료 MBTI 성격유형 검사",
     images: [{ url: "/images/og/mbti-mori-og.jpg", width: 1200, height: 630, alt: "무료 MBTI 검사 40문항" }],
@@ -28,7 +29,7 @@ export default function MbtiTestPage() {
     "@type": "Quiz",
     name: "무료 MBTI 성격유형 검사",
     description: "40개 문항으로 16가지 성격유형을 확인하는 무료 MBTI 검사",
-    url: "https://mbtitest.co.kr/tests/mbti/",
+    url: `${SITE_ORIGIN}/tests/mbti/`,
     inLanguage: "ko-KR",
     educationalLevel: "beginner",
     numberOfQuestions: 40,

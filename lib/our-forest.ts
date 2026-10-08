@@ -4,6 +4,7 @@
  */
 import { MORI_PAIRS } from "./mori-world";
 import { FRIEND_WORDS, type Coupon } from "./invite-coupon";
+import { SITE_ORIGIN } from "./site-config";
 
 export type ForestView = {
   id: string;
@@ -81,7 +82,7 @@ export const markGuessed = (id: string, guess: string) => {
 export const pendingInvite = () => read(PENDING_KEY);
 export const setPendingInvite = (id: string | null) => write(PENDING_KEY, id);
 
-export const inviteUrl = (id: string) => `${typeof location !== "undefined" ? location.origin : "https://mbtitest.co.kr"}/mori/forest/f/?id=${id}`;
+export const inviteUrl = (id: string) => `${typeof location !== "undefined" ? location.origin : `${SITE_ORIGIN}`}/mori/forest/f/?id=${id}`;
 export const forestName = (v: ForestView) => (v.owner.nickname ? `${v.owner.nickname}님의 숲` : `${v.owner.type} 모리의 숲`);
 
 /** 숲에 모인 유형별 인원(주인 포함) */

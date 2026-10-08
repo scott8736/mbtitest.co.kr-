@@ -1,0 +1,43 @@
+{
+  "_readme": "사이트마다 바뀌는 값을 한 곳에 모은 파일(2026-10-08). 코드는 lib/site-config.ts 로 읽고, 파이썬·mjs 스크립트는 이 JSON 을 직접 읽는다. 원고·세계관 이야기·그림은 여기 없다 — 그건 사이트마다 새로 만드는 콘텐츠다.",
+
+  "brand": {
+    "domain": "mbtitest.co.kr",
+    "name": "MBTI 검사",
+    "shareTagline": "무료 심리테스트·운세",
+    "adsenseClient": "ca-pub-8646375689901020"
+  },
+
+  "world": {
+    "_note": "세계관 이야기 본문(마을·말버릇·짝꿍)은 lib/mori-world.ts 에 있다. 여기는 이름만.",
+    "name": "마음숲",
+    "character": "모리",
+    "characterCount": 16,
+    "ogImage": "/images/og/mbti-mori-og.jpg",
+    "icon": "/mori-icon.svg"
+  },
+
+  "product": {
+    "name": "모리 마음숲 안내서",
+    "eventPrice": 9900,
+    "regularPrice": 14900,
+    "testPrice": 1000,
+    "tossPrice": 9900,
+    "event": { "label": "오픈 기념 특별 이벤트", "from": "2026-10-05", "to": "2026-10-31" }
+  },
+
+  "payment": {
+    "payappUserid": "charry333",
+    "payTypes": "card,kakaopay,naverpay,tosspay,applepay,smilepay,payco,phone"
+  },
+
+  "seller": {
+    "name": "챠리몰",
+    "owner": "김영훈",
+    "bizNo": "543-24-01142",
+    "mailOrderNo": "제2021-경남사천-0189호",
+    "address": "경상남도 사천시 용현면 용현로 87, 108동 404호",
+    "contact": "010-2776-8898 · tiredddq492@naver.com",
+    "hosting": "Cloudflare, Inc."
+  }
+}

@@ -3,6 +3,7 @@ import AdUnit from "../../components/AdUnit";
 import ContentHeader from "../../components/ContentHeader";
 import SiteFooter from "../../components/SiteFooter";
 import { blogCategories, blogPosts } from "../../lib/blog-posts";
+import { SITE_ORIGIN } from "../../lib/site-config";
 
 export const metadata: Metadata = {
   title: "MBTI 검사·심리테스트 가이드",
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "MBTI 검사·심리테스트 가이드",
     description: "나를 이해하고 관계를 돌아보는 MBTI·심리 콘텐츠와 무료 테스트",
-    url: "https://mbtitest.co.kr/blog/",
+    url: `${SITE_ORIGIN}/blog/`,
     type: "website",
     images: [
       {

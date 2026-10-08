@@ -9,6 +9,9 @@
 """
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
+import json as _json
+from pathlib import Path as _Path
+SITE_DOMAIN = _json.loads((_Path(__file__).resolve().parent.parent / "site.config.json").read_text(encoding="utf-8"))["brand"]["domain"]  # 도메인은 site.config.json
 
 ROOT = Path(__file__).resolve().parent.parent
 FONT = str(ROOT / "scripts" / "fonts" / "GothicA1-Bold.ttf")
@@ -45,7 +48,7 @@ d.text((70, 330), "16모리 중 하나를 골라 맞혀 줘!", font=mid, fill="#
 d.text((70, 395), "고르면 정답이 바로 나와요", font=small, fill="#3a3f55")
 d.rounded_rectangle([70, 470, 470, 550], radius=40, fill="#7657d6")
 d.text((270, 510), "맞히러 가기 →", font=mid, fill="#ffffff", anchor="mm")
-d.text((70, 585), "mbtitest.co.kr", font=small, fill="#5a3fb3")
+d.text((70, 585), SITE_DOMAIN, font=small, fill="#5a3fb3")
 
 OUT.parent.mkdir(parents=True, exist_ok=True)
 img.save(OUT, optimize=True)

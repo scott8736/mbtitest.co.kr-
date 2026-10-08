@@ -3,6 +3,7 @@ import IqTestRunner from "../../../components/IqTestRunner";
 import { iqFaq } from "../../../lib/iq-test";
 import "../../check/screener.css";
 import "./iq.css";
+import { SITE_ORIGIN } from "../../../lib/site-config";
 
 // 아이큐테스트 10,780 + IQ테스트 7,900 (월간, 네이버 검색광고 2026-09-29).
 // 템플릿 " | MBTI 검사" 를 붙여 34자.
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/tests/iq/" },
   openGraph: {
     type: "website",
-    url: "https://mbtitest.co.kr/tests/iq/",
+    url: `${SITE_ORIGIN}/tests/iq/`,
     title: "IQ 테스트 무료 | 20문제 두뇌 퍼즐",
     description: "수열·언어·논리·수리 20문제. 몇 문제나 맞힐 수 있을까요?",
     images: [{ url: "/images/og/mbti-mori-og.jpg", width: 1200, height: 630, alt: "IQ 테스트" }],

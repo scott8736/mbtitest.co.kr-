@@ -28,6 +28,7 @@ import {
   type CleanOrder,
 } from "../lib/report-config";
 import { SITE_ORIGIN } from "../lib/site-urls";
+import { SITE_DOMAIN } from "../lib/site-config";
 import { classifyDevice, classifySource } from "../lib/analytics";
 import { hasBook, loadBook } from "./report-books";
 import { readSetting } from "./naver";
@@ -338,7 +339,7 @@ export function orderMeta(raw: unknown, request: Request): OrderMeta {
     refHost = "";
   }
   return {
-    src: classifySource(ref, "mbtitest.co.kr"),
+    src: classifySource(ref, SITE_DOMAIN),
     refHost,
     landing: clean(t.landing, 120),
     utm: clean(t.utm, 120),

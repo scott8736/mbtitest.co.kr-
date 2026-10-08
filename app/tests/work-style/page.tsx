@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import GenericTestRunner from "../../../components/GenericTestRunner";
 import { genericTests } from "../../../lib/generic-tests";
+import { SITE_ORIGIN } from "../../../lib/site-config";
 
 export const metadata: Metadata = {
   title: "직장 성향 테스트",
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/tests/work-style/" },
   openGraph: {
     type: "website",
-    url: "https://mbtitest.co.kr/tests/work-style/",
+    url: `${SITE_ORIGIN}/tests/work-style/`,
     title: "직장 성향 테스트 | MBTI 검사",
     description: "협업, 의사결정, 몰입 방식으로 나의 일하는 스타일과 잘 맞는 업무 환경을 확인하는 무료 직장 성향 테스트입니다.",
     images: [{ url: "/images/og/mbti-mori-og.jpg", width: 1200, height: 630, alt: "직장 성향 테스트" }],

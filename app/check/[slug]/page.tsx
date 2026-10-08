@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import ScreenerRunner from "../../../components/ScreenerRunner";
 import { screenerBySlug, screenerSlugs } from "../../../lib/screeners";
 import "../screener.css";
+import { SITE_ORIGIN } from "../../../lib/site-config";
 
 export const dynamicParams = false;
 
@@ -26,7 +27,7 @@ export async function generateMetadata({
     alternates: { canonical: `/check/${slug}/` },
     openGraph: {
       type: "website",
-      url: `https://mbtitest.co.kr/check/${slug}/`,
+      url: `${SITE_ORIGIN}/check/${slug}/`,
       title: `${screener.title} 무료`,
       description: screener.description,
       images: [

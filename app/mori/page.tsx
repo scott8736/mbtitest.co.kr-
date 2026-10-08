@@ -7,6 +7,7 @@ import SiteFooter from "../../components/SiteFooter";
 import { typeData } from "../../lib/mbti-data";
 import { MORI, moriImage } from "../../lib/mori";
 import { MORI_PAIRS, MORI_WORLD, VILLAGES, villageOf, type VillageKey } from "../../lib/mori-world";
+import { SITE_DOMAIN } from "../../lib/site-config";
 
 /**
  * 모리 세계관 「마음숲 안내서」 (2026-10-04). 세계관을 한 장에 모은 페이지입니다.
@@ -115,7 +116,7 @@ export default function MoriWorldPage() {
         <MoriLoopVideo variant="share" />
 
         <p className="world-note">
-          모리와 마음숲은 mbtitest.co.kr 의 자체 캐릭터 세계관입니다. 성격 유형은 자기이해를 돕는 참고 자료이고,
+          모리와 마음숲은 {SITE_DOMAIN} 의 자체 캐릭터 세계관입니다. 성격 유형은 자기이해를 돕는 참고 자료이고,
           어느 모리가 더 낫거나 못한 일은 없어요.
         </p>
       </section>

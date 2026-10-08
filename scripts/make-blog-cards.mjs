@@ -19,10 +19,12 @@
  */
 import { mkdir, readFile, writeFile, access } from "node:fs/promises";
 import { join } from "node:path";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 import satori from "satori";
 import sharp from "sharp";
+const SITE_DOMAIN = JSON.parse(readFileSync(new URL("../site.config.json", import.meta.url), "utf8")).brand.domain;
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const OUT_DIR = join(root, "public", "images", "blog");
@@ -190,7 +192,7 @@ function card(post, accent, mori) {
             style: { display: "flex", alignItems: "center", gap: 16 },
             children: [
               text("내 모리 찾기 · 무료 MBTI 검사", { fontSize: 28, color: "#5b45b0" }),
-              text("mbtitest.co.kr", { fontSize: 24, color: "#7d8197" }),
+              text(SITE_DOMAIN, { fontSize: 24, color: "#7d8197" }),
             ],
           }),
         ],

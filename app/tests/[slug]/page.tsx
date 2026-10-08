@@ -5,6 +5,7 @@ import { genericTests } from "../../../lib/generic-tests";
 import { newTestSlugs } from "../../../lib/test-meta";
 import { testCatalog } from "../../../lib/test-catalog";
 import { clipDescription } from "../../../lib/meta-text";
+import { SITE_ORIGIN } from "../../../lib/site-config";
 
 export const dynamicParams = false;
 
@@ -30,7 +31,7 @@ export async function generateMetadata({
     alternates: { canonical: `/tests/${slug}/` },
     openGraph: {
       type: "website",
-      url: `https://mbtitest.co.kr/tests/${slug}/`,
+      url: `${SITE_ORIGIN}/tests/${slug}/`,
       title: `${item.title} 무료`,
       description: item.description,
       images: [

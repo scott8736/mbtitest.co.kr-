@@ -6,6 +6,7 @@ import { cardFont as font, centerWrap, inkOn, loadImage, mix, mixRgb, rgb } from
 import { MORI, moriImage, testMoriImage } from "../lib/mori";
 import { readMyMori } from "../lib/my-mori";
 import { onResultLinkClick } from "../lib/test-events";
+import { SITE_DOMAIN } from "../lib/site-config";
 
 /**
  * 다른 테스트(53개) 결과의 공유 카드 (2026-10-04).
@@ -105,7 +106,7 @@ async function drawTestCard(c: CardInput, myMori: string | null): Promise<Blob |
   ctx.fillText(myMori ? "너는 어떤 결과야?" : "나는 어떤 모리일까? MBTI로 내 캐릭터 찾기", 540, 1790);
   ctx.fillStyle = "#4b5266";
   ctx.font = font(700, 34);
-  ctx.fillText("mbtitest.co.kr 무료 심리테스트", 540, 1860);
+  ctx.fillText(`${SITE_DOMAIN} 무료 심리테스트`, 540, 1860);
 
   return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
 }

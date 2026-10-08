@@ -7,7 +7,9 @@ import { dreamSlugs } from "./fortune-dreams";
 import { screenerSlugs } from "./screeners";
 import { tarotSlugs } from "./tarot";
 
-export const SITE_ORIGIN = "https://mbtitest.co.kr";
+import { SITE_ORIGIN } from "./site-config";
+
+export { SITE_ORIGIN };
 
 export type SiteUrl = {
   path: string;
