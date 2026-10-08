@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const { outputFiles } = await build({
   stdin: {
-    contents: `export * from "./worker/mori-chat"; export * from "./lib/mori-chat"; export { moriChatAdminBox, moriChatSummaryBox, moriChatAdminPost } from "./worker/mori-chat-admin"; export { profiles } from "./lib/mbti-content"; export { MORI_WORLD } from "./lib/mori-world"; export { writeSetting } from "./worker/naver"; export { ensureReportSchema, phoneHash, seoulToday } from "./worker/report";`,
+    contents: `export * from "./worker/mori-chat"; export * from "./lib/mori-chat"; export { moriChatAdminBox, moriChatSummaryBox, moriChatAdminPost, healthChecks } from "./worker/mori-chat-admin"; export { profiles } from "./lib/mbti-content"; export { MORI_WORLD } from "./lib/mori-world"; export { writeSetting } from "./worker/naver"; export { ensureReportSchema, phoneHash, seoulToday } from "./worker/report";`,
     resolveDir: repoRoot,
     loader: "ts",
   },
@@ -401,7 +401,8 @@ test("관리자 칸: 기록이 있어도 없어도 그려지고, 키 값은 보�
   assert.match(box, /📖 리포트<\/td><td>1<\/td><td>1<\/td><td>100.0%/);
   assert.ok(!box.includes("s".repeat(40)), "확인 키 값은 화면에 없다");
   const summary = await C.moriChatSummaryBox(db);
-  assert.match(summary, /<tr><td>오늘<\/td><td>1<\/td><td>3<\/td><td>0<\/td><td>1<\/td><td>1<\/td><\/tr>/);
+  assert.match(summary, /<tr><td>오늘<\/td><td>1<\/td><td>3<\/td><td>0<\/td><td>1<\/td><td>1<\/td><td>0<\/td><\/tr>/);
+  assert.match(summary, /점검 표/);
 
   const form = new FormData();
   form.set("kma_key", "abc%2Bdef");
@@ -484,4 +485,60 @@ test("점검 10·7: 위험한 말 기록엔 누가 보냈는지 없고, quota �
   const j = await q.json();
   assert.equal(q.status, 200);
   assert.deepEqual(j.passAlive, [], "없는 열쇠는 살아 있지 않다 → 화면이 지운다");
+});
+
+
+// ── 모니터링(10-08) ──
+test("오류는 종류만 기록되고, 5건째에 한 번만 알린다 · 안전 차단은 오류가 아니다", async () => {
+  const db = await setup();
+  const notes = [];
+  const notify = (t) => notes.push(t);
+  const busy = relayStub({ status: 503, body: { error: "busy" } });
+  for (let i = 0; i < 6; i++) await C.handleSend(db, req(`3.3.3.${i}`), { device: `dev-err-${String(i).padStart(12, "0")}`, mori: "INFP", history: [], message: "안녕" }, { fetcher: busy.fetcher, notify });
+  const rows = db.sql.prepare("SELECT ref, device FROM mori_chat_usage WHERE kind = 'error'").all();
+  assert.equal(rows.length, 6);
+  assert.ok(rows.every((r) => r.ref === "relay-busy" && r.device === ""));
+  assert.equal(notes.length, 1, "5건째 한 번");
+  assert.match(notes[0], /오류 오늘 5건/);
+
+  const blocked = relayStub({ status: 422, body: { error: "safety" } });
+  await send(db, {}, { fetcher: blocked.fetcher, notify });
+  assert.equal(db.sql.prepare("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE kind = 'blocked'").get().n, 1);
+  assert.equal(db.sql.prepare("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE kind = 'error'").get().n, 6);
+});
+
+test("상담 안내·유료 키 상한 알림은 하루 한 번", async () => {
+  const db = await setup();
+  const notes = [];
+  const notify = (t) => notes.push(t);
+  await send(db, { message: "죽고 싶어" }, { fetcher: relayStub().fetcher, notify });
+  await send(db, { message: "살기 싫어" }, { fetcher: relayStub().fetcher, notify });
+  assert.equal(notes.filter((t) => t.includes("상담 전화 안내")).length, 1);
+  const day = C.seoulToday();
+  const ins = db.sql.prepare("INSERT INTO mori_chat_usage (day, device, ip, kind, tier) VALUES (?, ?, 'x', 'free', 'paid')");
+  for (let i = 0; i < C.FREE_PAID_FALLBACK_PER_DAY; i++) ins.run(day, `filler-${i}`);
+  await send(db, {}, { fetcher: relayStub().fetcher, notify }, "4.4.4.1");
+  await send(db, {}, { fetcher: relayStub().fetcher, notify }, "4.4.4.2");
+  assert.equal(notes.filter((t) => t.includes("상한")).length, 1);
+});
+
+test("점검 표: 중계 상태·오류율·결제 통보 거절을 판단한다", async () => {
+  const db = await setup();
+  const since = C.seoulToday();
+  const okRelay = async () => new Response(JSON.stringify({ ok: true, freeKeys: 8, paidKey: true, secret: true }));
+  const deadRelay = async () => { throw new Error("down"); };
+  let checks = await C.healthChecks(db, since, { relayUrl: "https://r.workers.dev/chat", kmaKey: false, open: true }, okRelay);
+  const by = (t) => checks.find((c) => c.title.startsWith(t));
+  assert.equal(by("중계 워커").level, "ok");
+  assert.equal(by("대화 오류율").level, "ok");
+  assert.equal(by("날씨").level, "warn");
+  checks = await C.healthChecks(db, since, { relayUrl: "https://r.workers.dev/chat", kmaKey: true, open: true }, deadRelay);
+  assert.equal(by("중계 워커 응답 없음").level, "bad");
+  db.sql.prepare("INSERT INTO report_events (order_no, kind, detail) VALUES ('MC1', 'feedback_rejected', 'chat-pass auth')").run();
+  for (let i = 0; i < 3; i++) db.sql.prepare("INSERT INTO mori_chat_usage (day, device, ip, kind) VALUES (?, 'd', 'i', 'free')").run(since);
+  db.sql.prepare("INSERT INTO mori_chat_usage (day, device, ip, kind, ref) VALUES (?, '', '', 'error', 'relay-failed')").run(since);
+  checks = await C.healthChecks(db, since, { relayUrl: "https://r.workers.dev/chat", kmaKey: true, open: true }, okRelay);
+  assert.equal(by("대화권 결제 통보 거절").level, "bad");
+  assert.equal(by("대화 오류율").level, "bad", "1/4 = 25%");
+  assert.match(by("대화 오류율").detail, /relay-failed 1/);
 });

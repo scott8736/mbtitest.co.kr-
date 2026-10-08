@@ -9,7 +9,7 @@
 import { CHAT_FREE_PER_DAY, CHAT_PASS_PRICE, CHAT_PASS_SIZE, CHAT_REPORT_DAYS, CHAT_REPORT_PER_DAY } from "../lib/mori-chat";
 import { REPORT_TEST_PRICE } from "../lib/report-config";
 import { readSetting, writeSetting } from "./naver";
-import { chatOpen, createPassOrder, ensureChatSchema, passSalesOpen, relayConfig } from "./mori-chat";
+import { chatOpen, createPassOrder, ensureChatSchema, FREE_PAID_FALLBACK_PER_DAY, passSalesOpen, relayConfig } from "./mori-chat";
 import { logEvent, newToken, payappKeys } from "./report";
 
 /** 처리한 POST 면 돌아갈 주소, 아니면 null. */
@@ -88,6 +88,103 @@ async function promoTable(db: D1Database, since: string, esc: (v: unknown) => st
 <tbody>${body || `<tr><td colspan="4" class="muted">아직 기록이 없습니다.</td></tr>`}</tbody></table></div>`;
 }
 
+type Check = { level: "ok" | "warn" | "bad"; title: string; detail: string };
+
+/**
+ * 「점검」 표: 오류·빈틈·개선점을 숫자로 판단해 ✅/⚠/❌ 로 보여 줍니다(2026-10-08 사용자 요청).
+ * 판단 기준은 첫 주 숫자를 보고 바꿉니다 — 기준을 바꿀 때는 여기 숫자만 고치면 됩니다.
+ */
+export async function healthChecks(db: D1Database, since: string, ctx: { relayUrl: string; kmaKey: boolean; open: boolean }, fetcher: typeof fetch = fetch): Promise<Check[]> {
+  const today = new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10);
+  const count = async (sql: string, ...binds: (string | number)[]) =>
+    Number((await db.prepare(sql).bind(...binds).first<{ n: number }>())?.n ?? 0);
+  const talks = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day >= ? AND kind IN ('free','report','pass')", since);
+  const errors = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day >= ? AND kind = 'error'", since);
+  const errorsToday = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day = ? AND kind = 'error'", today);
+  const blocked = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day >= ? AND kind = 'blocked'", since);
+  const crisis = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day >= ? AND kind = 'crisis'", since);
+  const people = await count("SELECT COUNT(DISTINCT device) AS n FROM mori_chat_usage WHERE day >= ? AND kind IN ('free','report','pass')", since);
+  const walled = await count("SELECT COUNT(DISTINCT device) AS n FROM mori_chat_usage WHERE day >= ? AND kind = 'wall'", since);
+  const spill = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day = ? AND kind = 'free' AND tier = 'paid'", today);
+  const oneTurn = await count(
+    "SELECT COUNT(*) AS n FROM (SELECT MAX(turn) AS t FROM mori_chat_usage WHERE day >= ? AND kind IN ('free','report','pass') GROUP BY day, device) WHERE t <= 1",
+    since,
+  );
+  const sessions = await count("SELECT COUNT(*) AS n FROM (SELECT 1 FROM mori_chat_usage WHERE day >= ? AND kind IN ('free','report','pass') GROUP BY day, device)", since);
+  const promoSeen = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day >= ? AND kind = 'promo_seen'", since);
+  const promoClick = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day >= ? AND kind = 'promo_click'", since);
+  const passPaid = await count("SELECT COUNT(*) AS n FROM mori_chat_passes WHERE test = 0 AND status IN ('paid','partial') AND created_at >= ?", `${since} 00:00:00`);
+  const rejected = await count("SELECT COUNT(*) AS n FROM report_events WHERE kind = 'feedback_rejected' AND detail LIKE 'chat-pass%' AND created_at >= ?", `${since} 00:00:00`);
+  const stalePending = await count("SELECT COUNT(*) AS n FROM mori_chat_passes WHERE status = 'pending' AND created_at < datetime('now', '-1 day') AND created_at >= datetime('now', '-8 day')");
+  const errorKinds = (await db
+    .prepare("SELECT ref, COUNT(*) AS n FROM mori_chat_usage WHERE day >= ? AND kind = 'error' GROUP BY ref ORDER BY n DESC LIMIT 5")
+    .bind(since)
+    .all<{ ref: string; n: number }>()).results ?? [];
+
+  // 중계 워커 상태(키 개수만 돌려주는 /health, 3초)
+  let relay: { ok?: boolean; freeKeys?: number; paidKey?: boolean; secret?: boolean } | null = null;
+  if (ctx.relayUrl) {
+    try {
+      const res = await fetcher(ctx.relayUrl.replace(/\/chat$/, "/health"), { signal: AbortSignal.timeout(3000) });
+      relay = (await res.json()) as typeof relay;
+    } catch {
+      relay = null;
+    }
+  }
+
+  const pct = (a: number, b: number) => (b ? (a / b) * 100 : 0);
+  const p1 = (x: number) => `${x.toFixed(1)}%`;
+  const out: Check[] = [];
+  const add = (level: Check["level"], title: string, detail: string) => out.push({ level, title, detail });
+
+  // ── 오류 ──
+  if (!ctx.open) add("warn", "대화가 닫혀 있음", "손님은 「준비 중」을 봅니다. 의도한 것이 아니면 위 「대화 열기」.");
+  if (!relay) add("bad", "중계 워커 응답 없음", "mori-chat-api /health 가 3초 안에 답하지 않았습니다. Cloudflare 워커 상태를 확인하세요.");
+  else if (!relay.secret || !relay.freeKeys) add("bad", "중계 워커 키 빠짐", `무료 키 ${relay.freeKeys ?? 0}개 · 확인 키 ${relay.secret ? "있음" : "없음"} — python set_secrets.py`);
+  else add("ok", "중계 워커", `무료 키 ${relay.freeKeys}개 · 유료 키 ${relay.paidKey ? "있음" : "없음"}`);
+  const er = pct(errors, talks + errors);
+  add(er >= 5 ? "bad" : er >= 1 ? "warn" : "ok", "대화 오류율(7일)", `${errors}건 / 시도 ${talks + errors}건 = ${p1(er)} · 오늘 ${errorsToday}건${errorKinds.length ? ` · 종류: ${errorKinds.map((k) => `${k.ref} ${k.n}`).join(", ")}` : ""} (relay-busy=무료 키 한도, relay-failed=중계·제미나이 장애, exception=서버 코드)`);
+  add(spill >= FREE_PAID_FALLBACK_PER_DAY ? "warn" : "ok", "무료 사용자 유료 키 사용(오늘)", `${spill} / ${FREE_PAID_FALLBACK_PER_DAY}건 — 상한에 닿으면 무료 사용자는 무료 키만 써서 「잠시 후」가 늘어납니다.`);
+
+  // ── 빈틈 ──
+  add(rejected ? "bad" : "ok", "대화권 결제 통보 거절(7일)", rejected ? `${rejected}건 — 키·금액이 맞지 않는 통보. 위조 시도이거나 페이앱 연동 KEY·VALUE 가 바뀌었습니다(아래 통보 기록 확인).` : "없음");
+  add(stalePending ? "warn" : "ok", "하루 넘은 결제 대기 대화권", stalePending ? `${stalePending}건 — 결제창을 열고 안 낸 주문이거나, 결제했는데 통보가 안 온 주문입니다. 페이앱 관리자에서 결제 여부를 대조하세요.` : "없음");
+  add(crisis ? "warn" : "ok", "상담 전화 안내(7일)", crisis ? `${crisis}건 · 안전 차단 ${blocked}건 — 내용은 남기지 않습니다. 건수가 갑자기 늘면 필터 오탐인지 한 번 직접 대화해 보세요.` : `없음 · 안전 차단 ${blocked}건`);
+  add(ctx.kmaKey ? "ok" : "warn", "날씨", ctx.kmaKey ? "기상청 키 등록됨" : "기상청 키 없음 — 시간대·기념일만 반영(공공데이터포털 「기상청_단기예보 조회서비스」 신청 후 위 칸에 입력)");
+
+  // ── 개선점(숫자가 쌓여야 판단) ──
+  if (sessions >= 20) {
+    const one = pct(oneTurn, sessions);
+    add(one >= 50 ? "warn" : "ok", "첫마디만 하고 나가는 비율", `${p1(one)} (${oneTurn}/${sessions}) — 50% 넘으면 첫인사·첫 답이 재미없다는 뜻. 말투 견본(scripts/mori-chat-sample.mjs)으로 첫 답을 다듬습니다.`);
+  } else add("ok", "첫마디만 하고 나가는 비율", `표본 부족(${sessions}/20)`);
+  if (people >= 20) {
+    const w = pct(walled, people);
+    add(w >= 40 ? "warn" : "ok", "무료를 다 쓴 사람", `${p1(w)} (${walled}/${people}) — 40% 넘으면 무료 5번이 짧을 수 있고, 5% 아래면 결제 안내를 볼 사람이 거의 없습니다.`);
+  } else add("ok", "무료를 다 쓴 사람", `표본 부족(${people}/20)`);
+  if (walled >= 20) {
+    const c = pct(passPaid, walled);
+    add(c < 1 ? "warn" : "ok", "막힘 → 대화권 결제", `${p1(c)} (${passPaid}/${walled}) — 1% 아래면 가격(2,900원)이나 결제 안내 문구를 바꿔 봅니다.`);
+  } else add("ok", "막힘 → 대화권 결제", `표본 부족(막힘 ${walled}/20) · 결제 ${passPaid}건`);
+  if (promoSeen >= 50) {
+    const c = pct(promoClick, promoSeen);
+    add(c < 2 ? "warn" : "ok", "추천 카드 클릭률", `${p1(c)} (${promoClick}/${promoSeen}) — 2% 아래면 카드가 대화 흐름을 끊고 있을 수 있습니다. 확률(40%)·간격(3번)을 줄여 봅니다.`);
+  } else add("ok", "추천 카드 클릭률", `표본 부족(노출 ${promoSeen}/50)`);
+  return out;
+}
+
+async function healthTable(db: D1Database, since: string, esc: (v: unknown) => string, ctx: { relayUrl: string; kmaKey: boolean; open: boolean }): Promise<string> {
+  const checks = await healthChecks(db, since, ctx);
+  const icon = { ok: "✅", warn: "⚠️", bad: "❌" } as const;
+  const order = { bad: 0, warn: 1, ok: 2 } as const;
+  const rows = [...checks].sort((a, b) => order[a.level] - order[b.level])
+    .map((c) => `<tr><td>${icon[c.level]}</td><td><b>${esc(c.title)}</b></td><td>${esc(c.detail)}</td></tr>`).join("");
+  const bad = checks.filter((c) => c.level === "bad").length;
+  const warn = checks.filter((c) => c.level === "warn").length;
+  return `<h3 style="margin-top:16px" id="mori-chat-health">점검 — 오류·빈틈·개선점 (❌ ${bad} · ⚠️ ${warn})</h3>
+<p class="note">숫자로 자동 판단합니다. ❌는 바로 손볼 것, ⚠️는 확인할 것. 오류가 하루 5·20·100건이 되거나, 유료 키 상한에 닿거나, 그날 첫 상담 안내가 나가면 텔레그램으로도 알립니다.</p>
+<div class="scroll"><table><thead><tr><th></th><th>항목</th><th>내용</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
 /** 메인 /admin/ 요약 칸: 오늘·7일 대화한 사람, 대화 수, 막힘, 대화권 매출, 추천 클릭. */
 export async function moriChatSummaryBox(db: D1Database): Promise<string> {
   try {
@@ -101,23 +198,29 @@ export async function moriChatSummaryBox(db: D1Database): Promise<string> {
                   SUM(CASE WHEN kind IN ('free','report','pass') THEN 1 ELSE 0 END) AS talks,
                   COUNT(DISTINCT CASE WHEN kind = 'wall' THEN device END) AS walled,
                   SUM(CASE WHEN kind = 'crisis' THEN 1 ELSE 0 END) AS crisis,
-                  SUM(CASE WHEN kind = 'promo_click' THEN 1 ELSE 0 END) AS clicks
+                  SUM(CASE WHEN kind = 'promo_click' THEN 1 ELSE 0 END) AS clicks,
+                  SUM(CASE WHEN kind = 'error' THEN 1 ELSE 0 END) AS errors
              FROM mori_chat_usage WHERE day >= ?`,
         )
         .bind(from)
-        .first<{ people: number; talks: number; walled: number; crisis: number; clicks: number }>()) ?? { people: 0, talks: 0, walled: 0, crisis: 0, clicks: 0 };
+        .first<{ people: number; talks: number; walled: number; crisis: number; clicks: number; errors: number }>()) ?? { people: 0, talks: 0, walled: 0, crisis: 0, clicks: 0, errors: 0 };
     const [t, w] = [await stat(today), await stat(since)];
     const sales = await db
       .prepare("SELECT COUNT(*) AS n, COALESCE(SUM(price),0) AS won FROM mori_chat_passes WHERE test = 0 AND status IN ('paid','partial') AND created_at >= ?")
       .bind(`${since} 00:00:00`)
       .first<{ n: number; won: number }>();
     const open = await chatOpen(db);
-    const cell = (x: { people: number; talks: number; walled: number; crisis: number; clicks: number }) =>
-      `<td>${x.people ?? 0}</td><td>${x.talks ?? 0}</td><td>${x.walled ?? 0}</td><td>${x.crisis ?? 0}</td><td>${x.clicks ?? 0}</td>`;
+    const cell = (x: { people: number; talks: number; walled: number; crisis: number; clicks: number; errors: number }) =>
+      `<td>${x.people ?? 0}</td><td>${x.talks ?? 0}</td><td>${x.walled ?? 0}</td><td>${x.crisis ?? 0}</td><td>${x.clicks ?? 0}</td><td>${x.errors ? `<b style="color:#b6483c">${x.errors}</b>` : 0}</td>`;
+    const relay = await relayConfig(db);
+    const checks = await healthChecks(db, since, { relayUrl: relay.url, kmaKey: Boolean(await readSetting(db, "kma_service_key")), open });
+    const bad = checks.filter((c) => c.level === "bad");
+    const warn = checks.filter((c) => c.level === "warn");
     return `<div class="box"><h2>모리 AI 대화 · ${open ? "열림" : "닫힘"} · <a href="/admin/report/#mori-chat">자세히 →</a></h2>
 <p class="note">대화 내용은 저장하지 않습니다(횟수·번째·모델만). 「막힘」은 무료를 다 써 결제 안내를 본 사람, 「위험한 말」은 상담 전화 안내가 나간 횟수 — 0이 아니면 한 번씩 흐름을 확인하세요.
 지난 7일 대화권 매출 ${sales?.n ?? 0}건 · ${(sales?.won ?? 0).toLocaleString()}원.</p>
-<div class="scroll"><table><thead><tr><th></th><th>대화한 사람</th><th>대화 수</th><th>막힘(명)</th><th>위험한 말</th><th>추천 카드 클릭</th></tr></thead><tbody>
+<p class="note">점검: ${bad.length ? `<b style="color:#b6483c">❌ ${bad.map((c) => c.title).join(", ")}</b> · ` : ""}${warn.length ? `⚠️ ${warn.map((c) => c.title).join(", ")}` : bad.length ? "" : "✅ 문제 없음"} · <a href="/admin/report/#mori-chat-health">점검 표 →</a></p>
+<div class="scroll"><table><thead><tr><th></th><th>대화한 사람</th><th>대화 수</th><th>막힘(명)</th><th>위험한 말</th><th>추천 카드 클릭</th><th>오류</th></tr></thead><tbody>
 <tr><td>오늘</td>${cell(t)}</tr><tr><td>지난 7일</td>${cell(w)}</tr></tbody></table></div></div>`;
   } catch {
     return "";
@@ -202,6 +305,7 @@ ${madeBox}${payBox}
 <div class="scroll"><table><thead><tr><th>날짜</th><th>대화한 사람</th><th>무료</th><th>리포트 몫</th><th>대화권</th><th>안내문(위험한 말)</th><th>횟수 없어 막힘</th></tr></thead>
 <tbody>${tableRows || `<tr><td colspan="7" class="muted">아직 기록이 없습니다.</td></tr>`}</tbody></table></div>
 <p class="note">몇 번째 말까지 했나(기기·하루마다): ${depthText}</p>
+${await healthTable(db, since, esc, { relayUrl: relay.url, kmaKey: Boolean(kmaKey), open: live })}
 ${await promoTable(db, since, esc)}
 <p class="note">모델·키: ${models.map((m) => `${esc(m.model)} ${esc(m.tier)} ${m.n}`).join(" · ") || "-"}</p>
 <h3 style="margin-top:16px">대화권 주문</h3>

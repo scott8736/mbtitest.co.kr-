@@ -329,6 +329,43 @@ async function reserveUsage(
   return Number(res?.meta?.last_row_id ?? res?.lastInsertRowid ?? 0);
 }
 
+// ── 모니터링(2026-10-08 사용자 요청: 오류·헛점·개선점을 볼 수 있게) ──
+
+/** 화면이 보내는 알림 함수(텔레그램). 없으면 조용히 넘어갑니다. */
+export type Notify = (text: string) => void;
+
+/** 하루에 한 번만 보내는 알림. app_settings 에 「보냈음」 표시를 남깁니다. */
+export async function alertOnce(db: D1Database, key: string, text: string, notify?: Notify): Promise<boolean> {
+  if (!notify) return false;
+  const res = (await db
+    .prepare("INSERT INTO app_settings (key, value) VALUES (?, '1') ON CONFLICT(key) DO NOTHING")
+    .bind(`mori_chat_alert:${key}`)
+    .run()) as { meta?: { changes?: number }; changes?: number };
+  if ((res?.meta?.changes ?? res?.changes ?? 0) === 0) return false;
+  notify(text);
+  return true;
+}
+
+/** 오늘 오류가 이 수에 닿으면 알립니다(각각 하루 한 번). */
+export const ERROR_ALERT_STEPS = [5, 20, 100];
+
+/**
+ * 오류 한 건 기록. 대화 내용 없이 종류만(ref: busy·failed·exception…). 손님에게는 이미 「횟수 그대로」 안내가 나갔습니다.
+ * 오늘 건수가 5·20·100 에 닿으면 텔레그램으로 알립니다.
+ */
+export async function noteError(db: D1Database, day: string, reason: string, notify?: Notify): Promise<void> {
+  try {
+    await recordUsage(db, { day, device: "", ip: "", kind: "error", ref: reason.replace(/[^a-z0-9_-]/gi, "").slice(0, 40) });
+    const row = await db.prepare("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day = ? AND kind = 'error'").bind(day).first<{ n: number }>();
+    const n = Number(row?.n ?? 0);
+    if (ERROR_ALERT_STEPS.includes(n)) {
+      await alertOnce(db, `error:${day}:${n}`, `⚠️ 모리 대화 오류 오늘 ${n}건 (마지막: ${reason})\n관리자 /admin/report/#mori-chat 「점검」에서 종류를 확인하세요.`, notify);
+    }
+  } catch {
+    // 기록 실패가 응답을 막으면 안 됩니다.
+  }
+}
+
 /**
  * 무료 사용자가 유료 키로 넘어간 횟수의 하루 상한. 무료 키 8개가 다 막힌 날 누군가 몰아서 쓰면 실제 돈이 나가므로,
  * 이 수를 넘으면 무료 사용자는 무료 키만 쓴다(중계에 freeonly). 결제한 사람은 상관없다(점검 5번).
@@ -388,7 +425,7 @@ export async function handleSend(
   db: D1Database,
   request: Request,
   raw: Record<string, unknown>,
-  deps: { fetcher?: typeof fetch; now?: number; weatherFetcher?: typeof fetch } = {},
+  deps: { fetcher?: typeof fetch; now?: number; weatherFetcher?: typeof fetch; notify?: Notify } = {},
 ): Promise<Response> {
   if (!(await chatOpen(db))) return json({ error: "모리 대화는 아직 준비 중이에요." }, 503);
   const device = String(raw.device ?? "");
@@ -413,6 +450,8 @@ export async function handleSend(
   if (isCrisis(message)) {
     // 누가 보냈는지는 남기지 않는다(민감한 기록). 날짜별 건수만.
     await recordUsage(db, { day, device: "", ip: "", kind: "crisis", mori, chars: 0, turn: 0 });
+    // 그날 처음 나간 안내는 알립니다(누가 보냈는지는 없음). 안내 흐름이 제대로 도는지 사람이 한 번씩 보게.
+    await alertOnce(db, `crisis:${day}`, `🆘 오늘 처음으로 모리 대화에서 상담 전화 안내가 나갔어요 (${mori} 모리).\n보낸 사람은 기록하지 않아요. 안내 문구·번호가 맞는지만 가끔 확인해 주세요.`, deps.notify);
     const { quota } = await computeQuota(db, { device, ip, day, reports: tokenList(raw.reports, 10), passes: tokenList(raw.passes, 10) }, now);
     return json({ reply: CRISIS_REPLY, crisis: true, quota });
   }
@@ -456,7 +495,10 @@ export async function handleSend(
       .prepare("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day = ? AND kind = 'free' AND tier = 'paid'")
       .bind(day)
       .first<{ n: number }>();
-    if (Number(spilled?.n ?? 0) >= FREE_PAID_FALLBACK_PER_DAY) tier = "freeonly";
+    if (Number(spilled?.n ?? 0) >= FREE_PAID_FALLBACK_PER_DAY) {
+      tier = "freeonly";
+      await alertOnce(db, `cap:${day}`, `💸 오늘 무료 사용자의 유료 키 사용이 상한(${FREE_PAID_FALLBACK_PER_DAY}건)에 닿았어요. 지금부터 무료 사용자는 무료 키만 써요.\n무료 키 8개가 한도에 걸린 날이라 손님에게 「잠시 후」가 늘 수 있어요.`, deps.notify);
+    }
   }
 
   const release = async () => {
@@ -477,6 +519,9 @@ ${sceneLine(await currentScene(db, request, now, deps.weatherFetcher))}`,
 
   if (!reply.ok) {
     await release();
+    // 안전 차단은 오류가 아니라 따로 셉니다. 나머지(busy·failed)는 오류로 남기고 알립니다.
+    if (reply.kind === "safety") await recordUsage(db, { day, device: "", ip: "", kind: "blocked", mori });
+    else await noteError(db, day, `relay-${reply.kind}`, deps.notify);
     const after = (await computeQuota(db, { device, ip, day, reports: tokenList(raw.reports, 10), passes: tokenList(raw.passes, 10) }, now)).quota;
     // 제미나이가 막은 말에는 위험한 말이 섞여 있을 수 있다 — 「다른 얘기 하자」로 끝내지 않고 상담 번호를 같이 보여 준다(점검 2번).
     if (reply.kind === "safety") return json({ reply: SAFETY_REPLY, crisis: true, quota: after });
@@ -683,7 +728,7 @@ export function handleMoriChat(request: Request, url: URL, env: Env, ctx: Ctx): 
       } catch {
         return json({ error: "보낸 내용을 읽지 못했어요." }, 400);
       }
-      return handleSend(db, request, raw);
+      return handleSend(db, request, raw, { notify: (msg) => ctx.waitUntil(sendTelegram(db, msg)) });
     }
 
     if (path === "/api/mori-chat/order" && request.method === "POST") {
@@ -737,5 +782,10 @@ export function handleMoriChat(request: Request, url: URL, env: Env, ctx: Ctx): 
     }
 
     return json({ error: "없는 주소예요." }, 404);
-  })().catch(() => json({ error: "잠시 문제가 생겼어요. 다시 시도해 주세요." }, 500));
+  })().catch(async (error) => {
+    // 서버 예외도 오류 표에 남깁니다(무엇이 터졌는지 이름만).
+    const db = env?.DB;
+    if (db) await noteError(db, seoulToday(), `exception-${error instanceof Error ? error.name : "unknown"}`, (msg) => ctx.waitUntil(sendTelegram(db, msg)));
+    return json({ error: "잠시 문제가 생겼어요. 다시 시도해 주세요." }, 500);
+  });
 }
