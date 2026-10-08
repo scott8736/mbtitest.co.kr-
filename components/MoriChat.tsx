@@ -497,7 +497,7 @@ function ChatWall({ passOpen, onPass }: { passOpen: boolean; onPass: (token: str
 
       <div className="mc-offer">
         <b>💬 모리 대화권 {CHAT_PASS_SIZE}번 · {CHAT_PASS_PRICE.toLocaleString()}원</b>
-        <span>기한 없이 쓸 수 있어요. 결제 후 7일 안에는 쓰지 않은 횟수만큼 환불돼요.</span>
+        <span>50번을 다 쓸 때까지 기한 없이 쓸 수 있어요.</span>
         {passOpen ? (
           <form onSubmit={buy}>
             <input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="numeric" placeholder="휴대폰 번호 01012345678" required autoComplete="tel" />
