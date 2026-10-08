@@ -4,6 +4,7 @@ import MoriChat from "../../../components/MoriChat";
 import SiteFooter from "../../../components/SiteFooter";
 import { CHAT_FREE_PER_DAY } from "../../../lib/mori-chat";
 import { testCatalog } from "../../../lib/test-catalog";
+import { CHAT_RECS } from "../../../lib/mori-chat-recs";
 import "./chat.css";
 
 /**
@@ -29,7 +30,7 @@ export default function MoriChatPage() {
   return (
     <main className="mc-page">
       <ContentHeader active="/mori" />
-      <MoriChat tests={CHAT_TESTS} />
+      <MoriChat tests={CHAT_TESTS} recs={CHAT_RECS} />
       <section className="mc-about">
         <h2>모리 대화는 이렇게 써요</h2>
         <ul>

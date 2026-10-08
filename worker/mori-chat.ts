@@ -26,13 +26,16 @@ import {
   CHAT_REPORT_PER_DAY,
   CRISIS_REPLY,
   SAFETY_REPLY,
+  asksForRec,
   cleanHistory,
+  isDistress,
   isCrisis,
   isMoriCode,
   systemPrompt,
   type ChatQuota,
 } from "../lib/mori-chat";
 import { PAYAPP_USERID, REPORT_PAY_TYPES, isSellerInfoComplete } from "../lib/report-config";
+import { recListForPrompt, takeRec } from "../lib/mori-chat-recs";
 import { kmaBase, kmaGrid, sceneAt, sceneHello, sceneLine, weatherFromNcst, type Scene } from "../lib/mori-chat-scene";
 import { SITE_ORIGIN } from "../lib/site-urls";
 import { readSetting } from "./naver";
@@ -131,7 +134,7 @@ async function ipHash(request: Request, day: string): Promise<string> {
 
 const USAGE_KEEP_DAYS = 90;
 /** 화면이 보내는 기록 종류(횟수에 안 들어감). promo_* 의 ref 에는 카드 종류(report)나 테스트 slug. */
-export const CHAT_EVENT_KINDS = ["promo_seen", "promo_click", "resume_seen", "resume_click"];
+export const CHAT_EVENT_KINDS = ["promo_seen", "promo_click", "resume_seen", "resume_click", "chip_click"];
 const DEVICE_RE = /^[a-z0-9-]{16,64}$/;
 const TOKEN_RE = /^[0-9a-f]{64}$/;
 const tokenList = (raw: unknown, max: number): string[] =>
@@ -411,13 +414,30 @@ export async function callRelay(
     });
     const j = (await res.json()) as { text?: string; model?: string; tier?: string; error?: string };
     // 모델이 문장 사이에 빈칸을 두 개씩 넣는 일이 잦아 하나로 줄인다(줄바꿈은 둔다).
-    const tidy = (s: string) => s.replace(/[ \t]{2,}/g, " ").replace(/[ \t]+\n/g, "\n").trim();
+    const tidy = (s: string) => s.replace(/\*\*|__/g, "").replace(/[ \t]{2,}/g, " ").replace(/[ \t]+\n/g, "\n").trim();
     if (res.ok && j.text) return { ok: true, text: tidy(j.text).slice(0, 600), model: String(j.model ?? ""), tier: String(j.tier ?? "") };
     if (j.error === "safety") return { ok: false, kind: "safety" };
     return { ok: false, kind: j.error === "busy" ? "busy" : "failed" };
   } catch {
     return { ok: false, kind: "failed" };
   }
+}
+
+/**
+ * 추천 지시. 추천해 달라는 말이면 꼭 하나, 아니면 둘째 답부터·지난 추천 뒤 2번 이상 지났을 때만 「어울리면」 하나.
+ * sinceRec 은 화면이 센 값(지난 추천 카드 뒤 모리 답 수)이라 믿을 수 없지만, 틀려도 추천 빈도만 바뀐다.
+ */
+export function recInstruction(message: string, sinceRec: unknown, turn: number): string {
+  const since = Number(sinceRec);
+  // 힘들어하는 말에는 추천 자체를 꺼낸다(추천해 달라고 해도 이번에는 마음부터).
+  if (isDistress(message)) return "상대가 힘든 이야기를 하고 있어. 이번 답에는 아무것도 추천하지 말고 마음을 받아 주는 데만 집중해.";
+  const ask = asksForRec(message);
+  const may = ask || (turn >= 2 && Number.isFinite(since) && since >= 2);
+  if (!may) return "이번 답에는 사이트 안의 테스트·운세·게임을 추천하지 마.";
+  return `${ask ? "상대가 추천을 원해. 아래 목록에서 대화에 가장 어울리는 것 하나를 골라 왜 어울리는지 한 문장으로 권해." : "대화와 정말 잘 어울릴 때만, 답 마지막에 아래 목록에서 하나를 골라 한 문장으로 가볍게 권해. 어울리는 게 없거나 상대가 힘들어하는 이야기면 권하지 마."}
+권했다면 답 맨 끝에 [추천:id] 를 붙여(id 는 목록 그대로). 목록에 없는 테스트·운세·주소는 말하지 마. 가격·결과를 지어내지 마.
+추천 목록:
+${recListForPrompt()}`;
 }
 
 /** 대화 한 번. 순서: 열림 → 입력 확인 → 위험한 말 → 횟수 예약 → AI → 실패면 예약 되돌림. */
@@ -510,7 +530,8 @@ export async function handleSend(
     await relayConfig(db),
     {
       system: `${systemPrompt(mori, isMoriCode(me) ? me : null)}
-${sceneLine(await currentScene(db, request, now, deps.weatherFetcher))}`,
+${sceneLine(await currentScene(db, request, now, deps.weatherFetcher))}
+${recInstruction(message, raw.sinceRec, turn)}`,
       turns: [...history, { role: "user", text: message }],
       tier,
     },
@@ -529,7 +550,10 @@ ${sceneLine(await currentScene(db, request, now, deps.weatherFetcher))}`,
   }
   await db.prepare("UPDATE mori_chat_usage SET model = ?, tier = ? WHERE id = ?").bind(reply.model, reply.tier, usageId).run();
   const after = (await computeQuota(db, { device, ip, day, reports: tokenList(raw.reports, 10), passes: tokenList(raw.passes, 10) }, now)).quota;
-  return json({ reply: reply.text, used: kind, quota: after });
+  // 답 끝의 [추천:id] 를 떼어 카드 번호로 따로 돌려준다(목록에 없는 id 는 버림).
+  const taken = takeRec(reply.text);
+  const rec = isDistress(message) ? null : taken.rec;
+  return json({ reply: taken.text || reply.text, rec, used: kind, quota: after });
 }
 
 // ── 대화권 결제 ──

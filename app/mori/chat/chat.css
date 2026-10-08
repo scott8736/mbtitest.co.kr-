@@ -116,3 +116,13 @@
 /* 대화를 못 하는 화면의 상담 번호 (10-08 점검 11번) */
 .mc-crisis-note { margin:10px 2px 0; color:#7a6f96; font-size:12px; line-height:1.7; }
 .mc-crisis-note a { color:#9b2f25; font-weight:700; white-space:nowrap; }
+
+/* 눌러서 물어보기 (10-08): 옆으로 넘기는 한 줄. 엄지로 누르기 좋게 높이 40px */
+.mc-chips { display:flex; gap:8px; margin-top:10px; padding:2px 2px 4px; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+.mc-chips::-webkit-scrollbar { display:none; }
+.mc-chips button { flex:none; min-height:40px; padding:0 14px; border:1.5px solid #d9cdf6; border-radius:999px; background:#fff; color:#4b3f75; font:inherit; font-size:14px; font-weight:700; white-space:nowrap; cursor:pointer; box-shadow:0 2px 6px rgba(60,40,120,.06); }
+.mc-chips button:active { background:#f3eefc; }
+.mc-chips button.is-test { border-color:#e3b55c; background:#fffaf0; color:#7a5a12; }
+/* 모리의 추천 카드 (10-08): 리포트 카드(노란 점선)와 달리 그 모리 색 실선 — 모리가 대화 끝에 권한 것 */
+.mc-promo.is-rec { border-style:solid; border-color:color-mix(in srgb,var(--mori) 60%,#fff); background:#fff; }
+.mc-promo.is-rec small { color:color-mix(in srgb,var(--mori) 55%,#4b3f75); }

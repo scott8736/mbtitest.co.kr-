@@ -22,6 +22,8 @@ import {
   CHAT_REPORT_PER_DAY,
   CRISIS_LINES,
   MORI_NICK,
+  pickChips,
+  REC_CHIPS,
   greeting,
   isMoriCode,
   type ChatQuota,
@@ -32,8 +34,9 @@ import { readMyMori } from "../lib/my-mori";
 import { readRemembered } from "./ReportDone";
 import { useReportPricing, won } from "./ReportEvent";
 import { chatEvent, clearChatReturn, markChatReturn, readChatReturn } from "../lib/mori-chat-return";
+import type { ChatRec } from "../lib/mori-chat-recs";
 
-type Promo = { kind: "report" } | { kind: "test"; slug: string };
+type Promo = { kind: "report" } | { kind: "test"; slug: string } | { kind: "rec"; id: string };
 type Msg = { role: "user" | "model" | "promo"; text: string; crisis?: boolean; promo?: Promo };
 /** 추천 카드에 쓰는 심리테스트 이름표(페이지가 넘김 — 테스트 목록 전체를 화면 묶음에 싣지 않으려고). */
 export type ChatTest = { slug: string; href: string; title: string; icon: string; desc: string };
@@ -43,6 +46,8 @@ type SceneView = { slot: string; slotName: string; special: { key: string; name:
 const PROMO_MIN_GAP = 3;
 const PROMO_CHANCE = 0.4;
 const HISTORY_DAYS = 7;
+/** 무작위 값. 컴포넌트 밖에 두어 린트가 이벤트 처리 중 호출을 화면 그리기 중 호출로 오해하지 않게 합니다. */
+const roll = () => Math.random();
 
 const DEVICE_KEY = "mori-chat-device";
 const PASS_KEY = "mori-chat-passes";
@@ -115,7 +120,7 @@ function clearHistory(code: string): void {
 
 const reportTokens = () => readRemembered().map((r) => r.token).slice(0, 10);
 
-export default function MoriChat({ tests }: { tests: ChatTest[] }) {
+export default function MoriChat({ tests, recs }: { tests: ChatTest[]; recs: ChatRec[] }) {
   const [ready, setReady] = useState(false);
   const [code, setCode] = useState<string | null>(null);
   const [me, setMe] = useState<string | null>(null);
@@ -130,6 +135,10 @@ export default function MoriChat({ tests }: { tests: ChatTest[] }) {
   const [notice, setNotice] = useState("");
   const [scene, setScene] = useState<SceneView | null>(null);
   const [showOffer, setShowOffer] = useState(false);
+  const [chips, setChips] = useState<string[]>([]);
+  const [recChip, setRecChip] = useState("");
+  /** 지난 추천 카드 뒤 모리 답 수. 서버가 추천을 허락할지 정할 때 씁니다. */
+  const sinceRec = useRef(99);
   const [hasReport, setHasReport] = useState(false);
   const { price: reportPrice } = useReportPricing();
   const sincePromo = useRef(0);
@@ -228,6 +237,21 @@ export default function MoriChat({ tests }: { tests: ChatTest[] }) {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
   }, [msgs, busy]);
 
+  // 질문 버튼: 모리 답이 올 때마다 아직 안 쓴 질문 중에서 무작위로 셋.
+  const modelCount = msgs.filter((m) => m.role === "model").length;
+  useEffect(() => {
+    if (!code) return;
+    const id = setTimeout(() => {
+      setRecChip(REC_CHIPS[Math.floor(roll() * REC_CHIPS.length)]);
+      setChips(pickChips({
+        code, me, slot: scene?.slot, special: scene?.special?.name ?? null,
+        used: msgs.filter((m) => m.role === "user").map((m) => m.text), first: modelCount === 0,
+      }));
+    }, 0);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 모리 답 수·모리·풍경이 바뀔 때만 새로 고릅니다
+  }, [code, modelCount, scene?.slot, scene?.special?.name, me]);
+
   const choose = (c: string) => {
     setCode(c);
     setMsgs(readHistory(c));
@@ -238,16 +262,19 @@ export default function MoriChat({ tests }: { tests: ChatTest[] }) {
 
   /** 리포트와 테스트를 번갈아. 리포트를 이미 산 기기에는 테스트만, 이 대화에서 이미 권한 테스트는 다시 안 권함. */
   const pickPromo = (): Promo | null => {
-    const shown = new Set(msgs.flatMap((m) => (m.promo?.kind === "test" ? [m.promo.slug] : [])));
-    const pool = tests.filter((t) => !shown.has(t.slug));
-    const wantReport = !hasReport && lastPromo.current === "test";
-    if (wantReport || !pool.length) {
-      if (hasReport) return null;
-      lastPromo.current = "report";
-      return { kind: "report" };
+    // 테스트·운세·게임은 이제 모리가 대화 속에서 골라 권합니다(rec). 여기서는 유료 리포트만 가끔.
+    if (hasReport || lastPromo.current === "report") {
+      lastPromo.current = "test";
+      return null;
     }
-    lastPromo.current = "test";
-    return { kind: "test", slug: pool[Math.floor(Math.random() * pool.length)].slug };
+    lastPromo.current = "report";
+    return { kind: "report" };
+  };
+
+  const goRec = (r: ChatRec) => {
+    if (!code) return;
+    chatEvent("promo_click", code, r.id);
+    markChatReturn({ mori: code, slug: r.id, title: r.title });
   };
 
   const goTest = (t: ChatTest) => {
@@ -263,9 +290,9 @@ export default function MoriChat({ tests }: { tests: ChatTest[] }) {
     sincePromo.current = 0;
   };
 
-  const send = async (event?: React.FormEvent) => {
+  const send = async (event?: React.FormEvent, chip?: string) => {
     event?.preventDefault();
-    const message = input.trim();
+    const message = (chip ?? input).trim();
     if (!code || !message || busy) return;
     setError("");
     setBusy(true);
@@ -280,16 +307,23 @@ export default function MoriChat({ tests }: { tests: ChatTest[] }) {
         body: JSON.stringify({
           device: device.current, mori: code, me,
           history: before.filter((m) => !m.crisis && m.role !== "promo").map(({ role, text }) => ({ role, text })),
-          message, reports: reportTokens(), passes: readPasses(),
+          message, reports: reportTokens(), passes: readPasses(), sinceRec: sinceRec.current,
         }),
       });
-      const j = (await r.json()) as { reply?: string; crisis?: boolean; error?: string; needPay?: boolean; quota?: ChatQuota };
+      const j = (await r.json()) as { reply?: string; rec?: string | null; crisis?: boolean; error?: string; needPay?: boolean; quota?: ChatQuota };
       if (j.quota) setQuota(j.quota);
       if (j.reply) {
         let done: Msg[] = [...next, { role: "model" as const, text: j.reply, crisis: j.crisis }];
-        // 추천 카드: 위험한 말 뒤에는 절대 안 띄우고, 그 뒤로도 한동안 쉽니다.
+        // 모리가 대화 끝에 고른 추천(테스트·운세·게임). 서버가 목록에 있는 것만 보냅니다.
+        const rec = !j.crisis && j.rec ? recs.find((x) => x.id === j.rec) : undefined;
+        sinceRec.current = rec ? 0 : j.crisis ? -3 : sinceRec.current + 1;
+        if (rec) {
+          done = [...done, { role: "promo", text: "", promo: { kind: "rec", id: rec.id } }];
+          chatEvent("promo_seen", code, rec.id);
+        }
+        // 리포트 카드: 위험한 말 뒤에는 절대 안 띄우고, 그 뒤로도 한동안 쉽니다. 모리 추천이 나온 답에는 겹치지 않게.
         sincePromo.current = j.crisis ? -PROMO_MIN_GAP : sincePromo.current + 1;
-        const promo = !j.crisis && sincePromo.current >= PROMO_MIN_GAP && Math.random() < PROMO_CHANCE ? pickPromo() : null;
+        const promo = !rec && !j.crisis && sincePromo.current >= PROMO_MIN_GAP && roll() < PROMO_CHANCE ? pickPromo() : null;
         if (promo) {
           sincePromo.current = 0;
           done = [...done, { role: "promo", text: "", promo }];
@@ -301,13 +335,13 @@ export default function MoriChat({ tests }: { tests: ChatTest[] }) {
       } else {
         // 답이 안 왔으면 보낸 말을 입력칸에 돌려놓습니다(횟수는 서버가 되돌렸습니다).
         setMsgs(before);
-        setInput(message);
+        if (!chip) setInput(message);
         if (j.needPay) setWall(true);
         else setError(j.error || "모리가 대답하지 못했어요.");
       }
     } catch {
       setMsgs(before);
-      setInput(message);
+      if (!chip) setInput(message);
       setError("연결이 끊겼어요. 다시 보내 주세요.");
     }
     setBusy(false);
@@ -395,7 +429,7 @@ export default function MoriChat({ tests }: { tests: ChatTest[] }) {
       <div className="mc-list" ref={listRef} aria-live="polite">
         <div className="mc-msg is-model"><p>{scene ? `${scene.hello} ` : ""}{greeting(code)}</p></div>
         {msgs.map((m, i) => m.role === "promo" && m.promo ? (
-          <PromoCard key={i} promo={m.promo} tests={tests} price={reportPrice} onTest={goTest} mori={code} />
+          <PromoCard key={i} promo={m.promo} tests={tests} recs={recs} price={reportPrice} onTest={goTest} onRec={goRec} mori={code} />
         ) : (
           <div key={i} className={`mc-msg is-${m.role}${m.crisis ? " is-crisis" : ""}`}>
             <p>{m.text}</p>
@@ -432,6 +466,15 @@ export default function MoriChat({ tests }: { tests: ChatTest[] }) {
       {wall ? (
         <ChatWall passOpen={passOpen} onPass={(t) => { rememberPass(t); void waitForPass(t); }} />
       ) : (
+        <>
+        {chips.length && !busy ? (
+          <div className="mc-chips" aria-label="눌러서 물어보기">
+            {chips.map((c) => (
+              <button type="button" key={c} onClick={() => { chatEvent("chip_click", code); void send(undefined, c); }}>{c}</button>
+            ))}
+            {recChip ? <button type="button" className="is-test" onClick={() => { chatEvent("chip_click", code, "rec"); void send(undefined, recChip); }}>{recChip}</button> : null}
+          </div>
+        ) : null}
         <form className="mc-input" onSubmit={send}>
           <textarea
             value={input}
@@ -450,6 +493,7 @@ export default function MoriChat({ tests }: { tests: ChatTest[] }) {
           <button type="submit" disabled={busy || !input.trim()}>보내기</button>
           <small>{left}{left ? " · " : ""}{input.length}/{CHAT_MAX_CHARS}</small>
         </form>
+        </>
       )}
     </div>
   );
@@ -461,7 +505,21 @@ const SLOT_LABEL: Record<string, string> = {
 };
 
 /** 사이트 안내 카드. 모리 말풍선과 모양을 다르게 해 AI 가 한 말로 읽히지 않게 합니다. */
-function PromoCard({ promo, tests, price, onTest, mori }: { promo: Promo; tests: ChatTest[]; price: number; onTest: (t: ChatTest) => void; mori: string }) {
+const REC_LABEL: Record<ChatRec["kind"], string> = { test: "무료 심리테스트", fortune: "무료 운세", game: "모리 게임", tarot: "무료 타로", type: "MBTI 궁합" };
+
+function PromoCard({ promo, tests, recs, price, onTest, onRec, mori }: { promo: Promo; tests: ChatTest[]; recs: ChatRec[]; price: number; onTest: (t: ChatTest) => void; onRec: (r: ChatRec) => void; mori: string }) {
+  if (promo.kind === "rec") {
+    const r = recs.find((x) => x.id === promo.id);
+    if (!r) return null;
+    return (
+      <Link className={`mc-promo is-rec is-${r.kind}`} href={`${r.href}?from=mori-chat`} onClick={() => onRec(r)}>
+        <small>{mori} 모리의 추천 · {REC_LABEL[r.kind]}</small>
+        <b>{r.icon} {r.title}</b>
+        <span>{r.desc}</span>
+        <i>해 보고 오기 → 끝나면 이 대화로 돌아올 수 있어요</i>
+      </Link>
+    );
+  }
   if (promo.kind === "report") {
     return (
       <Link className="mc-promo is-report" href="/report/?from=mori-chat-card" onClick={() => chatEvent("promo_click", mori, "report")}>

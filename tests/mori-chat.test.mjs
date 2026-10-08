@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const { outputFiles } = await build({
   stdin: {
-    contents: `export * from "./worker/mori-chat"; export * from "./lib/mori-chat"; export { moriChatAdminBox, moriChatSummaryBox, moriChatAdminPost, healthChecks } from "./worker/mori-chat-admin"; export { profiles } from "./lib/mbti-content"; export { MORI_WORLD } from "./lib/mori-world"; export { writeSetting } from "./worker/naver"; export { ensureReportSchema, phoneHash, seoulToday } from "./worker/report";`,
+    contents: `export * from "./worker/mori-chat"; export * from "./lib/mori-chat"; export * from "./lib/mori-chat-recs"; export { moriChatAdminBox, moriChatSummaryBox, moriChatAdminPost, healthChecks } from "./worker/mori-chat-admin"; export { profiles } from "./lib/mbti-content"; export { MORI_WORLD } from "./lib/mori-world"; export { writeSetting } from "./worker/naver"; export { ensureReportSchema, phoneHash, seoulToday } from "./worker/report";`,
     resolveDir: repoRoot,
     loader: "ts",
   },
@@ -541,4 +541,74 @@ test("점검 표: 중계 상태·오류율·결제 통보 거절을 판단한다
   assert.equal(by("대화권 결제 통보 거절").level, "bad");
   assert.equal(by("대화 오류율").level, "bad", "1/4 = 25%");
   assert.match(by("대화 오류율").detail, /relay-failed 1/);
+});
+
+
+test("질문 버튼: 무작위 셋, 쓴 질문은 빼고, 처음엔 시간대·기념일·내 유형 질문", () => {
+  const seq = (vals) => { let i = 0; return () => vals[i++ % vals.length]; };
+  const a = C.pickChips({ code: "INFP", me: "ENTJ", slot: "lunch", special: null, used: [], first: true }, 3, seq([0.1, 0.7, 0.3]));
+  assert.equal(a.length, 3);
+  assert.ok(["점심 메뉴 같이 골라 줘", "오후 버틸 힘 좀 줘"].includes(a[0]), a[0]);
+  assert.equal(a[1], "ENTJ인 나랑 너는 잘 맞아?");
+  const b = C.pickChips({ code: "INFP", me: "INFP", slot: "lunch", special: "크리스마스", used: [], first: true });
+  assert.equal(b[0], "크리스마스에 뭐 하면 좋을까?");
+  assert.ok(!b.some((t) => t.includes("INFP인 나랑")), "내 모리와 이야기할 때는 궁합 질문을 안 넣는다");
+  const used = C.CHIP_POOL.slice(0, 18);
+  const c = C.pickChips({ code: "INFP", used, first: false });
+  assert.ok(c.every((t) => !used.includes(t)));
+  assert.equal(c.length, 2, "남은 게 둘뿐이면 둘");
+  const runs = new Set(Array.from({ length: 20 }, () => C.pickChips({ code: "ISTJ", used: [], first: false }).join("|")));
+  assert.ok(runs.size > 1, "매번 다른 조합(무작위)");
+  for (const t of C.CHIP_POOL) assert.equal(C.isCrisis(t), false, `질문 버튼이 위기 필터에 걸리면 안 됨: ${t}`);
+  for (const t of C.CHIP_POOL) assert.ok(t.length <= C.CHAT_MAX_CHARS);
+});
+
+
+test("추천: 추천해 달라는 말 판단 · [추천:id] 는 목록에 있는 것만 받고 글에서 지운다", () => {
+  for (const t of [...C.REC_CHIPS, "심리테스트 추천해 줘", "테스트 하나 골라줘", "해볼 만한 테스트 있어?", "운세 볼 거 있어?", "심심한데 할만한 게임 있어?"]) {
+    assert.equal(C.asksForRec(t), true, t);
+  }
+  for (const t of ["오늘 시험 테스트 망했어", "안녕", "연애할 때 나는 어떤 편일까?", "MBTI 테스트 결과 INFP 나왔어"]) {
+    assert.equal(C.asksForRec(t), false, t);
+  }
+  const ok = C.takeRec("그럼 이 테스트 어때? 너랑 잘 맞을 것 같아.\n[추천:t-love-language]");
+  assert.equal(ok.rec, "t-love-language");
+  assert.equal(ok.text, "그럼 이 테스트 어때? 너랑 잘 맞을 것 같아.");
+  const fake = C.takeRec("이거 해 봐! [추천:t-fake-test]");
+  assert.equal(fake.rec, null, "목록에 없는 id 는 버린다");
+  assert.equal(fake.text, "이거 해 봐!");
+  assert.equal(C.takeRec("[추천: f-today] 오늘의 운세 봐!").rec, "f-today", "띄어쓰기·위치가 달라도");
+  assert.ok(C.CHAT_RECS.some((r) => r.id === "g-forest"), "모리 게임");
+  assert.ok(C.CHAT_RECS.some((r) => r.kind === "fortune"), "운세");
+  assert.ok(!C.CHAT_RECS.some((r) => /우울|불안|ADHD|번아웃 자가진단/.test(r.title)), "자가진단은 추천 목록에 없다");
+  assert.equal(new Set(C.CHAT_RECS.map((r) => r.id)).size, C.CHAT_RECS.length, "id 겹침 없음");
+});
+
+test("추천 지시: 첫 답·추천 직후에는 금지, 추천해 달라면 바로, 서버가 [추천:id] 를 떼서 rec 로 준다", async () => {
+  assert.match(C.recInstruction("안녕", 99, 1), /추천하지 마/);
+  assert.match(C.recInstruction("안녕", 0, 5), /추천하지 마/);
+  assert.match(C.recInstruction("안녕", 3, 3), /정말 잘 어울릴 때만/);
+  assert.match(C.recInstruction("심리테스트 하나 추천해 줘", 0, 1), /상대가 추천을 원해/);
+  assert.match(C.recInstruction("안녕", 3, 3), /g-forest/);
+  const db = await setup();
+  const r = relayStub({ status: 200, body: { text: "숲 산책 어때? 같이 걷자!\n[추천:g-forest]", model: "m", tier: "free" } });
+  const res = await read(await send(db, { message: "🎮 같이 할 놀이 없어?" }, { fetcher: r.fetcher }));
+  assert.equal(res.rec, "g-forest");
+  assert.equal(res.reply, "숲 산책 어때? 같이 걷자!");
+  assert.match(r.calls[0].body.system, /추천 목록/);
+});
+
+
+test("힘들어하는 말에는 추천하지 않는다(지시에서 빼고, 붙어 와도 버림) · 굵게 표시는 지운다", async () => {
+  assert.equal(C.isDistress("요즘 너무 지치고 아무것도 하기 싫어"), true);
+  assert.equal(C.isDistress("남자친구랑 헤어졌어"), true);
+  assert.equal(C.isDistress("주말에 할 거 없어서 심심해"), false);
+  assert.equal(C.isDistress("오늘 점심 뭐 먹지"), false);
+  assert.match(C.recInstruction("요즘 너무 지치고 아무것도 하기 싫어", 9, 5), /아무것도 추천하지 말고/);
+  const db = await setup();
+  const r = relayStub({ status: 200, body: { text: "많이 **지쳤구나**. 번아웃 테스트 해 봐 [추천:t-burnout]", model: "m", tier: "free" } });
+  const res = await read(await send(db, { message: "요즘 너무 지쳐", sinceRec: 9, history: [{ role: "user", text: "안녕" }, { role: "model", text: "안녕!" }] }, { fetcher: r.fetcher }));
+  assert.equal(res.rec, null);
+  assert.ok(!res.reply.includes("**"));
+  assert.ok(!res.reply.includes("[추천"));
 });

@@ -8,6 +8,7 @@
  */
 import { CHAT_FREE_PER_DAY, CHAT_PASS_PRICE, CHAT_PASS_SIZE, CHAT_REPORT_DAYS, CHAT_REPORT_PER_DAY } from "../lib/mori-chat";
 import { REPORT_TEST_PRICE } from "../lib/report-config";
+import { chatRec } from "../lib/mori-chat-recs";
 import { readSetting, writeSetting } from "./naver";
 import { chatOpen, createPassOrder, ensureChatSchema, FREE_PAID_FALLBACK_PER_DAY, passSalesOpen, relayConfig } from "./mori-chat";
 import { logEvent, newToken, payappKeys } from "./report";
@@ -67,7 +68,7 @@ type Row = { day: string; kind: string; n: number; devices: number };
 /** 추천 카드(리포트·심리테스트) 노출·클릭과 이어가기, 대화에서 온 리포트 주문. 지난 7일. */
 async function promoTable(db: D1Database, since: string, esc: (v: unknown) => string): Promise<string> {
   const rows = (await db
-    .prepare("SELECT kind, ref, COUNT(*) AS n FROM mori_chat_usage WHERE day >= ? AND kind IN ('promo_seen','promo_click','resume_seen','resume_click') GROUP BY kind, ref")
+    .prepare("SELECT kind, ref, COUNT(*) AS n FROM mori_chat_usage WHERE day >= ? AND kind IN ('promo_seen','promo_click','resume_seen','resume_click','chip_click') GROUP BY kind, ref")
     .bind(since)
     .all<{ kind: string; ref: string; n: number }>()).results ?? [];
   const refs = [...new Set(rows.filter((r) => r.kind.startsWith("promo")).map((r) => r.ref))].sort((a, b) => (a === "report" ? -1 : b === "report" ? 1 : a.localeCompare(b)));
@@ -78,11 +79,12 @@ async function promoTable(db: D1Database, since: string, esc: (v: unknown) => st
     .bind(`${since} 00:00:00`)
     .first<{ n: number; paid: number }>();
   const body = refs
-    .map((ref) => `<tr><td>${ref === "report" ? "📖 리포트" : esc(ref)}</td><td>${n("promo_seen", ref)}</td><td>${n("promo_click", ref)}</td><td>${rate(n("promo_click", ref), n("promo_seen", ref))}</td></tr>`)
+    .map((ref) => `<tr><td>${ref === "report" ? "📖 리포트" : esc(chatRec(ref) ? `${chatRec(ref)!.icon} ${chatRec(ref)!.title}` : ref)}</td><td>${n("promo_seen", ref)}</td><td>${n("promo_click", ref)}</td><td>${rate(n("promo_click", ref), n("promo_seen", ref))}</td></tr>`)
     .join("");
   return `<h3 style="margin-top:16px">대화 속 추천 카드 (지난 7일)</h3>
-<p class="note">모리 답 3번 뒤부터 40% 확률로 리포트·심리테스트 카드를 번갈아 띄웁니다(위험한 말 뒤·리포트 산 기기는 리포트 카드 없음).
+<p class="note">「○○ 모리의 추천」은 모리가 대화 끝에 사이트 목록(lib/mori-chat-recs.ts)에서 골라 권한 것(둘째 답부터, 추천 뒤 2번 쉬고, 추천해 달라고 하면 바로). 「📖 리포트」는 모리 답 3번 뒤부터 가끔(위험한 말 뒤·리포트 산 기기는 없음).
 테스트로 간 사람에게는 다른 페이지 위쪽에 「이어가기」 버튼이 뜹니다: 노출 ${n("resume_seen")} → 누름 ${n("resume_click")} (${rate(n("resume_click"), n("resume_seen"))}).
+질문 버튼(눌러서 물어보기)으로 보낸 대화: ${n("chip_click")}건.
 대화에서 온 리포트 주문(결제창 열기) ${orders?.n ?? 0}건 · 결제 <b>${orders?.paid ?? 0}건</b>.</p>
 <div class="scroll"><table><thead><tr><th>카드</th><th>노출</th><th>클릭</th><th>클릭률</th></tr></thead>
 <tbody>${body || `<tr><td colspan="4" class="muted">아직 기록이 없습니다.</td></tr>`}</tbody></table></div>`;

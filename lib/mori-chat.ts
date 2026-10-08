@@ -83,6 +83,79 @@ export function iya(word: string): string {
   return (c - 0xac00) % 28 ? "이야" : "야";
 }
 
+/**
+ * 눌러서 보내는 질문 버튼 (2026-10-08 사용자 요청 「질문을 몇 개 선택할 수 있도록, 랜덤하게」).
+ * 정해 둔 목록에서 무작위로 고른다(AI 를 부르지 않음). 누르면 보통 대화와 같이 1번으로 센다.
+ * 진단처럼 들리는 질문(「나 우울증이야?」 같은)은 넣지 않는다.
+ */
+export const CHIP_POOL = [
+  "오늘 기분 어때?", "너는 숲에서 무슨 일 해?", "네 짝꿍 모리 이야기해 줘", "마음숲 이야기 하나 들려줘",
+  "요즘 고민 좀 들어줄래?", "연애할 때 나는 어떤 편일까?", "친구랑 다퉜을 때 어떻게 해?", "지칠 때 충전하는 법 알려줘",
+  "일할 때 내 강점이 뭘까?", "돈 모으는 습관 하나만 알려줘", "오늘 하루 응원해 줘", "요즘 빠져 있는 거 있어?",
+  "주말에 뭐 하면 좋을까?", "새로운 걸 시작하려는데 망설여져", "칭찬 한마디 해 줘", "너의 말버릇은 어디서 생겼어?",
+  "다른 마을 모리랑도 친해?", "너랑 티격태격하는 모리도 있어?", "나랑 너는 어떤 점이 닮았을까?", "기분 전환할 거 추천해 줘",
+];
+const SLOT_CHIPS: Record<string, string[]> = {
+  dawn: ["잠이 안 와. 이야기 들려줘", "새벽 감성인데 뭐 할까?"],
+  morning: ["오늘 하루 어떻게 시작하면 좋을까?", "아침에 힘 나는 말 해 줘"],
+  lunch: ["점심 메뉴 같이 골라 줘", "오후 버틸 힘 좀 줘"],
+  afternoon: ["오후에 집중 안 될 때 어떻게 해?", "잠깐 쉬어 가도 될까?"],
+  evening: ["오늘 하루 수고했다고 말해 줘", "저녁에 뭐 하면 기분 좋아질까?"],
+  night: ["자기 전에 마음 편해지는 얘기 해 줘", "오늘 하루 돌아보기 같이 해 줘"],
+};
+
+/**
+ * 질문 버튼 n개. 이미 쓴 질문은 빼고, 처음에는 시간대·특별한 날 질문과 「○○인 나랑 잘 맞아?」를 하나씩 섞는다.
+ * random 을 넘기면 테스트에서 결과를 고정할 수 있다.
+ */
+export function pickChips(
+  opts: { code: string; me?: string | null; slot?: string; special?: string | null; used: string[]; first: boolean },
+  n = 3,
+  random: () => number = Math.random,
+): string[] {
+  const used = new Set(opts.used);
+  const shuffle = (list: string[]) => {
+    const a = [...list];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
+  const front: string[] = [];
+  if (opts.first) {
+    if (opts.special) front.push(`${opts.special}에 뭐 하면 좋을까?`);
+    else if (opts.slot && SLOT_CHIPS[opts.slot]) front.push(shuffle(SLOT_CHIPS[opts.slot])[0]);
+    if (opts.me && isMoriCode(opts.me) && opts.me !== opts.code) front.push(`${opts.me}인 나랑 너는 잘 맞아?`);
+  }
+  const rest = shuffle(CHIP_POOL);
+  return [...front, ...rest].filter((t, i, a) => !used.has(t) && a.indexOf(t) === i).slice(0, n);
+}
+
+/**
+ * 추천을 달라는 말인가 (2026-10-08). 그렇다면 이번 답에는 꼭 하나 추천하게 지시한다(간격 제한과 상관없이).
+ * 추천 자체는 AI 가 사이트 목록(lib/mori-chat-recs.ts)에서 고르고, 서버가 확인한다.
+ */
+export function asksForRec(text: string): boolean {
+  const t = text.replace(/\s+/g, "");
+  return /(테스트|운세|타로|사주|게임|놀이|놀거|놀만|할거|할만)/.test(t) && /(추천|골라|있어|없어|뭐|할까|해볼|할만|알려)/.test(t) && !/(망했|결과|나왔)/.test(t);
+}
+
+/**
+ * 힘들어하는 말 (위기까지는 아닌). 이런 말에는 추천 카드를 붙이지 않는다 — 지시문만으로는 AI 가 번아웃 테스트를 권했다(10-08 견본).
+ * 서버가 추천 지시를 빼고, 혹시 붙어 와도 버린다.
+ */
+const DISTRESS_PATTERNS = [
+  /지치|지쳤|지쳐|힘들|힘드|힘든|우울|외로|외롭|슬퍼|슬프|눈물|울었|울고|불안|무서|괴로|아파|아픈|속상|서러|짜증나|화나|미치겠|버거|막막|답답|하기싫|살기싫|자존감|헤어졌|이별|싸웠|다퉜|혼났|잘렸|떨어졌|망했/,
+];
+export function isDistress(text: string): boolean {
+  const t = text.normalize("NFC").replace(/\s+/g, "");
+  return isCrisis(text) || DISTRESS_PATTERNS.some((re) => re.test(t));
+}
+
+/** 질문 버튼 줄 끝에 늘 하나 두는 「추천해 줘」 버튼(셋 중 무작위). 누르면 AI 가 대화로 답하고 끝에 하나 추천한다. */
+export const REC_CHIPS = ["🧪 심리테스트 하나 추천해 줘", "🔮 볼 만한 운세 있어?", "🎮 같이 할 놀이 없어?"];
+
 /** 처음 열었을 때 모리가 먼저 하는 말(AI 를 부르지 않는다 — 횟수도 안 든다). */
 export function greeting(code: string): string {
   const w = MORI_WORLD[code];
