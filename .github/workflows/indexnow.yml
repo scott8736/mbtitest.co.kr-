@@ -1,0 +1,63 @@
+# main 에 푸시하면 Cloudflare Pages 배포가 끝나기를 기다렸다가,
+# 새로 생겼거나 본문이 바뀐 주소만 IndexNow(네이버·빙)로 알린다. 색인을 보장하지는 않는다.
+# 페이지 지문은 Actions 캐시에 남긴다(저장소에 커밋하면 Cloudflare 가 또 빌드한다).
+name: IndexNow
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: indexnow
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  checks: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Cloudflare Pages 배포 기다리기
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for i in $(seq 1 60); do
+            read -r status conclusion < <(gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/check-runs" \
+              --jq '[.check_runs[] | select(.name=="Cloudflare Pages")][0] | "\(.status) \(.conclusion)"' 2>/dev/null || echo "none none")
+            echo "[$i] Cloudflare Pages: $status $conclusion"
+            if [ "$status" = "completed" ]; then
+              if [ "$conclusion" = "success" ]; then echo "DEPLOYED=1" >> "$GITHUB_ENV"; else echo "배포가 성공하지 않아 보내지 않습니다."; fi
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "30분 안에 배포가 끝나지 않았습니다 — 보내지 않습니다."
+
+      - name: 지난 지문 불러오기
+        if: env.DEPLOYED == '1'
+        uses: actions/cache/restore@v4
+        with:
+          path: .indexnow-state.json
+          key: indexnow-state-${{ github.run_id }}
+          restore-keys: indexnow-state-
+
+      - name: 새 주소·바뀐 주소 알리기
+        if: env.DEPLOYED == '1'
+        run: node scripts/indexnow-changed.mjs --state .indexnow-state.json
+
+      - name: 지문 저장
+        if: env.DEPLOYED == '1'
+        uses: actions/cache/save@v4
+        with:
+          path: .indexnow-state.json
+          key: indexnow-state-${{ github.run_id }}
