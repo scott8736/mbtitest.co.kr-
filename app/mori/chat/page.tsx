@@ -30,7 +30,10 @@ export default function MoriChatPage() {
   return (
     <main className="mc-page">
       <ContentHeader active="/mori" />
-      <MoriChat tests={CHAT_TESTS} recs={CHAT_RECS} />
+      {/* 대화 영역 안에는 자동 광고가 끼어들지 않게(본문 삽입형만 막힘). 하단 고정 광고는 애드센스 「페이지 제외」에서 /mori/chat/ 을 빼야 한다. */}
+      <div className="google-auto-ads-ignore">
+        <MoriChat tests={CHAT_TESTS} recs={CHAT_RECS} />
+      </div>
       <section className="mc-about">
         <h2>모리 대화는 이렇게 써요</h2>
         <ul>
