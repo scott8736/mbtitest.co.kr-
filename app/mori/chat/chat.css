@@ -108,3 +108,7 @@
 /* 휴대폰에서 이름·바꾸기 버튼이 두 줄로 꺾이지 않게 (10-08) */
 .mc-head b { font-size:15px; word-break:keep-all; line-height:1.35; }
 .mc-head button { flex-shrink:0; white-space:nowrap; }
+
+/* 마지막 무료 1번 알림 (10-08) */
+.mc-last { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:8px 0 0; padding:8px 12px; border-radius:12px; background:#fff7e6; color:#7a5a12; font-size:13px; font-weight:700; }
+.mc-last button { flex-shrink:0; padding:4px 10px; border:1px solid #e3b55c; border-radius:99px; background:#fff; color:#7a5a12; font:inherit; font-size:12px; cursor:pointer; }

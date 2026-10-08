@@ -119,6 +119,7 @@ export default function MoriChat({ tests }: { tests: ChatTest[] }) {
   const [wall, setWall] = useState(false);
   const [notice, setNotice] = useState("");
   const [scene, setScene] = useState<SceneView | null>(null);
+  const [showOffer, setShowOffer] = useState(false);
   const [hasReport, setHasReport] = useState(false);
   const { price: reportPrice } = useReportPricing();
   const sincePromo = useRef(0);
@@ -387,6 +388,17 @@ export default function MoriChat({ tests }: { tests: ChatTest[] }) {
       {notice ? <p className="mc-notice">{notice}</p> : null}
       {error ? <p className="mc-error" role="alert">{error}</p> : null}
 
+      {/* 마지막 무료 1번: 갑자기 막히지 않게 미리 알립니다(결제한 사람에게는 안 보임). */}
+      {!wall && quota && quota.free === 1 && quota.report === 0 && quota.pass === 0 ? (
+        <p className="mc-last">
+          오늘 마지막 무료 대화예요.
+          <button type="button" onClick={() => { setShowOffer((v) => !v); chatEvent("promo_seen", code, "pass-early"); }}>{showOffer ? "닫기" : "대화권 보기"}</button>
+        </p>
+      ) : null}
+      {!wall && showOffer && quota && quota.free <= 1 ? (
+        <ChatWall early passOpen={passOpen} onPass={(t) => { rememberPass(t); void waitForPass(t); }} />
+      ) : null}
+
       {wall ? (
         <ChatWall passOpen={passOpen} onPass={(t) => { rememberPass(t); void waitForPass(t); }} />
       ) : (
@@ -443,7 +455,7 @@ function PromoCard({ promo, tests, price, onTest, mori }: { promo: Promo; tests:
 }
 
 /** 횟수를 다 썼을 때: ① 대화권 ② 리포트 혜택 ③ 대화권 다시 찾기 */
-function ChatWall({ passOpen, onPass }: { passOpen: boolean; onPass: (token: string) => void }) {
+function ChatWall({ passOpen, onPass, early = false }: { passOpen: boolean; onPass: (token: string) => void; early?: boolean }) {
   const [phone, setPhone] = useState("");
   const [agree, setAgree] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -493,7 +505,11 @@ function ChatWall({ passOpen, onPass }: { passOpen: boolean; onPass: (token: str
 
   return (
     <div className="mc-wall">
-      <p className="mc-wall-head"><b>오늘 무료 대화 {CHAT_FREE_PER_DAY}번을 다 썼어요.</b> 내일 다시 {CHAT_FREE_PER_DAY}번이 생겨요. 지금 더 이야기하고 싶다면:</p>
+      {early ? (
+        <p className="mc-wall-head">무료 대화는 하루 {CHAT_FREE_PER_DAY}번이에요. 더 길게 이야기하고 싶다면:</p>
+      ) : (
+        <p className="mc-wall-head"><b>오늘 무료 대화 {CHAT_FREE_PER_DAY}번을 다 썼어요.</b> 내일 다시 {CHAT_FREE_PER_DAY}번이 생겨요. 지금 더 이야기하고 싶다면:</p>
+      )}
 
       <div className="mc-offer">
         <b>💬 모리 대화권 {CHAT_PASS_SIZE}번 · {CHAT_PASS_PRICE.toLocaleString()}원</b>

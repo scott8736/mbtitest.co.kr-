@@ -1884,3 +1884,6 @@ main.tarot .generic-intro { min-height:auto; padding-bottom:64px; }
 .mori-resume img { width:32px; height:32px; border-radius:50%; object-fit:contain; background:#f3eefc; }
 .mori-resume button { width:32px; height:32px; border:0; border-radius:50%; background:#f3eefc; color:#7a6f96; font-size:18px; line-height:1; cursor:pointer; }
 @media (max-width:640px) { .mori-resume { top:78px; } .mori-resume a { font-size:13px; } }
+
+/* 결과 화면 모리 대화 입구 (10-08): 숲 산책 버튼과 같은 모양, 보라색으로만 구분 */
+.forest-entry.is-chat { background:linear-gradient(135deg,#f3eefc,#e9e1fb); border-color:#d9cdf6; }

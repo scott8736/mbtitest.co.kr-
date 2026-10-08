@@ -5,7 +5,7 @@ import AdUnit from "./AdUnit";
 import { MoriPortrait, MoriShare } from "./MoriCard";
 import MoriVideoShare from "./MoriVideoShare";
 import { MoriForestCard } from "./MoriWorld";
-import ForestEntry from "./ForestEntry";
+import ForestEntry, { MoriChatEntry } from "./ForestEntry";
 import { ForestInviteReturn } from "./OurForest";
 import { GuessMePanel } from "./GuessMe";
 import MbtiResultPick from "./MbtiResultPick";
@@ -90,6 +90,7 @@ export default function MbtiResult() {
           공유 두 칸(핵심 목표)은 그대로 위에 두고 그 바로 아래. 효과는 관리자 깔때기 「카드 노출 ÷ 완주」로 봅니다. */}
       <ReportTeaser code={result} scores={stored?.scores} />
       {/* 모리 게임(2026-10-07). 방금 깨어난 내 모리를 데리고 다른 검사로 가게 하는 길입니다. */}
+      <MoriChatEntry code={result} />
       <ForestEntry code={result} placement="mbti-forest" />
       <MoriVideoShare code={result} channel="mori-video" />
       <MoriForestCard code={result} />
