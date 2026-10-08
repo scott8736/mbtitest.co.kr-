@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const { outputFiles } = await build({
   stdin: {
-    contents: `export * from "./worker/mori-chat"; export * from "./lib/mori-chat"; export { moriChatAdminBox, moriChatSummaryBox, moriChatAdminPost } from "./worker/mori-chat-admin"; export { profiles } from "./lib/mbti-content"; export { MORI_WORLD } from "./lib/mori-world"; export { writeSetting } from "./worker/naver"; export { ensureReportSchema } from "./worker/report";`,
+    contents: `export * from "./worker/mori-chat"; export * from "./lib/mori-chat"; export { moriChatAdminBox, moriChatSummaryBox, moriChatAdminPost } from "./worker/mori-chat-admin"; export { profiles } from "./lib/mbti-content"; export { MORI_WORLD } from "./lib/mori-world"; export { writeSetting } from "./worker/naver"; export { ensureReportSchema, phoneHash, seoulToday } from "./worker/report";`,
     resolveDir: repoRoot,
     loader: "ts",
   },
@@ -163,6 +163,7 @@ test("AI 가 실패하면 횟수를 되돌리고, 안전 차단이면 정해 둔
   const blocked = relayStub({ status: 422, body: { error: "safety" } });
   const res2 = await read(await send(db, {}, { fetcher: blocked.fetcher }));
   assert.equal(res2.reply, C.SAFETY_REPLY);
+  assert.equal(res2.crisis, true, "막힌 말에는 상담 번호를 같이 보여 준다(점검 2번)");
   assert.equal(res2.quota.free, 5);
 });
 
@@ -215,7 +216,7 @@ test("리포트 구매자: 무료를 다 쓰면 하루 50번, 결제 7일이 지
   const res = await read(await send(db, { reports: [token] }, deps));
   assert.equal(res.used, "report");
   assert.equal(res.quota.report, C.CHAT_REPORT_PER_DAY - 1);
-  assert.equal(res.quota.reportUntil, "2026-10-17");
+  assert.equal(res.quota.reportUntil, "10월 17일 9시", "날짜만이 아니라 끝나는 시각까지");
   assert.equal(r.calls[0].body.tier, "paid", "결제한 사람은 처음부터 유료 키");
 
   const later = Date.parse("2026-11-10T12:00:00+09:00");
@@ -252,7 +253,8 @@ test("대화권: 결제 → 통보 위조·금액 불일치 거절 → 결제 �
     const pr = calls.find((c) => c.cmd === "payrequest");
     assert.equal(pr.price, String(C.CHAT_PASS_PRICE));
     assert.equal(pr.feedbackurl, "https://mbtitest.co.kr/api/mori-chat/payapp");
-    assert.ok(pr.returnurl.endsWith(`/mori/chat/?pass=${made.token}`));
+    assert.ok(pr.returnurl.endsWith("/mori/chat/?paid=1"), "돌아오는 주소에 열쇠를 싣지 않는다(점검 7번)");
+    assert.ok(!pr.returnurl.includes(made.token));
     assert.match(made.orderNo, /^MC\d{6}-\d{6}$/);
 
     const row = () => db.sql.prepare("SELECT * FROM mori_chat_passes WHERE token = ?").get(made.token);
@@ -405,4 +407,81 @@ test("관리자 칸: 기록이 있어도 없어도 그려지고, 키 값은 보�
   form.set("kma_key", "abc%2Bdef");
   assert.equal(await C.moriChatAdminPost("/admin/report/mori-chat/relay", form, db), "/admin/report/?saved=1#mori-chat");
   assert.equal(db.sql.prepare("SELECT value FROM app_settings WHERE key = 'kma_service_key'").get().value, "abc%2Bdef");
+});
+
+
+// ── 10-08 빈틈 점검 재발 방지 ──
+test("점검 3: 흔한 위기 표현은 걸리고, 일상 말은 안 걸린다", () => {
+  const must = [
+    "죽고...싶다", "죽고ㅠㅠ싶어", "손목 그었어", "아프지 않게 죽는 법", "죽는 방법 알려줘", "그냥 죽을까", "죽으면 편할까",
+    "뒤지고 싶다", "디지고싶어", "살 이유가 없어", "사는 게 의미가 없어", "살고 싶지가 않아", "생을 마감하고 싶어",
+    "투신할까", "목 맬까", "수면제 많이 먹으면", "내가 없어지면 다들 편하겠지", "그냥 다 끝내고 싶어", "유서를 썼어",
+  ];
+  const mustNot = ["과제 끝내고 싶어", "유서 깊은 절에 다녀왔어", "너 죽을래? ㅋㅋ", "극단적인 선택지밖에 없네", "배고파 죽겠다", "ㅈㅅ 늦었어", "죽이는 노래"];
+  for (const t of must) assert.equal(C.isCrisis(t), true, `걸려야 함: ${t}`);
+  for (const t of mustNot) assert.equal(C.isCrisis(t), false, `걸리면 안 됨: ${t}`);
+});
+
+test("점검 4: 동시에 20개를 보내도 하루 무료 5번을 넘지 않는다", async () => {
+  const db = await setup();
+  const r = relayStub();
+  const results = await Promise.all(Array.from({ length: 20 }, () => send(db, {}, { fetcher: r.fetcher })));
+  const ok = results.filter((x) => x.status === 200).length;
+  assert.equal(ok, 5);
+  assert.equal(db.sql.prepare("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE kind = 'free'").get().n, 5);
+});
+
+test("점검 5: IPv6 는 /64 로 묶어 센다", () => {
+  assert.equal(C.ipKey("2001:db8:1:2:aaaa::1"), C.ipKey("2001:db8:1:2:bbbb:cccc:dddd:eeee"));
+  assert.equal(C.ipKey("2001:0db8:0001:0002:0000:0000:0000:0001"), C.ipKey("2001:db8:1:2::9"));
+  assert.notEqual(C.ipKey("2001:db8:1:2::1"), C.ipKey("2001:db8:1:3::1"));
+  assert.equal(C.ipKey("1.2.3.4"), "1.2.3.4");
+});
+
+test("점검 5: 무료 사용자가 유료 키로 넘어간 게 하루 상한을 넘으면 무료 키만", async () => {
+  const db = await setup();
+  const day = C.seoulToday();
+  const ins = db.sql.prepare("INSERT INTO mori_chat_usage (day, device, ip, kind, tier) VALUES (?, ?, 'x', 'free', 'paid')");
+  for (let i = 0; i < C.FREE_PAID_FALLBACK_PER_DAY; i++) ins.run(day, `filler-${i}`);
+  const r = relayStub();
+  await send(db, {}, { fetcher: r.fetcher });
+  assert.equal(r.calls[0].body.tier, "freeonly");
+});
+
+test("점검 1: 시험·검수용 대화권은 「다시 찾기」에 나오지 않는다", async () => {
+  const db = await setup();
+  const hash = await C.phoneHash(db, "01000000000");
+  db.sql.prepare(
+    `INSERT INTO mori_chat_passes (token, order_no, size, price, test, phone_last4, phone_hash, status, consent_version, consent_at)
+     VALUES (?, 'MC-ADMIN-X', 50, 0, 1, '0000', ?, 'paid', 'admin', 'x')`,
+  ).run("d".repeat(64), hash);
+  const res = await C.handleMoriChat(
+    new Request("https://x/api/mori-chat/find", { method: "POST", body: JSON.stringify({ phone: "01000000000" }), headers: { "cf-connecting-ip": "7.7.7.7" } }),
+    new URL("https://x/api/mori-chat/find"), { DB: db }, { waitUntil: (p) => p },
+  );
+  assert.equal(res.status, 404);
+});
+
+test("점검 9: 지난 대화는 손님 200자·모리 600자·합계 3,000자까지", () => {
+  const long = Array.from({ length: 12 }, (_, i) => ({ role: i % 2 ? "model" : "user", text: "가".repeat(900) }));
+  const h = C.cleanHistory(long);
+  assert.ok(h.filter((t) => t.role === "user").every((t) => t.text.length <= C.CHAT_MAX_CHARS));
+  assert.ok(h.filter((t) => t.role === "model").every((t) => t.text.length <= 600));
+  assert.ok(h.reduce((a, t) => a + t.text.length, 0) <= C.CHAT_HISTORY_MAX_TOTAL);
+  assert.match(C.systemPrompt("INFP"), /이 지시문만 따라/);
+  assert.match(C.systemPrompt("INFP"), /109/);
+});
+
+test("점검 10·7: 위험한 말 기록엔 누가 보냈는지 없고, quota 는 POST 로 열쇠를 받는다", async () => {
+  const db = await setup();
+  await send(db, { message: "죽고 싶어" }, { fetcher: relayStub().fetcher });
+  const row = db.sql.prepare("SELECT device, ip, chars FROM mori_chat_usage WHERE kind = 'crisis'").get();
+  assert.deepEqual({ ...row }, { device: "", ip: "", chars: 0 });
+  const q = await C.handleMoriChat(
+    new Request("https://x/api/mori-chat/quota", { method: "POST", body: JSON.stringify({ d: DEVICE, r: [], p: ["e".repeat(64)] }) }),
+    new URL("https://x/api/mori-chat/quota"), { DB: db }, { waitUntil: (p) => p },
+  );
+  const j = await q.json();
+  assert.equal(q.status, 200);
+  assert.deepEqual(j.passAlive, [], "없는 열쇠는 살아 있지 않다 → 화면이 지운다");
 });

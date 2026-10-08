@@ -531,7 +531,7 @@ function routeReport(request: Request, url: URL, env: Env, ctx: Ctx, path: strin
           await db
             .prepare(
               `SELECT token, order_no, type, paid_at FROM report_orders
-               WHERE phone_hash = ? AND status IN ('paid', 'partial') ORDER BY created_at DESC LIMIT 10`,
+               WHERE phone_hash = ? AND test = 0 AND status IN ('paid', 'partial') ORDER BY created_at DESC LIMIT 10`,
             )
             .bind(await phoneHash(db, digits))
             .all<{ token: string; order_no: string; type: string; paid_at: string }>()
@@ -543,7 +543,8 @@ function routeReport(request: Request, url: URL, env: Env, ctx: Ctx, path: strin
       const last4 = String(raw.last4 ?? "").replace(/\D/g, "");
       if (!/^MR\d{6}-\d{6}$/.test(orderNo) || !/^\d{4}$/.test(last4)) return json({ error: "주문번호와 휴대폰 뒤 4자리를 확인해 주세요." }, 400);
       const row = await db
-        .prepare("SELECT token, status, phone_last4 FROM report_orders WHERE order_no = ?")
+        // 시험·검수용 주문(test=1)은 찾기로 열리지 않는다. 검수용 무료 리포트가 정해진 번호(01000000000)로 저장돼 누구나 꺼낼 수 있었다(10-08 점검 1번).
+        .prepare("SELECT token, status, phone_last4 FROM report_orders WHERE order_no = ? AND test = 0")
         .bind(orderNo)
         .first<{ token: string; status: string; phone_last4: string }>();
       if (!row || !constantEquals(row.phone_last4, last4)) return json({ error: "일치하는 주문이 없어요." }, 404);

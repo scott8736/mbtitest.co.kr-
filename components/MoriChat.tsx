@@ -66,14 +66,24 @@ function deviceId(): string {
 function readPasses(): string[] {
   try {
     const list = JSON.parse(localStorage.getItem(PASS_KEY) ?? "[]") as string[];
-    return Array.isArray(list) ? list.filter((t) => /^[0-9a-f]{64}$/.test(t)).slice(0, 10) : [];
+    return Array.isArray(list) ? list.filter((t) => /^[0-9a-f]{64}$/.test(t)).slice(0, 20) : [];
   } catch {
     return [];
   }
 }
+/** 서버가 「아직 쓸모 있다」고 한 열쇠만 남깁니다(다 쓴 것·취소된 결제 대기는 지움). */
+function keepPasses(alive: string[]): void {
+  try {
+    const keep = new Set(alive);
+    localStorage.setItem(PASS_KEY, JSON.stringify(readPasses().filter((t) => keep.has(t))));
+  } catch {
+    // 지우지 못해도 서버가 매번 다시 확인합니다.
+  }
+}
+
 function rememberPass(token: string): void {
   try {
-    localStorage.setItem(PASS_KEY, JSON.stringify([token, ...readPasses().filter((t) => t !== token)].slice(0, 10)));
+    localStorage.setItem(PASS_KEY, JSON.stringify([token, ...readPasses().filter((t) => t !== token)].slice(0, 20)));
   } catch {
     // 기억하지 못해도 휴대폰 번호로 다시 찾을 수 있습니다.
   }
@@ -129,10 +139,15 @@ export default function MoriChat({ tests }: { tests: ChatTest[] }) {
 
   const refreshQuota = useCallback(async () => {
     try {
-      const qs = new URLSearchParams({ d: device.current, r: reportTokens().join(","), p: readPasses().join(",") });
-      const r = await fetch(`/api/mori-chat/quota?${qs}`, { cache: "no-store" });
-      const j = (await r.json()) as { quota?: ChatQuota; passOpen?: boolean; scene?: SceneView };
+      const r = await fetch("/api/mori-chat/quota", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ d: device.current, r: reportTokens(), p: readPasses() }),
+        cache: "no-store",
+      });
+      const j = (await r.json()) as { quota?: ChatQuota; passOpen?: boolean; scene?: SceneView; passAlive?: string[] };
       if (j.scene) setScene(j.scene);
+      if (Array.isArray(j.passAlive)) keepPasses(j.passAlive);
       if (j.quota) {
         setQuota(j.quota);
         setWall(j.quota.open && j.quota.total === 0);
@@ -190,11 +205,16 @@ export default function MoriChat({ tests }: { tests: ChatTest[] }) {
       } else {
         setPicking(true);
       }
+      // 결제 뒤 돌아오면 주소는 ?paid=1 뿐입니다(열쇠를 주소에 싣지 않음). ?pass= 는 관리자 검수용 링크에서만 씁니다.
       const pass = params.get("pass") ?? "";
-      if (/^[0-9a-f]{64}$/.test(pass)) {
-        rememberPass(pass);
-        history.replaceState(null, "", location.pathname + (start ? `?mori=${start}` : ""));
-        void waitForPass(pass);
+      const paidBack = params.has("paid") ? readPasses()[0] ?? "" : "";
+      const target = /^[0-9a-f]{64}$/.test(pass) ? pass : paidBack;
+      if (params.has("pass") || params.has("paid")) history.replaceState(null, "", location.pathname + (start ? `?mori=${start}` : ""));
+      if (/^[0-9a-f]{64}$/.test(target)) {
+        rememberPass(target);
+        void waitForPass(target);
+      } else if (params.has("paid")) {
+        setNotice("결제를 확인하지 못했어요. 결제하셨다면 아래 「대화권 다시 찾기」에 결제한 번호를 넣어 주세요.");
       }
       setReady(true);
       void refreshQuota();
@@ -299,8 +319,18 @@ export default function MoriChat({ tests }: { tests: ChatTest[] }) {
     return (
       <div className="mc">
         <div className="mc-card">
-          <b>모리 대화는 준비 중이에요</b>
-          <p>곧 열려요. 그동안 <Link href="/mori/forest/">마음숲 산책</Link>에서 모리들을 먼저 만나 보세요.</p>
+          {readPasses().length || reportTokens().length ? (
+            <>
+              <b>모리가 잠깐 쉬는 중이에요</b>
+              <p>점검이 끝나면 다시 열려요. <b>산 대화권·리포트 혜택 횟수는 그대로 남아 있어요.</b> 그동안 <Link href="/mori/forest/">마음숲 산책</Link>에서 모리들을 만나 보세요.</p>
+            </>
+          ) : (
+            <>
+              <b>모리 대화는 준비 중이에요</b>
+              <p>곧 열려요. 그동안 <Link href="/mori/forest/">마음숲 산책</Link>에서 모리들을 먼저 만나 보세요.</p>
+            </>
+          )}
+          <CrisisNote />
         </div>
       </div>
     );
@@ -543,6 +573,22 @@ function ChatWall({ passOpen, onPass, early = false }: { passOpen: boolean; onPa
         </form>
         {findMsg ? <p className="mc-muted">{findMsg}</p> : null}
       </details>
+      {early ? null : <CrisisNote />}
     </div>
+  );
+}
+
+/** 대화를 할 수 없는 화면(횟수 없음·닫힘)에 늘 두는 상담 번호. 입력칸이 없으면 위험한 말을 보낼 길도 없어서입니다(점검 11번). */
+function CrisisNote() {
+  return (
+    <p className="mc-crisis-note">
+      마음이 많이 힘들다면 혼자 견디지 마세요.{" "}
+      {CRISIS_LINES.map((l, i) => (
+        <span key={l.tel}>
+          {i ? " · " : ""}
+          <a href={`tel:${l.tel.split(" ")[0].replace(/-/g, "")}`}>{l.name} {l.tel}</a>
+        </span>
+      ))}
+    </p>
   );
 }

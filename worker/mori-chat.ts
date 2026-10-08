@@ -109,9 +109,22 @@ export function ensureChatSchema(db: D1Database): Promise<void> {
 
 const hex = (bytes: Uint8Array) => Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 
+/**
+ * IPv6 는 앞 64비트(/64)만 씁니다. 한 회선이 /64 대역 안에서 주소를 마음대로 바꿀 수 있어,
+ * 주소 전체로 세면 IP 상한이 풀립니다(2026-10-08 점검 5번).
+ */
+export function ipKey(ip: string): string {
+  if (!ip.includes(":")) return ip;
+  const [head, tail = ""] = ip.toLowerCase().split("::");
+  const a = head ? head.split(":") : [];
+  const b = tail ? tail.split(":") : [];
+  const full = ip.includes("::") ? [...a, ...Array(Math.max(0, 8 - a.length - b.length)).fill("0"), ...b] : a;
+  return `${full.slice(0, 4).map((g) => g.replace(/^0+(?=.)/, "")).join(":")}::/64`;
+}
+
 /** 하루 단위 IP 해시. 날짜가 섞여 있어 다음 날과 이어붙일 수 없다. */
 async function ipHash(request: Request, day: string): Promise<string> {
-  const ip = request.headers.get("cf-connecting-ip") ?? "";
+  const ip = ipKey(request.headers.get("cf-connecting-ip") ?? "");
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`mori-chat:${ip}:${day}`));
   return hex(new Uint8Array(digest)).slice(0, 32);
 }
@@ -240,7 +253,9 @@ export async function computeQuota(
         .bind(day, best.ref)
         .first<{ n: number }>();
       report = Math.max(0, CHAT_REPORT_PER_DAY - Number(used?.n ?? 0));
-      reportUntil = seoulToday(new Date(best.until));
+      // 끝나는 시각은 결제 시각이라 날짜만 보여 주면 그날 대화 중에 갑자기 막힌다 — 「10월 15일 14시」까지(점검 13번).
+      const u = new Date(best.until + 9 * 3600_000);
+      reportUntil = `${u.getUTCMonth() + 1}월 ${u.getUTCDate()}일 ${u.getUTCHours()}시`;
       reportRef = best.ref;
     }
   }
@@ -270,12 +285,55 @@ async function recordUsage(
     .prepare("INSERT INTO mori_chat_usage (day, device, ip, kind, ref, mori, model, tier, chars, turn) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
     .bind(row.day, row.device, row.ip, row.kind, row.ref ?? "", row.mori ?? "", row.model ?? "", row.tier ?? "", row.chars ?? 0, row.turn ?? 0)
     .run()) as { meta?: { last_row_id?: number }; lastInsertRowid?: number | bigint };
-  // 횟수 기록은 90일만 둔다(개인정보처리방침 5-2). 매번 지울 필요는 없다.
-  if (Math.random() < 0.01) {
-    await db.prepare("DELETE FROM mori_chat_usage WHERE day < ?").bind(seoulToday(new Date(Date.now() - USAGE_KEEP_DAYS * 86400_000))).run();
-  }
+  await purgeOld(db, row.day);
   return Number(res?.meta?.last_row_id ?? res?.lastInsertRowid ?? 0);
 }
+
+/** 횟수 기록은 90일만 둔다(개인정보처리방침 5-2). 아이솔레이트마다 하루 한 번은 꼭 지운다. */
+let purgedDay = "";
+async function purgeOld(db: D1Database, day: string): Promise<void> {
+  if (purgedDay === day) return;
+  purgedDay = day;
+  await db.prepare("DELETE FROM mori_chat_usage WHERE day < ?").bind(seoulToday(new Date(Date.now() - USAGE_KEEP_DAYS * 86400_000))).run();
+}
+
+/**
+ * 횟수 예약을 「세고 → 적기」가 아니라 조건부 INSERT 한 번으로 한다. 동시에 20개를 보내도 상한을 넘지 않게(점검 4번).
+ * 넣었으면 그 행 번호, 상한이면 0.
+ */
+async function reserveUsage(
+  db: D1Database,
+  row: { day: string; device: string; ip: string; kind: "free" | "report"; ref: string; mori: string; chars: number; turn: number },
+): Promise<number> {
+  const cond =
+    row.kind === "free"
+      ? {
+          sql: `(SELECT COUNT(*) FROM mori_chat_usage WHERE day = ? AND device = ? AND kind = 'free') < ?
+            AND (SELECT COUNT(*) FROM mori_chat_usage WHERE day = ? AND ip = ? AND kind = 'free') < ?`,
+          binds: [row.day, row.device, CHAT_FREE_PER_DAY, row.day, row.ip, CHAT_FREE_PER_IP] as (string | number)[],
+        }
+      : {
+          sql: `(SELECT COUNT(*) FROM mori_chat_usage WHERE day = ? AND kind = 'report' AND ref = ?) < ?`,
+          binds: [row.day, row.ref, CHAT_REPORT_PER_DAY] as (string | number)[],
+        };
+  const res = (await db
+    .prepare(
+      `INSERT INTO mori_chat_usage (day, device, ip, kind, ref, mori, chars, turn)
+       SELECT ?, ?, ?, ?, ?, ?, ?, ? WHERE ${cond.sql}`,
+    )
+    .bind(row.day, row.device, row.ip, row.kind, row.ref, row.mori, row.chars, row.turn, ...cond.binds)
+    .run()) as { meta?: { changes?: number; last_row_id?: number }; changes?: number; lastInsertRowid?: number | bigint };
+  const changed = (res?.meta?.changes ?? res?.changes ?? 0) > 0;
+  if (!changed) return 0;
+  await purgeOld(db, row.day);
+  return Number(res?.meta?.last_row_id ?? res?.lastInsertRowid ?? 0);
+}
+
+/**
+ * 무료 사용자가 유료 키로 넘어간 횟수의 하루 상한. 무료 키 8개가 다 막힌 날 누군가 몰아서 쓰면 실제 돈이 나가므로,
+ * 이 수를 넘으면 무료 사용자는 무료 키만 쓴다(중계에 freeonly). 결제한 사람은 상관없다(점검 5번).
+ */
+export const FREE_PAID_FALLBACK_PER_DAY = 200;
 
 /** 대화권 한 번 쓰기. 남은 게 있을 때만 한 칸 올린다(동시에 두 번 눌러도 넘치지 않게). */
 async function takePass(db: D1Database, tokens: string[]): Promise<string> {
@@ -298,7 +356,7 @@ type RelayReply = { ok: true; text: string; model: string; tier: string } | { ok
 /** 중계 워커 부르기. 같은 역할이 이어지면 합친다(제미나이는 user/model 이 번갈아 와야 안정적이다). */
 export async function callRelay(
   relay: RelayConfig,
-  body: { system: string; turns: { role: "user" | "model"; text: string }[]; tier: "free" | "paid" },
+  body: { system: string; turns: { role: "user" | "model"; text: string }[]; tier: "free" | "paid" | "freeonly" },
   fetcher: typeof fetch = fetch,
 ): Promise<RelayReply> {
   const merged: { role: "user" | "model"; parts: { text: string }[] }[] = [];
@@ -353,7 +411,8 @@ export async function handleSend(
 
   // 위험한 말: AI 에 보내지 않는다. 횟수도 깎지 않는다.
   if (isCrisis(message)) {
-    await recordUsage(db, { day, device, ip, kind: "crisis", mori, chars: message.length, turn });
+    // 누가 보냈는지는 남기지 않는다(민감한 기록). 날짜별 건수만.
+    await recordUsage(db, { day, device: "", ip: "", kind: "crisis", mori, chars: 0, turn: 0 });
     const { quota } = await computeQuota(db, { device, ip, day, reports: tokenList(raw.reports, 10), passes: tokenList(raw.passes, 10) }, now);
     return json({ reply: CRISIS_REPLY, crisis: true, quota });
   }
@@ -361,24 +420,44 @@ export async function handleSend(
   const ent = await computeQuota(db, { device, ip, day, reports: tokenList(raw.reports, 10), passes: tokenList(raw.passes, 10) }, now);
   const paidUser = Boolean(ent.reportRef) || ent.passTokens.length > 0;
 
-  // 횟수 예약: 무료 → 리포트 → 대화권
+  // 횟수 예약: 무료 → 리포트 → 대화권. 앞에서 센 숫자는 고르는 데만 쓰고, 실제 차감은 조건부로 한 번에 한다.
   let kind = "";
   let ref = "";
   let usageId = 0;
+  const base = { day, device, ip, mori, chars: message.length, turn };
   if (ent.quota.free > 0) {
-    kind = "free";
-  } else if (ent.quota.report > 0) {
-    kind = "report";
-    ref = ent.reportRef;
-  } else if (ent.quota.pass > 0) {
+    usageId = await reserveUsage(db, { ...base, kind: "free", ref: "" });
+    if (usageId) kind = "free";
+  }
+  if (!kind && ent.reportRef) {
+    usageId = await reserveUsage(db, { ...base, kind: "report", ref: ent.reportRef });
+    if (usageId) {
+      kind = "report";
+      ref = ent.reportRef;
+    }
+  }
+  if (!kind && ent.passTokens.length) {
     ref = await takePass(db, ent.passTokens);
-    if (ref) kind = "pass";
+    if (ref) {
+      kind = "pass";
+      usageId = await recordUsage(db, { ...base, kind, ref });
+    }
   }
   if (!kind) {
     await recordUsage(db, { day, device, ip, kind: "wall", mori, turn });
-    return json({ error: "오늘 무료 대화를 다 썼어요.", needPay: true, quota: ent.quota }, 402);
+    const quota = (await computeQuota(db, { device, ip, day, reports: tokenList(raw.reports, 10), passes: tokenList(raw.passes, 10) }, now)).quota;
+    return json({ error: "오늘 무료 대화를 다 썼어요.", needPay: true, quota }, 402);
   }
-  usageId = await recordUsage(db, { day, device, ip, kind, ref, mori, chars: message.length, turn });
+
+  // 무료 사용자의 유료 키 넘어가기 하루 상한
+  let tier: "free" | "paid" | "freeonly" = paidUser ? "paid" : "free";
+  if (!paidUser) {
+    const spilled = await db
+      .prepare("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day = ? AND kind = 'free' AND tier = 'paid'")
+      .bind(day)
+      .first<{ n: number }>();
+    if (Number(spilled?.n ?? 0) >= FREE_PAID_FALLBACK_PER_DAY) tier = "freeonly";
+  }
 
   const release = async () => {
     await db.prepare("DELETE FROM mori_chat_usage WHERE id = ?").bind(usageId).run();
@@ -391,7 +470,7 @@ export async function handleSend(
       system: `${systemPrompt(mori, isMoriCode(me) ? me : null)}
 ${sceneLine(await currentScene(db, request, now, deps.weatherFetcher))}`,
       turns: [...history, { role: "user", text: message }],
-      tier: paidUser ? "paid" : "free",
+      tier,
     },
     deps.fetcher,
   );
@@ -399,7 +478,8 @@ ${sceneLine(await currentScene(db, request, now, deps.weatherFetcher))}`,
   if (!reply.ok) {
     await release();
     const after = (await computeQuota(db, { device, ip, day, reports: tokenList(raw.reports, 10), passes: tokenList(raw.passes, 10) }, now)).quota;
-    if (reply.kind === "safety") return json({ reply: SAFETY_REPLY, quota: after });
+    // 제미나이가 막은 말에는 위험한 말이 섞여 있을 수 있다 — 「다른 얘기 하자」로 끝내지 않고 상담 번호를 같이 보여 준다(점검 2번).
+    if (reply.kind === "safety") return json({ reply: SAFETY_REPLY, crisis: true, quota: after });
     return json({ error: "모리가 잠깐 졸고 있어요. 조금 뒤에 다시 말을 걸어 줘요. (횟수는 그대로예요)", quota: after }, 503);
   }
   await db.prepare("UPDATE mori_chat_usage SET model = ?, tier = ? WHERE id = ?").bind(reply.model, reply.tier, usageId).run();
@@ -451,7 +531,8 @@ export async function createPassOrder(
       recvphone: input.phone,
       smsuse: "n",
       feedbackurl: `${SITE_ORIGIN}/api/mori-chat/payapp`,
-      returnurl: `${SITE_ORIGIN}/mori/chat/?pass=${token}`,
+      // 열쇠는 주소에 싣지 않는다 — 광고 스크립트가 주소를 읽을 수 있다(점검 7번). 화면이 결제창을 열기 전에 기억해 둔다.
+      returnurl: `${SITE_ORIGIN}/mori/chat/?paid=1`,
       var1: orderNo,
       checkretry: "y",
       openpaytype: REPORT_PAY_TYPES,
@@ -540,17 +621,39 @@ export function handleMoriChat(request: Request, url: URL, env: Env, ctx: Ctx): 
     if (!db) return json({ error: "준비 중이에요." }, 503);
     await ensureChatSchema(db);
 
-    if (path === "/api/mori-chat/quota" && request.method === "GET") {
-      const device = url.searchParams.get("d") ?? "";
+    if (path === "/api/mori-chat/quota" && (request.method === "POST" || request.method === "GET")) {
+      // 열쇠는 본문(POST)으로 받는다. GET 은 배포 직후 옛 화면용으로만 남긴다.
+      let body: { d?: unknown; r?: unknown; p?: unknown } = {};
+      if (request.method === "POST") {
+        try {
+          body = await request.json();
+        } catch {
+          body = {};
+        }
+      } else {
+        body = { d: url.searchParams.get("d"), r: url.searchParams.get("r"), p: url.searchParams.get("p") };
+      }
+      const device = String(body.d ?? "");
       if (!DEVICE_RE.test(device)) return json({ error: "화면을 새로고침해 주세요." }, 400);
       const day = seoulToday();
+      const passes = tokenList(body.p, 20);
       const { quota } = await computeQuota(db, {
         device, ip: await ipHash(request, day), day,
-        reports: tokenList(url.searchParams.get("r"), 10), passes: tokenList(url.searchParams.get("p"), 10),
+        reports: tokenList(body.r, 10), passes: passes.slice(0, 10),
       });
+      // 이 기기가 들고 있는 대화권 열쇠 중 아직 쓸모 있는 것(결제 완료·남음, 또는 하루 안의 결제 대기). 화면이 나머지를 지운다(점검 12번).
+      const alive = passes.length
+        ? ((await db
+            .prepare(
+              `SELECT token FROM mori_chat_passes WHERE token IN (${passes.map(() => "?").join(",")})
+                AND ((status = 'paid' AND used < size) OR (status = 'pending' AND created_at > datetime('now', '-1 day')))`,
+            )
+            .bind(...passes)
+            .all<{ token: string }>()).results ?? []).map((r) => r.token)
+        : [];
       // 첫인사 앞머리(hello)도 서버가 만들어 보냅니다 — 음력 계산 라이브러리를 화면 묶음에 싣지 않으려고.
       const scene = await currentScene(db, request);
-      return json({ quota, passOpen: await passSalesOpen(db), scene: { ...scene, hello: sceneHello(scene) } });
+      return json({ quota, passOpen: await passSalesOpen(db), passAlive: alive, scene: { ...scene, hello: sceneHello(scene) } });
     }
 
     // 화면 기록: 추천 카드 노출·클릭, 「이어서 이야기하기」 누름. 횟수와 상관없는 기록이라 kind 만 받습니다.
@@ -625,7 +728,8 @@ export function handleMoriChat(request: Request, url: URL, env: Env, ctx: Ctx): 
       const digits = String(raw.phone ?? "").replace(/\D/g, "");
       if (!/^01[016789]\d{7,8}$/.test(digits)) return json({ error: "휴대폰 번호를 다시 확인해 주세요." }, 400);
       const rows = (await db
-        .prepare("SELECT token, size, used FROM mori_chat_passes WHERE phone_hash = ? AND status = 'paid' AND used < size ORDER BY created_at DESC LIMIT 10")
+        // 시험·관리자 검수용(test=1)은 찾기에 나오지 않는다 — 관리자 주문은 정해진 가짜 번호라 누구나 넣을 수 있다(점검 1번).
+        .prepare("SELECT token, size, used FROM mori_chat_passes WHERE phone_hash = ? AND test = 0 AND status = 'paid' AND used < size ORDER BY created_at DESC LIMIT 10")
         .bind(await phoneHash(db, digits))
         .all<{ token: string; size: number; used: number }>()).results ?? [];
       if (!rows.length) return json({ error: "이 번호로 남은 대화권이 없어요." }, 404);

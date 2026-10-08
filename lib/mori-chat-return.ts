@@ -2,16 +2,16 @@
  * 「모리랑 하던 이야기 이어가기」 표시 (2026-10-08 사용자 요청: 채팅하다 심리테스트를 해도 대화가 없어지지 않고 이어지게).
  *
  * 대화 화면에서 추천 테스트를 누르면 여기에 「어느 모리와 이야기하다 어느 테스트로 갔는지」를 남깁니다.
- * 다른 페이지 아래쪽의 이어가기 버튼(components/MoriChatResume.tsx)이 이것을 읽고, 대화 화면이 돌아오면 지웁니다.
+ * 다른 페이지 위쪽의 이어가기 버튼(components/MoriChatResume.tsx)이 이것을 읽고, 대화 화면이 돌아오면 지웁니다.
  * 대화 내용 자체는 대화 화면이 이 기기(localStorage)에 따로 둡니다. 서버로 보내지 않습니다.
  */
 const KEY = "mori-chat-return";
 /** 이보다 오래된 표시는 버립니다. 다음 날 아무 페이지에서나 버튼이 뜨면 거슬립니다. */
 const KEEP_MS = 6 * 3600_000;
 
-export type ChatReturn = { mori: string; slug: string; title: string; at: number };
+export type ChatReturn = { mori: string; slug: string; title: string; at: number; seen?: boolean };
 
-export function markChatReturn(value: Omit<ChatReturn, "at">): void {
+export function markChatReturn(value: Omit<ChatReturn, "at" | "seen">): void {
   try {
     localStorage.setItem(KEY, JSON.stringify({ ...value, at: Date.now() }));
   } catch {
@@ -26,6 +26,16 @@ export function readChatReturn(): ChatReturn | null {
     return v;
   } catch {
     return null;
+  }
+}
+
+/** 「이어가기」 버튼을 한 번 보여 줬다고 적습니다. 페이지를 옮길 때마다 「보임」을 세지 않게. */
+export function markChatReturnSeen(): void {
+  try {
+    const v = readChatReturn();
+    if (v) localStorage.setItem(KEY, JSON.stringify({ ...v, seen: true }));
+  } catch {
+    // 못 적으면 한 번 더 셀 뿐입니다.
   }
 }
 

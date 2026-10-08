@@ -276,3 +276,15 @@ test("관리자 검수용 무료 리포트: 결제창 없이 결제 완료, 0원
   const res = await R.handleReport(new Request(url), url, { DB: db }, ctx);
   assert.equal((await res.json()).status, "paid", "열람 화면이 결제 완료로 본다");
 });
+
+test("검수용 무료 리포트(01000000000·test=1)는 「다시 찾기」로 꺼낼 수 없다 (10-08 점검 1번)", async () => {
+  const db = await setup();
+  const made = await R.createOrder(db, { ...order, phone: "01000000000" }, { price: 0, test: true, free: true });
+  assert.equal(made.ok, true);
+  const find = (body) => R.handleReport(
+    new Request("https://x/api/report/find", { method: "POST", body: JSON.stringify(body), headers: { "cf-connecting-ip": "8.8.4.4" } }),
+    new URL("https://x/api/report/find"), { DB: db }, ctx,
+  );
+  assert.equal((await find({ phone: "01000000000" })).status, 404, "번호로 찾기");
+  assert.equal((await find({ orderNo: made.orderNo, last4: "0000" })).status, 404, "주문번호로 찾기");
+});

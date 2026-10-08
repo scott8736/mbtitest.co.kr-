@@ -8,7 +8,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { MORI, moriImage } from "../lib/mori";
-import { chatEvent, clearChatReturn, readChatReturn, type ChatReturn } from "../lib/mori-chat-return";
+import { chatEvent, clearChatReturn, markChatReturnSeen, readChatReturn, type ChatReturn } from "../lib/mori-chat-return";
 
 export default function MoriChatResume() {
   const [back, setBack] = useState<ChatReturn | null>(null);
@@ -19,7 +19,10 @@ export default function MoriChatResume() {
       const v = readChatReturn();
       if (v && MORI[v.mori]) {
         setBack(v);
-        chatEvent("resume_seen", v.mori, v.slug);
+        if (!v.seen) {
+          chatEvent("resume_seen", v.mori, v.slug);
+          markChatReturnSeen();
+        }
       }
     }, 0);
     return () => clearTimeout(id);

@@ -10,7 +10,7 @@ import { CHAT_FREE_PER_DAY, CHAT_PASS_PRICE, CHAT_PASS_SIZE, CHAT_REPORT_DAYS, C
 import { REPORT_TEST_PRICE } from "../lib/report-config";
 import { readSetting, writeSetting } from "./naver";
 import { chatOpen, createPassOrder, ensureChatSchema, passSalesOpen, relayConfig } from "./mori-chat";
-import { logEvent, newToken, payappKeys, phoneHash } from "./report";
+import { logEvent, newToken, payappKeys } from "./report";
 
 /** 처리한 POST 면 돌아갈 주소, 아니면 null. */
 export async function moriChatAdminPost(path: string, form: FormData, db: D1Database): Promise<string | null> {
@@ -44,7 +44,8 @@ export async function moriChatAdminPost(path: string, form: FormData, db: D1Data
         `INSERT INTO mori_chat_passes (token, order_no, size, price, test, phone_last4, phone_hash, status, pay_type, paid_at, consent_version, consent_at)
          VALUES (?, ?, ?, 0, 1, '0000', ?, 'paid', 'admin-free', ?, 'admin', ?)`,
       )
-      .bind(token, orderNo, CHAT_PASS_SIZE, await phoneHash(db, "01000000000"), new Date().toISOString(), new Date().toISOString())
+      // 번호 해시를 넣지 않는다 — 넣으면 「다시 찾기」로 누구나 꺼내 간다(점검 1번).
+      .bind(token, orderNo, CHAT_PASS_SIZE, "admin", new Date().toISOString(), new Date().toISOString())
       .run();
     await logEvent(db, orderNo, "admin_free", "관리자 검수용 무료 대화권");
     return `/admin/report/?chatpass=${token}#mori-chat`;
