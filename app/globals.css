@@ -1474,6 +1474,11 @@ main:not(.screener) .result-card-image {
 .rp-form input:not([type=checkbox]), .rp-form select { padding:12px 14px; border:1px solid #e5e0ef; border-radius:10px; font-size:16px; color:var(--ink); background:#fff; }
 .rp-form .rp-agree { display:flex; gap:10px; align-items:flex-start; color:var(--ink); }
 .rp-form .rp-agree input { margin-top:5px; width:18px; height:18px; flex:none; }
+.rp-form .rp-hint { font-size:13px; color:var(--muted); }
+.rp-extra { display:grid; gap:14px; }
+.rp-extra summary { cursor:pointer; color:#4a2fa3; font-weight:700; font-size:14px; }
+.rp-extra[open] { padding:12px 14px; border-radius:12px; background:#f8f5ff; }
+.rp-extra[open] > label { margin-top:10px; }
 .rp-mine { margin:0; font-size:15px; }
 .rp-button { display:inline-block; padding:14px 22px; border:0; border-radius:12px; background:#7657d6; color:#fff; font-size:16px; font-weight:800; text-align:center; text-decoration:none; cursor:pointer; }
 .rp-button:disabled { opacity:.6; }

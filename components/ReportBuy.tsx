@@ -5,6 +5,7 @@
  * 금액은 화면에 보여 주기만 하고 서버로 보내지 않습니다 — 서버가 lib/report-config.ts 의 값으로 결제창을 엽니다.
  * 초대 할인권(2026-10-08): 이 기기에 받은 할인권을 자동으로 붙이고, 번호를 직접 넣을 수도 있습니다.
  * 서버가 번호를 다시 확인해 금액을 깎습니다(worker/report.ts) — 화면의 할인 금액은 보여 주기용입니다.
+ * 판매 페이지 안 단계 기록(2026-10-08): 결과 있음/없음 → 폼 봄 → 입력 시작 → 결제 버튼 → 오류. 관리자 깔때기 표 아래 줄에 나옵니다.
  */
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -13,6 +14,9 @@ import { readLastResult } from "../lib/my-mori";
 import { BIRTH_TIME_SLOTS, REPORT_CONSENT_TEXT, REPORT_CONSENT_VERSION } from "../lib/report-config";
 import { useReportPricing, won } from "./ReportEvent";
 import { bestCoupon, discounted, myCoupons, normalizeCode, untilText, type Coupon } from "../lib/invite-coupon";
+import { recordTestEventOnce, type ReportStep } from "../lib/test-events";
+
+const step = (s: ReportStep) => recordTestEventOnce(s, "report_step");
 
 type Stored = { result: string; scores: Record<Axis, number> };
 const AXES: Axis[] = ["EI", "SN", "TF", "JP"];
@@ -60,6 +64,7 @@ export default function ReportBuy() {
   const [coupon, setCoupon] = useState<Coupon | null>(null);
   const [codeInput, setCodeInput] = useState("");
   const [couponMsg, setCouponMsg] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
 
   /** 서버에 번호를 확인합니다. 쓴 것·기한 지난 것은 붙이지 않습니다. */
   const applyCode = async (raw: string, quiet = false) => {
@@ -86,18 +91,35 @@ export default function ReportBuy() {
   // sessionStorage 는 마운트 뒤에만 읽을 수 있어 한 박자 늦게 읽습니다(정적 렌더와 어긋나지 않게).
   useEffect(() => {
     const id = setTimeout(() => {
-      setStored(readStored());
+      const found = readStored();
+      setStored(found);
       setReady(true);
+      step(found ? "page_has" : "page_none");
     }, 0);
     return () => clearTimeout(id);
   }, []);
+
+  // 주문 폼이 화면에 절반 이상 들어오면 「폼 봄」. 미리보기·설명에서 나간 사람과 폼까지 온 사람을 가릅니다.
+  useEffect(() => {
+    const form = formRef.current;
+    if (!form || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) {
+        step("form_seen");
+        io.disconnect();
+      }
+    }, { threshold: 0.5 });
+    io.observe(form);
+    return () => io.disconnect();
+  }, [ready, stored]);
 
   if (!ready) return <div className="rp-box">불러오는 중…</div>;
   if (!stored) {
     return (
       <div className="rp-box">
-        <p><b>먼저 무료 MBTI 검사를 해 주세요.</b> 리포트는 검사 점수로 만들어져서, 검사 결과가 있어야 주문할 수 있어요.</p>
-        <Link className="rp-button" href="/tests/mbti/">무료 MBTI 검사하기</Link>
+        <p><b>리포트는 내 검사 점수로 만들어져요.</b> 이 기기에 검사 결과가 없어서 아직 주문할 수 없어요.</p>
+        <p>무료 40문항 검사(가입 없음)를 끝내면 결과 화면과 이 페이지에서 바로 주문할 수 있어요.</p>
+        <Link className="rp-button" href="/tests/mbti/">무료 검사하고 내 리포트 만들기</Link>
       </div>
     );
   }
@@ -106,7 +128,10 @@ export default function ReportBuy() {
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
-    if (!agree) return setError("환불 안내에 동의해 주세요.");
+    if (!agree) {
+      step("error");
+      return setError("환불 안내에 동의해 주세요.");
+    }
     setBusy(true);
     try {
       const response = await fetch("/api/report/order", {
@@ -122,38 +147,44 @@ export default function ReportBuy() {
       }
       location.assign(data.payurl);
     } catch (e) {
+      step("error");
       setError(e instanceof Error ? e.message : "결제창을 열지 못했어요.");
       setBusy(false);
     }
   };
 
   return (
-    <form className="rp-box rp-form" onSubmit={submit}>
+    <form ref={formRef} className="rp-box rp-form" onSubmit={submit} onFocusCapture={() => step("form_start")} onInvalidCapture={() => step("error")}>
       <p className="rp-mine">
         내 결과 <b>{stored.result}</b> · {AXES.map((axis, i) => `${axis[percents[i] >= 50 ? 0 : 1]} ${Math.max(percents[i], 100 - percents[i])}%`).join(" · ")}
       </p>
+      {/* 2026-10-08 판매 페이지 → 결제창 2.0%: 처음에는 꼭 필요한 칸(번호·동의)만 보이게 하고, 선택 칸 셋은 접어 둡니다. */}
       <label>
-        <span>표지에 넣을 이름 (선택, 10자)</span>
-        <input value={name} onChange={(e) => setName(e.target.value)} maxLength={10} placeholder="예: 하늘" autoComplete="nickname" />
-      </label>
-      <label>
-        <span>생년월일 (선택) — 넣으면 사주 장 6쪽이 더해져요</span>
-        <input type="date" value={birth} onChange={(e) => setBirth(e.target.value)} min="1900-01-01" max="2026-12-31" />
-      </label>
-      {birth ? (
-        <label>
-          <span>태어난 시간 (모르면 「모름」)</span>
-          <select value={bt} onChange={(e) => setBt(Number(e.target.value))}>
-            {BIRTH_TIME_SLOTS.map((label, i) => (
-              <option key={label} value={i}>{label}</option>
-            ))}
-          </select>
-        </label>
-      ) : null}
-      <label>
-        <span>휴대폰 번호 (결제창 필수 · 나중에 이 번호로 리포트를 다시 찾아요)</span>
+        <span>휴대폰 번호 (필수)</span>
         <input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="numeric" placeholder="01012345678" required autoComplete="tel" />
+        <small className="rp-hint">결제 확인과 리포트 다시 찾기에만 써요. 광고 문자는 보내지 않아요.</small>
       </label>
+      <details className="rp-extra">
+        <summary>표지 이름·생년월일 넣기 (선택 · 생일을 넣으면 사주 장 6쪽 추가)</summary>
+        <label>
+          <span>표지에 넣을 이름 (10자)</span>
+          <input value={name} onChange={(e) => setName(e.target.value)} maxLength={10} placeholder="예: 하늘" autoComplete="nickname" />
+        </label>
+        <label>
+          <span>생년월일</span>
+          <input type="date" value={birth} onChange={(e) => setBirth(e.target.value)} min="1900-01-01" max="2026-12-31" />
+        </label>
+        {birth ? (
+          <label>
+            <span>태어난 시간 (모르면 「모름」)</span>
+            <select value={bt} onChange={(e) => setBt(Number(e.target.value))}>
+              {BIRTH_TIME_SLOTS.map((label, i) => (
+                <option key={label} value={i}>{label}</option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+      </details>
       <label className="rp-agree">
         <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
         <span>(필수) {REPORT_CONSENT_TEXT} <a href="/refund/" target="_blank" rel="noopener">환불 안내 보기</a></span>
@@ -176,7 +207,8 @@ export default function ReportBuy() {
         {couponMsg ? <p className="rp-error" role="alert">{couponMsg}</p> : null}
       </div>
       {error ? <p className="rp-error" role="alert">{error}</p> : null}
-      <button className="rp-button" type="submit" disabled={busy}>
+      {/* 번호 칸이 비면 브라우저가 onSubmit 전에 막으므로, 누름은 버튼에서 셉니다. */}
+      <button className="rp-button" type="submit" disabled={busy} onClick={() => step("submit")}>
         {busy
           ? "결제창 여는 중…"
           : priced

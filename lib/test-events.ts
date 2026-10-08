@@ -24,6 +24,14 @@ import type { ShareChannel } from "./mori";
  * share_click: 모리 캐릭터 카드 공유 버튼(2026-10-04 제작). slug 자리에 공유 수단
  *   (lib/mori.ts 의 SHARE_CHANNELS)을 넣습니다.
  */
+/**
+ * 판매 페이지(/report/) 안에서 어디까지 갔는지(2026-10-08~). 판매 페이지 → 결제창이 2.0% 라 어디서 빠지는지 보려고 셉니다.
+ * page_has·page_none: 이 기기에 MBTI 결과가 있는/없는 방문(없으면 주문 폼 대신 「검사 먼저」만 보입니다)
+ * form_seen: 주문 폼이 화면에 들어옴 · form_start: 폼 칸을 처음 누름 · submit: 결제 버튼 누름 · error: 결제창 대신 오류 문구가 뜸
+ */
+export const REPORT_STEP_KEYS = ["page_has", "page_none", "form_seen", "form_start", "submit", "error"] as const;
+export type ReportStep = (typeof REPORT_STEP_KEYS)[number];
+
 export type TestEventName =
   | "visited"
   | "answered"
@@ -35,6 +43,8 @@ export type TestEventName =
   // 결과 카드 미리보기 띠를 둘째 쪽 이상 넘겨 본 사람(2026-10-06~). 클릭 없이 관심을 잽니다.
   | "report_peek"
   | "report_follow"
+  // 판매 페이지 안 단계(2026-10-08~): slug 자리에 REPORT_STEP_KEYS 중 하나
+  | "report_step"
   | "saju_seen"
   | "saju_click"
   | "result_click"

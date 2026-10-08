@@ -11,6 +11,7 @@ import { testCatalog } from "../lib/test-catalog";
 import { SAJULAB_PLACEMENT_KEYS } from "../lib/sajulab";
 import { RESULT_CLICK_PLACEMENT_KEYS } from "../lib/result-clicks";
 import { SHARE_CHANNEL_KEYS } from "../lib/mori";
+import { REPORT_STEP_KEYS } from "../lib/test-events";
 import { isBot, RETENTION_DAYS, seoulDay } from "../lib/analytics";
 import { ensureSchema } from "./schema";
 
@@ -36,6 +37,7 @@ const KNOWN_NAMES = new Set([
   "report_click",
   "report_peek",
   "report_follow",
+  "report_step",
   "saju_seen",
   "saju_click",
   "result_click",
@@ -53,6 +55,9 @@ const SAJULAB_SLUGS = new Set<string>(SAJULAB_PLACEMENT_KEYS);
 /** 결과 화면 링크 묶음도 테스트가 아니라 묶음 이름으로 셉니다. */
 const RESULT_CLICK_SLUGS = new Set<string>(RESULT_CLICK_PLACEMENT_KEYS);
 
+/** 판매 페이지 안 단계도 단계 이름으로 셉니다. */
+const REPORT_STEP_SLUGS = new Set<string>(REPORT_STEP_KEYS);
+
 /** 모리 카드 공유도 공유 수단 이름으로 셉니다. */
 const SHARE_SLUGS = new Set<string>(SHARE_CHANNEL_KEYS);
 
@@ -61,6 +66,7 @@ export function isKnownEvent(slug: string, name: string): boolean {
   if (name.startsWith("saju_")) return SAJULAB_SLUGS.has(slug);
   if (name === "result_click") return RESULT_CLICK_SLUGS.has(slug);
   if (name === "share_click") return SHARE_SLUGS.has(slug);
+  if (name === "report_step") return REPORT_STEP_SLUGS.has(slug);
   if (name === "mbti_type") return MBTI_TYPE_SLUGS.has(slug);
   if (name === "mbti_tie") return MBTI_TIE_SLUGS.has(slug);
   return KNOWN_SLUGS.has(slug);

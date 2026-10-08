@@ -86,6 +86,9 @@ export default function MbtiResult() {
       <MoriShare code={result} name={resultInfo.name} tagline={resultInfo.tagline} percents={percentages} best={MORI_BEST[result]} />
       {/* 「친구가 본 내 모리」(2026-10-08, 핵심 목표 = 공유·바이럴). 공유 카드 바로 아래 — 결과를 보고 가장 자랑하고 싶은 순간. */}
       <GuessMePanel me={result} placement="mbti-guessme" />
+      {/* 유료 리포트 카드(2026-10-08 위로 옮김): 지표·상세 설명 아래에 있을 때 완주자의 49.3%만 카드까지 내려왔습니다.
+          공유 두 칸(핵심 목표)은 그대로 위에 두고 그 바로 아래. 효과는 관리자 깔때기 「카드 노출 ÷ 완주」로 봅니다. */}
+      <ReportTeaser code={result} scores={stored?.scores} />
       {/* 모리 게임(2026-10-07). 방금 깨어난 내 모리를 데리고 다른 검사로 가게 하는 길입니다. */}
       <ForestEntry code={result} placement="mbti-forest" />
       <MoriVideoShare code={result} channel="mori-video" />
@@ -103,7 +106,6 @@ export default function MbtiResult() {
         <article><span>WORK</span><h2>일과 협업 스타일</h2><p>{typeDetails[result].work}</p></article>
         <article><span>RECOVERY</span><h2>스트레스 신호와 회복</h2><p>{typeDetails[result].stress}</p></article>
       </div>
-      <ReportTeaser code={result} scores={stored?.scores} />
       <AdUnit key={`result-middle-${result}`} position="resultMiddle" label="MBTI 결과 본문 광고" />
       <div className="growth-plan mbti-growth"><span>GROWTH POINT</span><h2>나를 더 편안하게 만드는 실천</h2>{typeDetails[result].growth.map((x, i) => <p key={x}><b>{String(i + 1).padStart(2, "0")}</b>{x}</p>)}</div>
       <SajuLabBanner placement="mbti" />
