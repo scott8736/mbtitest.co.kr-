@@ -7,6 +7,7 @@ import MoriVideoShare from "./MoriVideoShare";
 import { MoriForestCard } from "./MoriWorld";
 import ForestEntry from "./ForestEntry";
 import { ForestInviteReturn } from "./OurForest";
+import { GuessMePanel } from "./GuessMe";
 import MbtiResultPick from "./MbtiResultPick";
 import ReportTeaser from "./ReportTeaser";
 import SajuLabBanner from "./SajuLabBanner";
@@ -83,6 +84,8 @@ export default function MbtiResult() {
       <p className="result-tagline">{resultInfo.tagline}</p>
       <p className="result-description">{resultInfo.description}</p>
       <MoriShare code={result} name={resultInfo.name} tagline={resultInfo.tagline} percents={percentages} best={MORI_BEST[result]} />
+      {/* 「친구가 본 내 모리」(2026-10-08, 핵심 목표 = 공유·바이럴). 공유 카드 바로 아래 — 결과를 보고 가장 자랑하고 싶은 순간. */}
+      <GuessMePanel me={result} placement="mbti-guessme" />
       {/* 모리 게임(2026-10-07). 방금 깨어난 내 모리를 데리고 다른 검사로 가게 하는 길입니다. */}
       <ForestEntry code={result} placement="mbti-forest" />
       <MoriVideoShare code={result} channel="mori-video" />

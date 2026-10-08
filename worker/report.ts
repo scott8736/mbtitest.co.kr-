@@ -14,6 +14,8 @@
  *   - 열쇠는 256비트 난수. 주문번호만으로는 열리지 않는다.
  *   - 우회 경로·시험용 무료 열기는 두지 않는다. 시험 결제도 진짜 결제(1,000원)를 거친다.
  *   - 휴대폰 번호 원문은 저장하지 않는다. 뒤 4자리와 되돌릴 수 없는 HMAC 값(phone_hash)만 둔다.
+ *   - 초대 할인권(2026-10-08, worker/coupon.ts): 서버가 코드를 확인하고 깎은 금액을 주문에 저장한다.
+ *     페이앱 통보는 그 저장된 금액과 대조하고, 결제 완료 통보가 와야 할인권이 「사용」이 된다.
  */
 import {
   isSellerInfoComplete,
@@ -31,6 +33,8 @@ import { hasBook, loadBook } from "./report-books";
 import { readSetting } from "./naver";
 import { sendTelegram } from "./telegram";
 import { handleTossGrant, TOSS_CORS_PATHS, withCors } from "./report-toss";
+import { attachCoupon, checkCoupon, markCouponPaid } from "./coupon";
+import { discounted } from "../lib/invite-coupon";
 
 const PAYAPP_API = "https://api.payapp.kr/oapi/apiLoad.html";
 
@@ -180,6 +184,11 @@ export function ensureReportSchema(db: D1Database): Promise<void> {
       // 유입 경로(2026-10-04): 어디서 왔고(src·ref_host·utm), 처음 연 페이지(landing), 어느 버튼으로 주문 화면에 왔는지(entry)
       .then(() => Promise.all(["src", "ref_host", "landing", "utm", "entry", "device"].map((c) =>
         db.prepare(`ALTER TABLE report_orders ADD COLUMN ${c} text DEFAULT '' NOT NULL`).run().catch(() => undefined))))
+      // 초대 할인권(2026-10-08): 쓴 코드와 깎은 금액
+      .then(() => Promise.all([
+        db.prepare("ALTER TABLE report_orders ADD COLUMN coupon text DEFAULT '' NOT NULL").run().catch(() => undefined),
+        db.prepare("ALTER TABLE report_orders ADD COLUMN discount integer DEFAULT 0 NOT NULL").run().catch(() => undefined),
+      ]))
       .then(() => db.prepare("CREATE INDEX IF NOT EXISTS report_orders_phone_idx ON report_orders (phone_hash)").run())
       .then(() => undefined)
       .catch((error) => {
@@ -241,7 +250,7 @@ export async function createOrder(
   db: D1Database,
   order: CleanOrder,
   /** free: 관리자 검수용 무료 리포트(2026-10-05). 결제창 없이 바로 결제 완료 상태로 만듭니다 — 관리자 화면에서만 부릅니다. */
-  opts: { price: number; test: boolean; meta?: OrderMeta; free?: boolean },
+  opts: { price: number; test: boolean; meta?: OrderMeta; free?: boolean; coupon?: { code: string; discount: number } },
 ): Promise<{ ok: true; payurl: string; orderNo: string; token: string } | { ok: false; error: string }> {
   const token = newToken();
   const now = new Date();
@@ -265,6 +274,10 @@ export async function createOrder(
     }
   }
   if (!orderNo) return { ok: false, error: "주문을 만들지 못했어요. 잠시 뒤 다시 시도해 주세요." };
+  if (opts.coupon) {
+    await db.prepare("UPDATE report_orders SET coupon = ?, discount = ? WHERE token = ?").bind(opts.coupon.code, opts.coupon.discount, token).run();
+    await attachCoupon(db, opts.coupon.code, orderNo);
+  }
 
   if (opts.free) {
     await db
@@ -307,7 +320,7 @@ export async function createOrder(
       .bind(m.src, m.refHost, m.landing, m.utm, m.entry, m.device, token)
       .run();
   }
-  await logEvent(db, orderNo, "payrequest", `mul_no=${res.mul_no} price=${opts.price}${opts.test ? " test" : ""}`);
+  await logEvent(db, orderNo, "payrequest", `mul_no=${res.mul_no} price=${opts.price}${opts.test ? " test" : ""}${opts.coupon ? ` coupon=${opts.coupon.code} -${opts.coupon.discount}` : ""}`);
   return { ok: true, payurl: res.payurl, orderNo, token };
 }
 
@@ -375,9 +388,9 @@ export async function handleFeedback(db: D1Database, form: URLSearchParams, noti
     return "FAIL";
   }
   const order = await db
-    .prepare("SELECT token, price, status, mul_no, type, test, phone_last4 FROM report_orders WHERE order_no = ?")
+    .prepare("SELECT token, price, status, mul_no, type, test, phone_last4, coupon FROM report_orders WHERE order_no = ?")
     .bind(orderNo)
-    .first<{ token: string; price: number; status: string; mul_no: string; type: string; test: number; phone_last4: string }>();
+    .first<{ token: string; price: number; status: string; mul_no: string; type: string; test: number; phone_last4: string; coupon?: string }>();
   if (!order || !order.mul_no || order.mul_no !== get("mul_no") || String(order.price) !== get("price")) {
     await logEvent(db, orderNo, "feedback_rejected", `mismatch mul_no=${get("mul_no")} price=${get("price")} state=${get("pay_state")}`);
     return "FAIL";
@@ -393,8 +406,13 @@ export async function handleFeedback(db: D1Database, form: URLSearchParams, noti
       .prepare(`UPDATE report_orders SET status = ?${extra}, updated_at = CURRENT_TIMESTAMP WHERE token = ? AND status IN (${marks})`)
       .bind(...binds, order.token, ...move.from)
       .run()) as { meta?: { changes?: number }; changes?: number };
+    const changed = (res?.meta?.changes ?? res?.changes ?? 0) > 0;
+    // 결제가 끝나야 할인권이 「사용」이 됩니다. 장부 오류로 결제 반영이 막히면 안 되므로 실패는 기록만 합니다.
+    if (changed && move.to === "paid" && order.coupon) {
+      await markCouponPaid(db, orderNo, order.coupon).catch((e) => logEvent(db, orderNo, "coupon_mark_error", String(e)));
+    }
     // 상태가 실제로 바뀐 통보만 알립니다. 페이앱이 같은 통보를 다시 보내도 알림은 한 번입니다.
-    if (notify && (res?.meta?.changes ?? res?.changes ?? 0) > 0) notify(feedbackMessage(move.to, order, orderNo));
+    if (notify && changed) notify(feedbackMessage(move.to, order, orderNo));
   }
   await logEvent(db, orderNo, "feedback", `state=${state} type=${get("pay_type")} mul_no=${get("mul_no")}`);
   return "SUCCESS";
@@ -452,7 +470,18 @@ function routeReport(request: Request, url: URL, env: Env, ctx: Ctx, path: strin
       const checked = validateOrder(raw as Record<string, never>, seoulToday());
       if (!checked.ok) return json({ error: checked.error }, 400);
       if (!hasBook(checked.value.type)) return json({ error: "이 유형의 리포트는 준비 중이에요." }, 503);
-      const made = await createOrder(db, checked.value, { price: reportPrice(), test: false, meta: orderMeta(raw, request) });
+      // 초대 할인권: 서버가 확인하고 금액을 깎습니다. 브라우저가 보낸 금액은 쓰지 않습니다.
+      const base = reportPrice();
+      let price = base;
+      let coupon: { code: string; discount: number } | undefined;
+      const rawCoupon = (raw as { coupon?: unknown })?.coupon;
+      if (rawCoupon) {
+        const c = await checkCoupon(db, rawCoupon);
+        if (!c.ok) return json({ error: c.error }, 400);
+        price = discounted(base, Number(c.row.amount));
+        coupon = { code: c.row.code, discount: base - price };
+      }
+      const made = await createOrder(db, checked.value, { price, test: false, meta: orderMeta(raw, request), coupon });
       return made.ok ? json({ payurl: made.payurl, orderNo: made.orderNo }) : json({ error: made.error }, 502);
     }
 

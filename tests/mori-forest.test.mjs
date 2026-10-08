@@ -238,12 +238,15 @@ test("우리 숲 서버: 입력 정리", () => {
 });
 
 test("우리 숲: 미리보기 제목과 HTML 바꾸기(꺾쇠·따옴표 막기)", () => {
-  const view = { id: "abcdefgh", owner: { type: "INFP", nickname: "달빛" }, members: [{ type: "ENFJ", nickname: "", via: "known" }, { type: "ENFJ", nickname: "", via: "test" }] };
+  const view = { id: "abcdefgh", owner: { type: "INFP", nickname: "달빛" }, members: [{ type: "ENFJ", nickname: "", via: "known" }, { type: "ENFJ", nickname: "", via: "test" }], guesses: [] };
   assert.deepEqual(mod.typesIn(view).sort(), ["ENFJ", "INFP"]);
+  // 2026-10-08 「친구가 본 내 모리」: 미리보기에 주인 유형을 쓰지 않는다(맞히기 전에 답이 보이면 안 됨)
   const og = mod.forestOgTitle(view);
-  assert.equal(og.title, "달빛님의 숲 2/16 🌳");
-  assert.ok(og.description.startsWith("아직 없는 모리 ISTJ·ISFJ·INFJ·INTJ…"));
-  assert.equal(mod.forestOgTitle({ ...view, owner: { type: "INFP", nickname: "" } }).title, "INFP 모리의 숲 2/16 🌳");
+  assert.equal(og.title, "달빛님은 어떤 모리 같아? 맞혀 줘 🤔");
+  assert.ok(og.description.startsWith("친구 2명이 벌써 맞혀 봤어요"));
+  assert.ok(!og.title.includes("INFP") && !og.description.includes("INFP"));
+  assert.equal(mod.forestOgTitle({ ...view, members: [], owner: { type: "INFP", nickname: "" } }).title, "내 친구는 어떤 모리 같아? 맞혀 줘 🤔");
+  assert.ok(!mod.forestOgTitle({ ...view, members: [] }).description.includes("명이"));
   const html = '<title>우리 숲 초대장</title><meta property="og:title" content="old"/><meta name="twitter:title" content="old"/><meta property="og:description" content="d"/><meta name="description" content="d"/>';
   const out = mod.rewriteInviteHtml(html, { title: 'a"<b>', description: "x&y" });
   assert.ok(out.includes("<title>a&quot;&lt;b&gt;</title>"));
@@ -256,9 +259,9 @@ test("우리 숲: 열매는 짝꿍·라이벌 12쌍 정본에서만, 공유 채�
   assert.deepEqual(mod.fruitsOf(["INFP", "ENFJ", "ESTJ"]).map((p) => p.kind).sort(), ["라이벌", "짝꿍"]);
   assert.equal(mod.fruitsOf(["INFP", "ENTP"]).length, 0);
   assert.equal(mod.fruitsOf(Object.keys(mod.MORI_WORLD)).length, 12);
-  for (const k of ["forest-invite", "forest-threads", "forest-copy"]) {
+  for (const k of ["forest-invite", "forest-threads", "forest-copy", "forest-card"]) {
     assert.ok(mod.SHARE_CHANNEL_KEYS.includes(k), k);
     assert.ok(mod.isKnownEvent(k, "share_click"), k);
   }
-  for (const k of ["forest-invite-known", "forest-invite-test", "forest-invite-mine", "forest-types"]) assert.ok(mod.isKnownEvent(k, "result_click"), k);
+  for (const k of ["forest-invite-known", "forest-invite-test", "forest-invite-mine", "forest-types", "mbti-guessme", "forest-guess", "forest-guess-mine", "report-coupon"]) assert.ok(mod.isKnownEvent(k, "result_click"), k);
 });

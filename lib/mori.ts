@@ -87,6 +87,8 @@ export const SHARE_CHANNELS = {
   "forest-invite": "우리 숲 · 친구 초대(공유창)",
   "forest-threads": "우리 숲 · 스레드",
   "forest-copy": "우리 숲 · 링크 복사",
+  // 「친구가 본 내 모리」(2026-10-08): 친구들이 본 나 카드(이미지) 공유·저장
+  "forest-card": "친구가 본 내 모리 · 결과 카드 이미지",
 } as const;
 
 export type ShareChannel = keyof typeof SHARE_CHANNELS;

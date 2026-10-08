@@ -26,6 +26,11 @@ export const RESULT_CLICK_PLACEMENTS = {
   "forest-invite-known": "우리 숲 초대 · 내 유형 알아요(바로 심기)",
   "forest-invite-test": "우리 숲 초대 · 검사로 알아보기",
   "forest-invite-mine": "우리 숲 초대 → 나도 내 숲 만들기",
+  // 「친구가 본 내 모리」(2026-10-08 바이럴): 링크 만들기 → 친구 맞히기 → 친구가 자기 링크 만들기
+  "mbti-guessme": "MBTI 결과 · 친구들은 나를 어떤 모리로 볼까(링크 만들기)",
+  "forest-guess": "우리 숲 초대 · 친구 모리 맞히기 제출",
+  "forest-guess-mine": "우리 숲 초대 → 나도 친구들한테 물어보기",
+  "report-coupon": "할인권 → 리포트 쓰러 가기",
 } as const;
 
 export type ResultClickPlacement = keyof typeof RESULT_CLICK_PLACEMENTS;

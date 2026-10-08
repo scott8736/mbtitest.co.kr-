@@ -3,6 +3,8 @@
 /**
  * 리포트 주문 폼 (2026-10-04). 검사 결과(sessionStorage)의 유형·점수로 주문합니다.
  * 금액은 화면에 보여 주기만 하고 서버로 보내지 않습니다 — 서버가 lib/report-config.ts 의 값으로 결제창을 엽니다.
+ * 초대 할인권(2026-10-08): 이 기기에 받은 할인권을 자동으로 붙이고, 번호를 직접 넣을 수도 있습니다.
+ * 서버가 번호를 다시 확인해 금액을 깎습니다(worker/report.ts) — 화면의 할인 금액은 보여 주기용입니다.
  */
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -10,6 +12,7 @@ import { questions, typeData, type Axis } from "../lib/mbti-data";
 import { readLastResult } from "../lib/my-mori";
 import { BIRTH_TIME_SLOTS, REPORT_CONSENT_TEXT, REPORT_CONSENT_VERSION } from "../lib/report-config";
 import { useReportPricing, won } from "./ReportEvent";
+import { bestCoupon, discounted, myCoupons, normalizeCode, untilText, type Coupon } from "../lib/invite-coupon";
 
 type Stored = { result: string; scores: Record<Axis, number> };
 const AXES: Axis[] = ["EI", "SN", "TF", "JP"];
@@ -54,6 +57,31 @@ export default function ReportBuy() {
   const [busy, setBusy] = useState(false);
   const { ready: priced, price } = useReportPricing();
   const [error, setError] = useState("");
+  const [coupon, setCoupon] = useState<Coupon | null>(null);
+  const [codeInput, setCodeInput] = useState("");
+  const [couponMsg, setCouponMsg] = useState("");
+
+  /** 서버에 번호를 확인합니다. 쓴 것·기한 지난 것은 붙이지 않습니다. */
+  const applyCode = async (raw: string, quiet = false) => {
+    const code = normalizeCode(raw);
+    if (!code) return;
+    setCouponMsg("");
+    try {
+      const r = await fetch(`/api/forest/coupon?c=${encodeURIComponent(code)}`);
+      const j = (await r.json()) as { code?: string; amount?: number; expiresAt?: number; error?: string };
+      if (!r.ok || !j.code) throw new Error(j.error || "할인권을 확인하지 못했어요.");
+      setCoupon({ code: j.code, amount: Number(j.amount), expiresAt: Number(j.expiresAt), kind: "friend" });
+      setCodeInput("");
+    } catch (e) {
+      if (!quiet) setCouponMsg(e instanceof Error ? e.message : "할인권을 확인하지 못했어요.");
+    }
+  };
+
+  useEffect(() => {
+    const saved = bestCoupon(myCoupons());
+    if (saved) void applyCode(saved.code, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 처음 한 번만 이 기기에 받은 할인권을 붙입니다
+  }, []);
 
   // sessionStorage 는 마운트 뒤에만 읽을 수 있어 한 박자 늦게 읽습니다(정적 렌더와 어긋나지 않게).
   useEffect(() => {
@@ -84,10 +112,14 @@ export default function ReportBuy() {
       const response = await fetch("/api/report/order", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ type: stored.result, scores: percents, name, birth, bt: birth ? bt : 0, phone, agree, consentVersion: REPORT_CONSENT_VERSION, touch: readTouch() }),
+        body: JSON.stringify({ type: stored.result, scores: percents, name, birth, bt: birth ? bt : 0, phone, agree, consentVersion: REPORT_CONSENT_VERSION, touch: readTouch(), coupon: coupon?.code }),
       });
       const data = (await response.json()) as { payurl?: string; error?: string };
-      if (!response.ok || !data.payurl) throw new Error(data.error || "결제창을 열지 못했어요.");
+      if (!response.ok || !data.payurl) {
+        // 할인권 문제면 빼고 다시 결제할 수 있게 합니다.
+        if (data.error?.includes("할인권")) setCoupon(null);
+        throw new Error(data.error || "결제창을 열지 못했어요.");
+      }
       location.assign(data.payurl);
     } catch (e) {
       setError(e instanceof Error ? e.message : "결제창을 열지 못했어요.");
@@ -126,9 +158,32 @@ export default function ReportBuy() {
         <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
         <span>(필수) {REPORT_CONSENT_TEXT} <a href="/refund/" target="_blank" rel="noopener">환불 안내 보기</a></span>
       </label>
+      <div className="rp-coupon">
+        {coupon ? (
+          <p>
+            🎁 할인권 <b>-{won(price ? price - discounted(price, coupon.amount) : coupon.amount)}</b> 적용 · {untilText(coupon.expiresAt)}
+            <button type="button" onClick={() => setCoupon(null)}>빼기</button>
+          </p>
+        ) : (
+          <details>
+            <summary>할인권 번호가 있어요</summary>
+            <div>
+              <input value={codeInput} onChange={(e) => setCodeInput(e.target.value)} placeholder="10자리 번호" maxLength={14} autoCapitalize="characters" />
+              <button type="button" onClick={() => applyCode(codeInput)}>적용</button>
+            </div>
+          </details>
+        )}
+        {couponMsg ? <p className="rp-error" role="alert">{couponMsg}</p> : null}
+      </div>
       {error ? <p className="rp-error" role="alert">{error}</p> : null}
       <button className="rp-button" type="submit" disabled={busy}>
-        {busy ? "결제창 여는 중…" : priced ? `${won(price)} 결제하기` : "결제하기"}
+        {busy
+          ? "결제창 여는 중…"
+          : priced
+            ? coupon
+              ? `${won(discounted(price, coupon.amount))} 결제하기 (${won(price)}에서 할인)`
+              : `${won(price)} 결제하기`
+            : "결제하기"}
       </button>
     </form>
   );

@@ -366,14 +366,31 @@ async function dashboard(
   const liveBox = await liveNow(db);
   // 모리 게임 「우리 숲」(2026-10-07~). 표가 작아 전체를 셉니다(기간과 무관한 누적).
   const fs = await forestStats(db);
-  const forestBox = fs ? `<div class="box"><h2>우리 숲 (누적)</h2>
-<p class="note">한 사람이 데려온 새 참여자 = 들어온 사람 ÷ 숲 수. 목표 1명 이상(기획안). 검사로 알아보고 온 비율은 초대 문턱이 높은지 봅니다.</p>
+  // 2026-10-08 「친구가 본 내 모리」 + 초대 할인권: 바이럴 계수 = 숲 하나당 참여 친구 × 참여 친구가 자기 링크를 만든 비율
+  const forestBox = fs ? (() => {
+    const perForest = fs.forests ? fs.participants / fs.forests : 0;
+    const remake = fs.participants ? fs.madeOwn / fs.participants : 0;
+    const k = perForest * remake;
+    return `<div class="box"><h2>우리 숲 · 친구가 본 내 모리 (누적)</h2>
+<p class="note">바이럴 계수 = 링크 하나당 참여한 친구 × 참여한 친구가 자기 링크를 만든 비율. <b>1을 넘으면 저절로 퍼집니다.</b> 참여 = 맞히기 또는 심기(기기 기준 한 번).</p>
 <div class="cards">
-<div><b>${fs.forests.toLocaleString()}</b><span>만든 숲</span></div>
-<div><b>${fs.members.toLocaleString()}</b><span>초대로 들어온 사람</span></div>
-<div><b>${fs.forests ? (fs.members / fs.forests).toFixed(2) : "0"}</b><span>숲 하나당 데려온 사람</span></div>
-<div><b>${fs.members ? Math.round((fs.viaTest / fs.members) * 100) : 0}%</b><span>검사 거쳐 들어온 비율</span></div>
-</div></div>` : "";
+<div><b>${k.toFixed(2)}</b><span>바이럴 계수</span></div>
+<div><b>${fs.forests.toLocaleString()}</b><span>만든 링크(숲)</span></div>
+<div><b>${fs.participants.toLocaleString()}</b><span>참여한 친구</span></div>
+<div><b>${perForest.toFixed(2)}</b><span>링크 하나당 참여 친구</span></div>
+<div><b>${Math.round(remake * 100)}%</b><span>참여 친구 → 자기 링크 만듦</span></div>
+<div><b>${fs.forests ? Math.round((fs.forestsWithFriend / fs.forests) * 100) : 0}%</b><span>친구가 1명이라도 온 링크</span></div>
+<div><b>${fs.guesses.toLocaleString()}</b><span>맞히기 · 정답률 ${fs.guesses ? Math.round((fs.guessRight / fs.guesses) * 100) : 0}%</span></div>
+<div><b>${fs.members.toLocaleString()}</b><span>심기 · 검사 거쳐 ${fs.members ? Math.round((fs.viaTest / fs.members) * 100) : 0}%</span></div>
+</div>
+<h3 style="margin:14px 0 6px;font-size:15px">초대 할인권</h3>
+<div class="cards">
+<div><b>${fs.coupons.owner.toLocaleString()}</b><span>주인 할인권 발급(친구 3명 달성)</span></div>
+<div><b>${fs.coupons.friend.toLocaleString()}</b><span>친구 할인권 발급</span></div>
+<div><b>${fs.coupons.paid.toLocaleString()}</b><span>결제에 쓴 할인권</span></div>
+<div><b>${fs.coupons.discount.toLocaleString()}원</b><span>할인해 준 금액</span></div>
+</div></div>`;
+  })() : "";
   const all = mergeRollups(rollups);
   const rowsOf = (map: Record<string, number>, limit?: number) => {
     const list = Object.entries(map).map(([key, views]) => ({ key, views })).sort((a, b) => b.views - a.views);
