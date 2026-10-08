@@ -1,0 +1,637 @@
+/**
+ * 「모리 AI 대화」 서버 (2026-10-08 초안). 규칙·숫자는 lib/mori-chat.ts.
+ *
+ *   GET  /api/mori-chat/quota    ?d=기기&r=리포트열쇠,…&p=대화권열쇠,…  → 오늘 남은 횟수
+ *   POST /api/mori-chat/send     { device, mori, me?, history, message, reports?, passes? } → 모리 답
+ *   POST /api/mori-chat/order    { phone, agree, consentVersion } → 대화권 결제창 주소(페이앱)
+ *   POST /api/mori-chat/payapp   페이앱 결과 통보(feedbackurl). 검증 후 "SUCCESS"
+ *   GET  /api/mori-chat/pass     ?p=열쇠 → 대화권 결제 상태·남은 횟수 (결제 직후 화면이 기다릴 때)
+ *   POST /api/mori-chat/find     { phone } → 이 번호로 산 대화권 열쇠 (다른 기기·지운 뒤 다시 찾기)
+ *
+ * 횟수 쓰는 순서: 하루 무료 → 리포트 구매자 하루 몫 → 대화권. 결제한 사람(리포트·대화권)은 처음부터 유료 키로 답한다
+ * (무료 키 429 로 돈 낸 사람이 「잠시 후」를 보지 않게). 실제 제미나이 호출은 mori-chat-api 워커(미국 고정)가 한다.
+ *
+ * 보안 원칙은 리포트 결제(worker/report.ts)와 같다: 금액은 서버가 정하고, 통보는 키·금액·결제요청번호가 다 맞아야 반영,
+ * 상태는 한 방향으로만. 대화 내용은 저장하지 않는다 — 글자 수·쓴 횟수·모델만 남긴다.
+ */
+import {
+  CHAT_CONSENT_VERSION,
+  CHAT_FREE_PER_DAY,
+  CHAT_FREE_PER_IP,
+  CHAT_MAX_CHARS,
+  CHAT_PASS_NAME,
+  CHAT_PASS_PRICE,
+  CHAT_PASS_SIZE,
+  CHAT_REPORT_DAYS,
+  CHAT_REPORT_PER_DAY,
+  CRISIS_REPLY,
+  SAFETY_REPLY,
+  cleanHistory,
+  isCrisis,
+  isMoriCode,
+  systemPrompt,
+  type ChatQuota,
+} from "../lib/mori-chat";
+import { PAYAPP_USERID, REPORT_PAY_TYPES, isSellerInfoComplete } from "../lib/report-config";
+import { kmaBase, kmaGrid, sceneAt, sceneHello, sceneLine, weatherFromNcst, type Scene } from "../lib/mori-chat-scene";
+import { SITE_ORIGIN } from "../lib/site-urls";
+import { readSetting } from "./naver";
+import { sendTelegram } from "./telegram";
+import { allowAttempt, constantEquals, ensureReportSchema, logEvent, newToken, payappKeys, payappPost, phoneHash, seoulToday } from "./report";
+
+type Env = { DB?: D1Database };
+type Ctx = { waitUntil(promise: Promise<unknown>): void };
+
+export const CHAT_SCHEMA = [
+  // 쓴 횟수. 대화 내용은 남기지 않는다. kind: free · report · pass · crisis(안내문, 횟수 안 깎음) · wall(횟수가 없어 막힘)
+  `CREATE TABLE IF NOT EXISTS mori_chat_usage (
+     id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+     day text NOT NULL,
+     device text NOT NULL,
+     ip text NOT NULL,
+     kind text NOT NULL,
+     ref text DEFAULT '' NOT NULL,
+     mori text DEFAULT '' NOT NULL,
+     model text DEFAULT '' NOT NULL,
+     tier text DEFAULT '' NOT NULL,
+     chars integer DEFAULT 0 NOT NULL,
+     turn integer DEFAULT 0 NOT NULL,
+     created_at text DEFAULT CURRENT_TIMESTAMP NOT NULL
+   )`,
+  `CREATE INDEX IF NOT EXISTS mori_chat_usage_day_idx ON mori_chat_usage (day, device)`,
+  `CREATE INDEX IF NOT EXISTS mori_chat_usage_ip_idx ON mori_chat_usage (day, ip)`,
+  `CREATE INDEX IF NOT EXISTS mori_chat_usage_ref_idx ON mori_chat_usage (day, ref)`,
+  `CREATE TABLE IF NOT EXISTS mori_chat_passes (
+     token text PRIMARY KEY NOT NULL,
+     order_no text NOT NULL UNIQUE,
+     size integer NOT NULL,
+     used integer DEFAULT 0 NOT NULL,
+     price integer NOT NULL,
+     test integer DEFAULT 0 NOT NULL,
+     phone_last4 text NOT NULL,
+     phone_hash text NOT NULL,
+     status text DEFAULT 'pending' NOT NULL,
+     mul_no text DEFAULT '' NOT NULL,
+     payurl text DEFAULT '' NOT NULL,
+     pay_type text DEFAULT '' NOT NULL,
+     paid_at text DEFAULT '' NOT NULL,
+     consent_version text NOT NULL,
+     consent_at text NOT NULL,
+     created_at text DEFAULT CURRENT_TIMESTAMP NOT NULL,
+     updated_at text DEFAULT CURRENT_TIMESTAMP NOT NULL
+   )`,
+  `CREATE INDEX IF NOT EXISTS mori_chat_passes_phone_idx ON mori_chat_passes (phone_hash)`,
+];
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "x-robots-tag": "noindex" },
+  });
+const text = (body: string, status = 200) =>
+  new Response(body, { status, headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" } });
+
+const schemaReady = new WeakMap<object, Promise<void>>();
+export function ensureChatSchema(db: D1Database): Promise<void> {
+  let ready = schemaReady.get(db);
+  if (!ready) {
+    ready = ensureReportSchema(db)
+      .then(() => db.batch(CHAT_SCHEMA.map((sql) => db.prepare(sql))))
+      .then(() => undefined)
+      .catch((error) => {
+        schemaReady.delete(db);
+        throw error;
+      });
+    schemaReady.set(db, ready);
+  }
+  return ready;
+}
+
+const hex = (bytes: Uint8Array) => Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+
+/** 하루 단위 IP 해시. 날짜가 섞여 있어 다음 날과 이어붙일 수 없다. */
+async function ipHash(request: Request, day: string): Promise<string> {
+  const ip = request.headers.get("cf-connecting-ip") ?? "";
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`mori-chat:${ip}:${day}`));
+  return hex(new Uint8Array(digest)).slice(0, 32);
+}
+
+const USAGE_KEEP_DAYS = 90;
+/** 화면이 보내는 기록 종류(횟수에 안 들어감). promo_* 의 ref 에는 카드 종류(report)나 테스트 slug. */
+export const CHAT_EVENT_KINDS = ["promo_seen", "promo_click", "resume_seen", "resume_click"];
+const DEVICE_RE = /^[a-z0-9-]{16,64}$/;
+const TOKEN_RE = /^[0-9a-f]{64}$/;
+const tokenList = (raw: unknown, max: number): string[] =>
+  (Array.isArray(raw) ? raw : String(raw ?? "").split(","))
+    .map((t) => String(t).trim())
+    .filter((t) => TOKEN_RE.test(t))
+    .slice(0, max);
+
+export type RelayConfig = { url: string; secret: string };
+export async function relayConfig(db: D1Database): Promise<RelayConfig> {
+  return { url: await readSetting(db, "mori_chat_relay_url"), secret: await readSetting(db, "mori_chat_relay_secret") };
+}
+
+// ── 지금 숲의 풍경(시간대·특별한 날·날씨) ──
+
+/** 격자마다 30분 동안 날씨를 기억합니다(아이솔레이트 안). 기상청을 매 요청 부르지 않게. */
+const weatherCache = new Map<string, { at: number; weather: Scene["weather"] }>();
+const WEATHER_TTL = 30 * 60_000;
+
+/**
+ * 손님 대략 위치(Cloudflare 가 주는 위경도, 없으면 서울) → 기상청 초단기실황. 키(kma_service_key)가 없거나
+ * 실패하면 날씨 없이 시간대·특별한 날만 씁니다 — 날씨 때문에 대화가 느려지거나 멈추면 안 됩니다(4초 제한).
+ */
+export async function currentScene(db: D1Database, request: Request, now: number = Date.now(), fetcher: typeof fetch = fetch): Promise<Scene> {
+  const at = new Date(now);
+  let weather: Scene["weather"] = null;
+  try {
+    const key = await readSetting(db, "kma_service_key");
+    if (key) {
+      const cf = (request as Request & { cf?: { latitude?: string; longitude?: string; country?: string } }).cf;
+      const inKorea = !cf?.country || cf.country === "KR";
+      const lat = inKorea && cf?.latitude ? Number(cf.latitude) : 37.5665;
+      const lon = inKorea && cf?.longitude ? Number(cf.longitude) : 126.978;
+      const { nx, ny } = kmaGrid(lat, lon);
+      const cacheKey = `${nx},${ny}`;
+      const hit = weatherCache.get(cacheKey);
+      if (hit && now - hit.at < WEATHER_TTL) {
+        weather = hit.weather;
+      } else {
+        const base = kmaBase(at);
+        // 공공데이터 키는 이미 인코딩된 값이라 그대로 붙입니다(다시 인코딩하면 「등록되지 않은 키」).
+        const res = await fetcher(
+          `https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst?serviceKey=${key}&pageNo=1&numOfRows=20&dataType=JSON&base_date=${base.date}&base_time=${base.time}&nx=${nx}&ny=${ny}`,
+          { signal: AbortSignal.timeout(4000) },
+        );
+        const j = (await res.json()) as { response?: { body?: { items?: { item?: { category: string; obsrValue: string }[] } } } };
+        weather = weatherFromNcst(j.response?.body?.items?.item ?? []);
+        weatherCache.set(cacheKey, { at: now, weather });
+      }
+    }
+  } catch {
+    weather = null;
+  }
+  return sceneAt(at, weather);
+}
+
+/** 대화가 열려 있는가: 관리자 스위치 + 중계 주소·키. */
+export async function chatOpen(db: D1Database): Promise<boolean> {
+  const relay = await relayConfig(db);
+  return (await readSetting(db, "mori_chat_open")) === "1" && Boolean(relay.url && relay.secret);
+}
+
+/** 대화권 판매가 열려 있는가: 대화 열림 + 페이앱 키 + 판매자 표시 정보. */
+export async function passSalesOpen(db: D1Database): Promise<boolean> {
+  const keys = await payappKeys(db);
+  return (await chatOpen(db)) && Boolean(keys.linkkey && keys.linkval) && isSellerInfoComplete();
+}
+
+/**
+ * 페이앱 결제 시각(pay_date)은 「2026-10-08 12:34:56」 한국 시각, 관리자 무료 주문은 ISO(UTC).
+ * 시간대 표시가 없으면 한국 시각으로 읽는다.
+ */
+export function parsePaidAt(value: string): number {
+  if (!value) return NaN;
+  if (/[zZ]|[+-]\d\d:?\d\d$/.test(value)) return Date.parse(value);
+  return Date.parse(`${value.replace(" ", "T")}+09:00`);
+}
+
+type Entitlement = {
+  quota: ChatQuota;
+  reportRef: string;
+  passTokens: string[];
+};
+
+/** 오늘 남은 횟수를 계산한다. 브라우저가 보낸 열쇠는 서버가 하나씩 다시 확인한다. */
+export async function computeQuota(
+  db: D1Database,
+  input: { device: string; ip: string; day: string; reports: string[]; passes: string[] },
+  now: number = Date.now(),
+): Promise<Entitlement> {
+  const { device, ip, day } = input;
+  const devFree = await db
+    .prepare("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day = ? AND device = ? AND kind = 'free'")
+    .bind(day, device)
+    .first<{ n: number }>();
+  const ipFree = await db
+    .prepare("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day = ? AND ip = ? AND kind = 'free'")
+    .bind(day, ip)
+    .first<{ n: number }>();
+  const free = Math.max(0, Math.min(CHAT_FREE_PER_DAY - Number(devFree?.n ?? 0), CHAT_FREE_PER_IP - Number(ipFree?.n ?? 0)));
+
+  // 리포트 구매자: 결제일부터 7일(CHAT_REPORT_DAYS) 동안 하루 50번. 여러 권이면 가장 최근 것.
+  let report = 0;
+  let reportUntil = "";
+  let reportRef = "";
+  if (input.reports.length) {
+    const marks = input.reports.map(() => "?").join(",");
+    const rows = (await db
+      .prepare(`SELECT order_no, paid_at FROM report_orders WHERE token IN (${marks}) AND status IN ('paid','partial')`)
+      .bind(...input.reports)
+      .all<{ order_no: string; paid_at: string }>()).results ?? [];
+    const best = rows
+      .map((r) => ({ ref: r.order_no, until: parsePaidAt(r.paid_at) + CHAT_REPORT_DAYS * 86400_000 }))
+      .filter((r) => Number.isFinite(r.until) && r.until > now)
+      .sort((a, b) => b.until - a.until)[0];
+    if (best) {
+      const used = await db
+        .prepare("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day = ? AND kind = 'report' AND ref = ?")
+        .bind(day, best.ref)
+        .first<{ n: number }>();
+      report = Math.max(0, CHAT_REPORT_PER_DAY - Number(used?.n ?? 0));
+      reportUntil = seoulToday(new Date(best.until));
+      reportRef = best.ref;
+    }
+  }
+
+  // 대화권: 결제 완료된 것만, 오래된 것부터 쓴다.
+  let pass = 0;
+  let passTokens: string[] = [];
+  if (input.passes.length) {
+    const marks = input.passes.map(() => "?").join(",");
+    const rows = (await db
+      .prepare(`SELECT token, size, used FROM mori_chat_passes WHERE token IN (${marks}) AND status = 'paid' AND used < size ORDER BY created_at`)
+      .bind(...input.passes)
+      .all<{ token: string; size: number; used: number }>()).results ?? [];
+    pass = rows.reduce((a, r) => a + (r.size - r.used), 0);
+    passTokens = rows.map((r) => r.token);
+  }
+
+  const open = await chatOpen(db);
+  return { quota: { open, free, report, reportUntil, pass, total: free + report + pass }, reportRef, passTokens };
+}
+
+async function recordUsage(
+  db: D1Database,
+  row: { day: string; device: string; ip: string; kind: string; ref?: string; mori?: string; model?: string; tier?: string; chars?: number; turn?: number },
+): Promise<number> {
+  const res = (await db
+    .prepare("INSERT INTO mori_chat_usage (day, device, ip, kind, ref, mori, model, tier, chars, turn) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    .bind(row.day, row.device, row.ip, row.kind, row.ref ?? "", row.mori ?? "", row.model ?? "", row.tier ?? "", row.chars ?? 0, row.turn ?? 0)
+    .run()) as { meta?: { last_row_id?: number }; lastInsertRowid?: number | bigint };
+  // 횟수 기록은 90일만 둔다(개인정보처리방침 5-2). 매번 지울 필요는 없다.
+  if (Math.random() < 0.01) {
+    await db.prepare("DELETE FROM mori_chat_usage WHERE day < ?").bind(seoulToday(new Date(Date.now() - USAGE_KEEP_DAYS * 86400_000))).run();
+  }
+  return Number(res?.meta?.last_row_id ?? res?.lastInsertRowid ?? 0);
+}
+
+/** 대화권 한 번 쓰기. 남은 게 있을 때만 한 칸 올린다(동시에 두 번 눌러도 넘치지 않게). */
+async function takePass(db: D1Database, tokens: string[]): Promise<string> {
+  for (const token of tokens) {
+    const res = (await db
+      .prepare("UPDATE mori_chat_passes SET used = used + 1, updated_at = CURRENT_TIMESTAMP WHERE token = ? AND status = 'paid' AND used < size")
+      .bind(token)
+      .run()) as { meta?: { changes?: number }; changes?: number };
+    if ((res?.meta?.changes ?? res?.changes ?? 0) > 0) return token;
+  }
+  return "";
+}
+
+async function givePassBack(db: D1Database, token: string): Promise<void> {
+  await db.prepare("UPDATE mori_chat_passes SET used = used - 1, updated_at = CURRENT_TIMESTAMP WHERE token = ? AND used > 0").bind(token).run();
+}
+
+type RelayReply = { ok: true; text: string; model: string; tier: string } | { ok: false; kind: "safety" | "busy" | "failed" };
+
+/** 중계 워커 부르기. 같은 역할이 이어지면 합친다(제미나이는 user/model 이 번갈아 와야 안정적이다). */
+export async function callRelay(
+  relay: RelayConfig,
+  body: { system: string; turns: { role: "user" | "model"; text: string }[]; tier: "free" | "paid" },
+  fetcher: typeof fetch = fetch,
+): Promise<RelayReply> {
+  const merged: { role: "user" | "model"; parts: { text: string }[] }[] = [];
+  for (const t of body.turns) {
+    const last = merged[merged.length - 1];
+    if (last && last.role === t.role) last.parts[0].text += `\n${t.text}`;
+    else merged.push({ role: t.role, parts: [{ text: t.text }] });
+  }
+  try {
+    const res = await fetcher(relay.url, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-relay-secret": relay.secret },
+      body: JSON.stringify({ system: body.system, contents: merged, tier: body.tier }),
+      signal: AbortSignal.timeout(25_000),
+    });
+    const j = (await res.json()) as { text?: string; model?: string; tier?: string; error?: string };
+    // 모델이 문장 사이에 빈칸을 두 개씩 넣는 일이 잦아 하나로 줄인다(줄바꿈은 둔다).
+    const tidy = (s: string) => s.replace(/[ \t]{2,}/g, " ").replace(/[ \t]+\n/g, "\n").trim();
+    if (res.ok && j.text) return { ok: true, text: tidy(j.text).slice(0, 600), model: String(j.model ?? ""), tier: String(j.tier ?? "") };
+    if (j.error === "safety") return { ok: false, kind: "safety" };
+    return { ok: false, kind: j.error === "busy" ? "busy" : "failed" };
+  } catch {
+    return { ok: false, kind: "failed" };
+  }
+}
+
+/** 대화 한 번. 순서: 열림 → 입력 확인 → 위험한 말 → 횟수 예약 → AI → 실패면 예약 되돌림. */
+export async function handleSend(
+  db: D1Database,
+  request: Request,
+  raw: Record<string, unknown>,
+  deps: { fetcher?: typeof fetch; now?: number; weatherFetcher?: typeof fetch } = {},
+): Promise<Response> {
+  if (!(await chatOpen(db))) return json({ error: "모리 대화는 아직 준비 중이에요." }, 503);
+  const device = String(raw.device ?? "");
+  const mori = String(raw.mori ?? "").toUpperCase();
+  const me = String(raw.me ?? "").toUpperCase();
+  const message = String(raw.message ?? "").normalize("NFC").trim();
+  if (!DEVICE_RE.test(device) || !isMoriCode(mori)) return json({ error: "화면을 새로고침해 주세요." }, 400);
+  if (!message) return json({ error: "모리에게 할 말을 적어 주세요." }, 400);
+  if (message.length > CHAT_MAX_CHARS) return json({ error: `한 번에 ${CHAT_MAX_CHARS}자까지 보낼 수 있어요.` }, 400);
+
+  const now = deps.now ?? Date.now();
+  const day = seoulToday(new Date(now));
+  const ip = await ipHash(request, day);
+  // 횟수와 상관없이 요청 자체를 묶는다(안내문 경로로 두드리는 것도 막게).
+  if (!(await allowAttempt(db, `chat:${ip}`, "mori_chat", 120))) return json({ error: "잠시 뒤 다시 이야기해 줘요." }, 429);
+
+  // 안내문이 나갔던 주고받음은 AI 에 넘기지 않는다.
+  const history = cleanHistory(raw.history).filter((t) => !(t.role === "user" && isCrisis(t.text)) && t.text !== CRISIS_REPLY);
+  const turn = history.filter((t) => t.role === "user").length + 1;
+
+  // 위험한 말: AI 에 보내지 않는다. 횟수도 깎지 않는다.
+  if (isCrisis(message)) {
+    await recordUsage(db, { day, device, ip, kind: "crisis", mori, chars: message.length, turn });
+    const { quota } = await computeQuota(db, { device, ip, day, reports: tokenList(raw.reports, 10), passes: tokenList(raw.passes, 10) }, now);
+    return json({ reply: CRISIS_REPLY, crisis: true, quota });
+  }
+
+  const ent = await computeQuota(db, { device, ip, day, reports: tokenList(raw.reports, 10), passes: tokenList(raw.passes, 10) }, now);
+  const paidUser = Boolean(ent.reportRef) || ent.passTokens.length > 0;
+
+  // 횟수 예약: 무료 → 리포트 → 대화권
+  let kind = "";
+  let ref = "";
+  let usageId = 0;
+  if (ent.quota.free > 0) {
+    kind = "free";
+  } else if (ent.quota.report > 0) {
+    kind = "report";
+    ref = ent.reportRef;
+  } else if (ent.quota.pass > 0) {
+    ref = await takePass(db, ent.passTokens);
+    if (ref) kind = "pass";
+  }
+  if (!kind) {
+    await recordUsage(db, { day, device, ip, kind: "wall", mori, turn });
+    return json({ error: "오늘 무료 대화를 다 썼어요.", needPay: true, quota: ent.quota }, 402);
+  }
+  usageId = await recordUsage(db, { day, device, ip, kind, ref, mori, chars: message.length, turn });
+
+  const release = async () => {
+    await db.prepare("DELETE FROM mori_chat_usage WHERE id = ?").bind(usageId).run();
+    if (kind === "pass") await givePassBack(db, ref);
+  };
+
+  const reply = await callRelay(
+    await relayConfig(db),
+    {
+      system: `${systemPrompt(mori, isMoriCode(me) ? me : null)}
+${sceneLine(await currentScene(db, request, now, deps.weatherFetcher))}`,
+      turns: [...history, { role: "user", text: message }],
+      tier: paidUser ? "paid" : "free",
+    },
+    deps.fetcher,
+  );
+
+  if (!reply.ok) {
+    await release();
+    const after = (await computeQuota(db, { device, ip, day, reports: tokenList(raw.reports, 10), passes: tokenList(raw.passes, 10) }, now)).quota;
+    if (reply.kind === "safety") return json({ reply: SAFETY_REPLY, quota: after });
+    return json({ error: "모리가 잠깐 졸고 있어요. 조금 뒤에 다시 말을 걸어 줘요. (횟수는 그대로예요)", quota: after }, 503);
+  }
+  await db.prepare("UPDATE mori_chat_usage SET model = ?, tier = ? WHERE id = ?").bind(reply.model, reply.tier, usageId).run();
+  const after = (await computeQuota(db, { device, ip, day, reports: tokenList(raw.reports, 10), passes: tokenList(raw.passes, 10) }, now)).quota;
+  return json({ reply: reply.text, used: kind, quota: after });
+}
+
+// ── 대화권 결제 ──
+
+/** 주문번호: MC + 한국 날짜(yymmdd) + 6자리 난수. 리포트(MR…)와 앞 글자로 갈린다. */
+export function newPassOrderNo(now: Date = new Date()): string {
+  const d = seoulToday(now).replace(/-/g, "").slice(2);
+  const n = crypto.getRandomValues(new Uint32Array(1))[0] % 1_000_000;
+  return `MC${d}-${String(n).padStart(6, "0")}`;
+}
+
+export async function createPassOrder(
+  db: D1Database,
+  input: { phone: string; test?: boolean; price?: number },
+): Promise<{ ok: true; payurl: string; orderNo: string; token: string } | { ok: false; error: string }> {
+  const token = newToken();
+  const now = new Date();
+  const price = input.price ?? CHAT_PASS_PRICE;
+  let orderNo = "";
+  for (let i = 0; i < 4 && !orderNo; i++) {
+    const candidate = newPassOrderNo(now);
+    try {
+      await db
+        .prepare(
+          `INSERT INTO mori_chat_passes (token, order_no, size, price, test, phone_last4, phone_hash, consent_version, consent_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .bind(token, candidate, CHAT_PASS_SIZE, price, input.test ? 1 : 0, input.phone.slice(-4), await phoneHash(db, input.phone), CHAT_CONSENT_VERSION, now.toISOString())
+        .run();
+      orderNo = candidate;
+    } catch {
+      // 주문번호가 겹치면(UNIQUE) 다시 뽑습니다.
+    }
+  }
+  if (!orderNo) return { ok: false, error: "주문을 만들지 못했어요. 잠시 뒤 다시 시도해 주세요." };
+
+  let res: Record<string, string>;
+  try {
+    res = await payappPost({
+      cmd: "payrequest",
+      userid: PAYAPP_USERID,
+      goodname: `${CHAT_PASS_NAME}${input.test ? " (시험)" : ""}`,
+      price: String(price),
+      recvphone: input.phone,
+      smsuse: "n",
+      feedbackurl: `${SITE_ORIGIN}/api/mori-chat/payapp`,
+      returnurl: `${SITE_ORIGIN}/mori/chat/?pass=${token}`,
+      var1: orderNo,
+      checkretry: "y",
+      openpaytype: REPORT_PAY_TYPES,
+    });
+  } catch (error) {
+    await logEvent(db, orderNo, "payrequest_error", String(error));
+    return { ok: false, error: "결제창을 열지 못했어요. 잠시 뒤 다시 시도해 주세요." };
+  }
+  if (res.state !== "1" || !res.mul_no || !res.payurl) {
+    await logEvent(db, orderNo, "payrequest_fail", `${res.errno ?? ""} ${res.errorMessage ?? ""}`);
+    await db.prepare("UPDATE mori_chat_passes SET status = 'failed', updated_at = CURRENT_TIMESTAMP WHERE token = ?").bind(token).run();
+    return { ok: false, error: "결제창을 열지 못했어요. 잠시 뒤 다시 시도해 주세요." };
+  }
+  await db.prepare("UPDATE mori_chat_passes SET mul_no = ?, payurl = ?, updated_at = CURRENT_TIMESTAMP WHERE token = ?").bind(res.mul_no, res.payurl.slice(0, 300), token).run();
+  await logEvent(db, orderNo, "payrequest", `mul_no=${res.mul_no} price=${price} chat-pass${input.test ? " test" : ""}`);
+  return { ok: true, payurl: res.payurl, orderNo, token };
+}
+
+/**
+ * 대화권은 「쓴 만큼 빼고 환불」이라 부분 취소(70·71)가 정상 경로다. 부분 취소가 오면 남은 횟수를 더 쓰지 못하게 닫는다
+ * (환불은 페이앱 관리자에서 「남은 횟수 × 58원」으로 부분 취소한다 — 2,900원 / 50번).
+ */
+const PASS_TRANSITIONS: Record<string, { to: string; from: string[] }> = {
+  "4": { to: "paid", from: ["pending"] },
+  "8": { to: "cancelled", from: ["pending"] },
+  "32": { to: "cancelled", from: ["pending"] },
+  "9": { to: "refunded", from: ["paid", "partial"] },
+  "64": { to: "refunded", from: ["paid", "partial"] },
+  "70": { to: "partial", from: ["paid"] },
+  "71": { to: "partial", from: ["paid"] },
+};
+const PASS_HEAD: Record<string, string> = {
+  paid: "💬 모리 대화권 결제 완료", refunded: "↩️ 대화권 환불", partial: "↩️ 대화권 부분 취소", cancelled: "대화권 결제 요청 취소",
+};
+
+export async function handlePassFeedback(db: D1Database, form: URLSearchParams, notify?: (text: string) => void): Promise<string> {
+  const get = (k: string) => (form.get(k) ?? "").trim();
+  const keys = await payappKeys(db);
+  const orderNo = get("var1");
+  const authed = get("userid") === PAYAPP_USERID && constantEquals(get("linkkey"), keys.linkkey) && constantEquals(get("linkval"), keys.linkval);
+  if (!authed) {
+    await logEvent(db, orderNo, "feedback_rejected", `chat-pass auth mul_no=${get("mul_no")} state=${get("pay_state")}`);
+    return "FAIL";
+  }
+  const row = await db
+    .prepare("SELECT token, price, status, mul_no, used, size, test, phone_last4 FROM mori_chat_passes WHERE order_no = ?")
+    .bind(orderNo)
+    .first<{ token: string; price: number; status: string; mul_no: string; used: number; size: number; test: number; phone_last4: string }>();
+  if (!row || !row.mul_no || row.mul_no !== get("mul_no") || String(row.price) !== get("price")) {
+    await logEvent(db, orderNo, "feedback_rejected", `chat-pass mismatch mul_no=${get("mul_no")} price=${get("price")} state=${get("pay_state")}`);
+    return "FAIL";
+  }
+  const state = get("pay_state");
+  const move = PASS_TRANSITIONS[state];
+  if (move) {
+    const marks = move.from.map(() => "?").join(",");
+    const extra = state === "4" ? ", paid_at = ?, pay_type = ?" : "";
+    const binds: (string | number)[] = [move.to];
+    if (state === "4") binds.push(get("pay_date") || new Date().toISOString(), get("pay_type"));
+    const res = (await db
+      .prepare(`UPDATE mori_chat_passes SET status = ?${extra}, updated_at = CURRENT_TIMESTAMP WHERE token = ? AND status IN (${marks})`)
+      .bind(...binds, row.token, ...move.from)
+      .run()) as { meta?: { changes?: number }; changes?: number };
+    const changed = (res?.meta?.changes ?? res?.changes ?? 0) > 0;
+    if (notify && changed) {
+      const at = new Date(Date.now() + 9 * 3600_000).toISOString().slice(5, 16).replace("T", " ");
+      notify([
+        `${PASS_HEAD[move.to] ?? move.to}${row.test ? " (시험)" : ""}`,
+        `${CHAT_PASS_NAME} · ${row.price.toLocaleString()}원 · 쓴 횟수 ${row.used}/${row.size}`,
+        `주문 ${orderNo} · 휴대폰 ***-${row.phone_last4}`,
+        `${at} (한국 시각)`,
+      ].join("\n"));
+    }
+  }
+  await logEvent(db, orderNo, "feedback", `chat-pass state=${state} type=${get("pay_type")} mul_no=${get("mul_no")}`);
+  return "SUCCESS";
+}
+
+// ── 경로 ──
+
+export function handleMoriChat(request: Request, url: URL, env: Env, ctx: Ctx): Promise<Response> | null {
+  const path = url.pathname.replace(/\/+$/, "");
+  if (!path.startsWith("/api/mori-chat/")) return null;
+  return (async () => {
+    const db = env?.DB;
+    if (!db) return json({ error: "준비 중이에요." }, 503);
+    await ensureChatSchema(db);
+
+    if (path === "/api/mori-chat/quota" && request.method === "GET") {
+      const device = url.searchParams.get("d") ?? "";
+      if (!DEVICE_RE.test(device)) return json({ error: "화면을 새로고침해 주세요." }, 400);
+      const day = seoulToday();
+      const { quota } = await computeQuota(db, {
+        device, ip: await ipHash(request, day), day,
+        reports: tokenList(url.searchParams.get("r"), 10), passes: tokenList(url.searchParams.get("p"), 10),
+      });
+      // 첫인사 앞머리(hello)도 서버가 만들어 보냅니다 — 음력 계산 라이브러리를 화면 묶음에 싣지 않으려고.
+      const scene = await currentScene(db, request);
+      return json({ quota, passOpen: await passSalesOpen(db), scene: { ...scene, hello: sceneHello(scene) } });
+    }
+
+    // 화면 기록: 추천 카드 노출·클릭, 「이어서 이야기하기」 누름. 횟수와 상관없는 기록이라 kind 만 받습니다.
+    if (path === "/api/mori-chat/event" && request.method === "POST") {
+      let raw: { device?: unknown; kind?: unknown; mori?: unknown; ref?: unknown };
+      try {
+        raw = await request.json();
+      } catch {
+        return json({ ok: false }, 400);
+      }
+      const device = String(raw.device ?? "");
+      const kind = String(raw.kind ?? "");
+      if (!DEVICE_RE.test(device) || !CHAT_EVENT_KINDS.includes(kind)) return json({ ok: false }, 400);
+      const day = seoulToday();
+      const ip = await ipHash(request, day);
+      if (!(await allowAttempt(db, `chat:${ip}`, "mori_chat_event", 200))) return json({ ok: false }, 429);
+      const mori = String(raw.mori ?? "").toUpperCase();
+      const ref = String(raw.ref ?? "").replace(/[^a-z0-9-]/g, "").slice(0, 40);
+      await recordUsage(db, { day, device, ip, kind, ref, mori: isMoriCode(mori) ? mori : "" });
+      return json({ ok: true });
+    }
+
+    if (path === "/api/mori-chat/send" && request.method === "POST") {
+      let raw: Record<string, unknown>;
+      try {
+        raw = (await request.json()) as Record<string, unknown>;
+      } catch {
+        return json({ error: "보낸 내용을 읽지 못했어요." }, 400);
+      }
+      return handleSend(db, request, raw);
+    }
+
+    if (path === "/api/mori-chat/order" && request.method === "POST") {
+      if (!(await passSalesOpen(db))) return json({ error: "대화권은 아직 판매 준비 중이에요." }, 503);
+      const day = seoulToday();
+      if (!(await allowAttempt(db, `chat:${await ipHash(request, day)}`, "chat_order", 10))) return json({ error: "잠시 뒤 다시 시도해 주세요." }, 429);
+      let raw: { phone?: unknown; agree?: unknown; consentVersion?: unknown };
+      try {
+        raw = await request.json();
+      } catch {
+        return json({ error: "주문 내용을 읽지 못했어요." }, 400);
+      }
+      const phone = String(raw.phone ?? "").replace(/\D/g, "");
+      if (!/^01[016789]\d{7,8}$/.test(phone)) return json({ error: "휴대폰 번호를 다시 확인해 주세요." }, 400);
+      if (raw.agree !== true || raw.consentVersion !== CHAT_CONSENT_VERSION) return json({ error: "안내에 동의해 주세요." }, 400);
+      const made = await createPassOrder(db, { phone });
+      return made.ok ? json({ payurl: made.payurl, orderNo: made.orderNo, token: made.token }) : json({ error: made.error }, 502);
+    }
+
+    if (path === "/api/mori-chat/payapp" && request.method === "POST") {
+      const body = await request.text();
+      return text(await handlePassFeedback(db, new URLSearchParams(body), (msg) => ctx.waitUntil(sendTelegram(db, msg))));
+    }
+
+    if (path === "/api/mori-chat/pass" && request.method === "GET") {
+      const token = url.searchParams.get("p") ?? "";
+      if (!TOKEN_RE.test(token)) return json({ error: "대화권을 찾지 못했어요." }, 404);
+      const row = await db.prepare("SELECT order_no, status, size, used FROM mori_chat_passes WHERE token = ?").bind(token).first<{ order_no: string; status: string; size: number; used: number }>();
+      if (!row) return json({ error: "대화권을 찾지 못했어요." }, 404);
+      return json({ status: row.status, orderNo: row.order_no, left: row.status === "paid" ? row.size - row.used : 0 });
+    }
+
+    if (path === "/api/mori-chat/find" && request.method === "POST") {
+      const day = seoulToday();
+      if (!(await allowAttempt(db, `chat:${await ipHash(request, day)}`, "chat_find", 8))) return json({ error: "시도가 너무 많아요. 한 시간 뒤 다시 시도해 주세요." }, 429);
+      let raw: { phone?: unknown };
+      try {
+        raw = await request.json();
+      } catch {
+        return json({ error: "입력을 읽지 못했어요." }, 400);
+      }
+      const digits = String(raw.phone ?? "").replace(/\D/g, "");
+      if (!/^01[016789]\d{7,8}$/.test(digits)) return json({ error: "휴대폰 번호를 다시 확인해 주세요." }, 400);
+      const rows = (await db
+        .prepare("SELECT token, size, used FROM mori_chat_passes WHERE phone_hash = ? AND status = 'paid' AND used < size ORDER BY created_at DESC LIMIT 10")
+        .bind(await phoneHash(db, digits))
+        .all<{ token: string; size: number; used: number }>()).results ?? [];
+      if (!rows.length) return json({ error: "이 번호로 남은 대화권이 없어요." }, 404);
+      return json({ passes: rows.map((r) => ({ token: r.token, left: r.size - r.used })) });
+    }
+
+    return json({ error: "없는 주소예요." }, 404);
+  })().catch(() => json({ error: "잠시 문제가 생겼어요. 다시 시도해 주세요." }, 500));
+}

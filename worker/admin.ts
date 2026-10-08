@@ -31,6 +31,7 @@ import {
   type TrendRow,
 } from "./naver";
 import { ensureSchema } from "./schema";
+import { moriChatSummaryBox } from "./mori-chat-admin";
 import {
   commissionByDay,
   createDeeplinks,
@@ -364,6 +365,8 @@ async function dashboard(
   // 예전처럼 쿼리마다 page_views 기간 전체를 훑으면 30일 조회 한 번에 약 150만 행을 읽습니다.
   const { days: rollups, pending } = await loadRollups(db, from, to, seoulDay());
   const liveBox = await liveNow(db);
+  // 모리 AI 대화 요약(2026-10-08~, worker/mori-chat-admin.ts). 표가 없거나 실패하면 빈칸.
+  const chatSummary = await moriChatSummaryBox(db);
   // 모리 게임 「우리 숲」(2026-10-07~). 표가 작아 전체를 셉니다(기간과 무관한 누적).
   const fs = await forestStats(db);
   // 2026-10-08 「친구가 본 내 모리」 + 초대 할인권: 바이럴 계수 = 숲 하나당 참여 친구 × 참여 친구가 자기 링크를 만든 비율
@@ -732,6 +735,7 @@ ${shareClicks.map((row) => `<tr><td>${esc(row.label)}</td><td>${row.clicks}</td>
 </tbody></table></div>
 </div>
 
+${chatSummary}
 <div class="box"><h2>유료 리포트 판매 깔때기 (MBTI) · <a href="/admin/report/">주문 관리 →</a></h2>
 <p class="note">
 결과 화면 리포트 카드 → 판매 페이지 → 주문(결제창) → 결제 → 열람 순서입니다. 손님 주문만 셉니다(관리자 시험 결제 제외).

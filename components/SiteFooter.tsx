@@ -1,4 +1,5 @@
 import CoupangPartners from "./CoupangPartners";
+import MoriChatResume from "./MoriChatResume";
 import SellerInfo from "./SellerInfo";
 import ShareButtons from "./ShareButtons";
 
@@ -15,6 +16,7 @@ export default function SiteFooter({
 } = {}) {
   return (
     <>
+      <MoriChatResume />
       {/* 광고보다 위에 두고 여백을 크게 잡습니다. 광고와 붙으면 오클릭이 납니다. */}
       <ShareButtons variant="footer" title={shareTitle} url={shareUrl} />
       {ads ? <CoupangPartners /> : null}

@@ -8,6 +8,7 @@ import { ensureSchema } from "./schema";
 import { handleTestEvent } from "./test-events";
 import { handleTrending } from "./trending";
 import { handleReport } from "./report";
+import { handleMoriChat } from "./mori-chat";
 import { handleForest } from "./forest";
 import {
   classifyDevice,
@@ -98,6 +99,10 @@ const worker = {
     if (forest) return forest;
     const report = handleReport(request, url, env, ctx);
     if (report) return report;
+
+    // 모리 AI 대화 (/api/mori-chat/*, 2026-10-08 초안)
+    const moriChat = handleMoriChat(request, url, env, ctx);
+    if (moriChat) return moriChat;
 
     // /admin 은 워커에서 직접 처리합니다. Next 페이지로 두면 output: "export" 의
     // 프리렌더가 Node 에서 cloudflare:workers 를 읽지 못해 빌드가 깨집니다.

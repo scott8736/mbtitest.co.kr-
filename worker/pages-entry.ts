@@ -25,6 +25,7 @@ import { ensureSchema } from "./schema";
 import { handleTestEvent } from "./test-events";
 import { handleTrending } from "./trending";
 import { handleReport } from "./report";
+import { handleMoriChat } from "./mori-chat";
 import { forestOgTitle, handleForest, isForestId, loadForest, rewriteInviteHtml } from "./forest";
 
 interface Env {
@@ -71,6 +72,10 @@ const worker = {
     // 유료 리포트 주문·페이앱 통보·열람 (/api/report/*)
     const report = handleReport(request, url, env, ctx);
     if (report) return report;
+
+    // 모리 AI 대화 (/api/mori-chat/*, 2026-10-08 초안)
+    const moriChat = handleMoriChat(request, url, env, ctx);
+    if (moriChat) return moriChat;
 
     // 모리 게임 「우리 숲」 (/api/forest/*, 2026-10-07)
     const forest = handleForest(request, url, env, ctx);

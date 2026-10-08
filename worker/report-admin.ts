@@ -23,6 +23,7 @@ import { bookTypes, hasBook, keyWorks } from "./report-books";
 import { readSetting, writeSetting } from "./naver";
 import { findTelegramChatId, sendTelegram, telegramConfig, TELEGRAM_TOKEN_RE } from "./telegram";
 import { SOURCE_LABELS } from "../lib/analytics";
+import { moriChatAdminBox, moriChatAdminPost } from "./mori-chat-admin";
 import { createOrder, ensureReportSchema, logEvent, payappKeys, payappPost, salesOpen, type OrderRow } from "./report";
 
 type Helpers = {
@@ -80,6 +81,10 @@ export async function handleReportAdmin(request: Request, url: URL, path: string
   if (request.method === "POST") {
     const form = await request.formData();
     const val = (k: string) => String(form.get(k) ?? "").trim();
+
+    // 모리 AI 대화 칸(worker/mori-chat-admin.ts)
+    const chatTo = await moriChatAdminPost(path, form, db);
+    if (chatTo) return redirect(chatTo);
 
     if (path === "/admin/report/keys") {
       // 빈 칸은 기존 값을 지우지 않습니다. 공백·줄바꿈이 섞여 들어오는 일이 잦아 걷어냅니다.
@@ -236,12 +241,15 @@ export async function handleReportAdmin(request: Request, url: URL, path: string
     tgsend: "텔레그램 알림을 보내지 못했습니다. 토큰·대화 ID 를 확인하세요.",
     tossurl: "확인 워커 주소는 https://….workers.dev/verify 모양이어야 합니다.",
     tosssecret: "확인 키가 너무 짧습니다(32자 이상).",
+    chaturl: "모리 대화 중계 주소는 https://….workers.dev/chat 모양이어야 합니다.",
+    chatsecret: "모리 대화 확인 키가 너무 짧습니다(32자 이상).",
   };
   const toss = {
     url: await readSetting(db, "toss_verify_url"),
     secret: await readSetting(db, "toss_verify_secret"),
     sku: await readSetting(db, "toss_report_sku"),
   };
+  const chatBox = await moriChatAdminBox(db, q, esc);
   const testOrder = q.get("test") ? orders.find((o) => o.order_no === q.get("test")) : null;
   const freeOrder = q.get("free") ? orders.find((o) => o.order_no === q.get("free")) : null;
   const freeBox = freeOrder
@@ -297,6 +305,8 @@ ${freeBox}
 <label><span>대화 ID</span><input name="tg_chat" autocomplete="off" spellcheck="false" placeholder="${tg.chatId ? "바꿀 때만 입력" : "비워 두면 자동으로 찾음"}"></label>
 </div><button type="submit" style="margin-top:12px">저장</button></form>
 ${tg.token && tg.chatId ? `<form method="post" action="/admin/report/telegram-test" style="margin-top:10px"><button type="submit">시험 알림 보내기</button></form>` : ""}</div>
+
+${chatBox}
 
 <div class="box"><h2>토스 미니앱 인앱결제 (MBTI 검사 앱)</h2>
 <p class="note">토스 앱 안에서 산 리포트를 여기서 확인해 열어 줍니다. 가격은 ${TOSS_REPORT_PRICE.toLocaleString()}원 고정입니다.

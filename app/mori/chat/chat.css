@@ -1,0 +1,110 @@
+/* 모리 AI 대화 (2026-10-08 초안). 마음숲 산책(forest.css)처럼 휴대폰 세로가 기준, 넓은 화면은 가운데 520px 기둥. */
+.mc-page { background:#f6f1fb; }
+.mc { --mori:#b9a3e3; max-width:520px; margin:0 auto; padding:14px 16px 20px; color:#2b2540; font-family:Pretendard,SUIT,"Noto Sans KR",sans-serif; box-sizing:border-box; }
+.mc a { color:#5a3fb3; }
+.mc-muted { color:#7a6f96; font-size:14px; line-height:1.6; }
+.mc-title { margin:8px 0 6px; font-family:Jua,Pretendard,sans-serif; font-weight:400; font-size:26px; text-align:center; }
+.mc-card { padding:22px; border-radius:18px; background:#fff; box-shadow:0 4px 16px rgba(60,40,120,.08); line-height:1.7; }
+
+/* 모리 고르기 */
+.mc-pick { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:14px; }
+.mc-pick button { position:relative; display:grid; justify-items:center; gap:2px; padding:10px 4px 8px; border:2px solid transparent; border-radius:16px; background:#fff; color:#2b2540; font:inherit; cursor:pointer; box-shadow:0 2px 8px rgba(60,40,120,.06); }
+.mc-pick button:hover, .mc-pick button:focus-visible { border-color:var(--mori); }
+.mc-pick button.is-me { border-color:var(--mori); background:color-mix(in srgb,var(--mori) 14%,#fff); }
+.mc-pick img { width:56px; height:56px; object-fit:contain; }
+.mc-pick b { font-size:13px; }
+.mc-pick span { font-size:11px; color:#7a6f96; word-break:keep-all; text-align:center; line-height:1.3; }
+.mc-pick i { position:absolute; top:4px; right:4px; padding:1px 6px; border-radius:99px; background:#7657d6; color:#fff; font-size:10px; font-style:normal; }
+
+/* 머리 */
+.mc-head { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:18px; background:#fff; box-shadow:0 2px 10px rgba(60,40,120,.07); }
+.mc-head img { width:52px; height:52px; border-radius:50%; object-fit:contain; background:color-mix(in srgb,var(--mori) 22%,#fff); }
+.mc-head div { display:grid; gap:2px; min-width:0; }
+.mc-head b { font-size:16px; }
+.mc-head span { font-size:12px; color:#7a6f96; }
+.mc-head button { margin-left:auto; min-height:36px; padding:0 12px; border:1px solid #d9cdf6; border-radius:99px; background:#fff; color:#5a3fb3; font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+.mc-ai { margin:8px 2px 0; color:#8a80a6; font-size:12px; line-height:1.5; }
+
+/* 대화 */
+.mc-list { display:flex; flex-direction:column; gap:10px; min-height:300px; max-height:min(58vh,560px); margin-top:10px; padding:12px 4px; overflow-y:auto; overscroll-behavior:contain; }
+.mc-msg { max-width:84%; }
+.mc-msg p { margin:0; padding:11px 14px; border-radius:18px; font-size:15px; line-height:1.6; white-space:pre-wrap; word-break:keep-all; overflow-wrap:anywhere; }
+.mc-msg.is-model { align-self:flex-start; }
+.mc-msg.is-model p { background:#fff; border-top-left-radius:6px; box-shadow:0 2px 8px rgba(60,40,120,.06); border-left:4px solid var(--mori); }
+.mc-msg.is-user { align-self:flex-end; }
+.mc-msg.is-user p { background:#7657d6; color:#fff; border-top-right-radius:6px; }
+.mc-msg.is-crisis p { border-left-color:#d4574a; }
+.mc-crisis { margin:6px 0 0; padding:0; list-style:none; display:grid; gap:6px; }
+.mc-crisis a { display:block; padding:10px 14px; border-radius:14px; background:#fff3f1; color:#9b2f25; text-decoration:none; font-size:14px; }
+.mc-crisis b { font-size:16px; }
+.mc-msg.is-typing p { display:flex; gap:5px; padding:14px 16px; }
+.mc-msg.is-typing i { width:7px; height:7px; border-radius:50%; background:#b9a8e6; animation:mc-dot 1s infinite ease-in-out; }
+.mc-msg.is-typing i:nth-child(2) { animation-delay:.15s; }
+.mc-msg.is-typing i:nth-child(3) { animation-delay:.3s; }
+@keyframes mc-dot { 0%,80%,100% { transform:translateY(0); opacity:.5; } 40% { transform:translateY(-4px); opacity:1; } }
+@media (prefers-reduced-motion: reduce) { .mc-msg.is-typing i { animation:none; } }
+
+.mc-notice { margin:8px 0 0; padding:10px 12px; border-radius:12px; background:#eef6ef; color:#2f6b45; font-size:14px; }
+.mc-error { margin:8px 0 0; color:#b6483c; font-size:14px; }
+
+/* 입력 */
+.mc-input { position:sticky; bottom:0; display:grid; grid-template-columns:1fr auto; gap:8px; margin-top:10px; padding:10px 0 4px; background:linear-gradient(transparent,#f6f1fb 18%); }
+.mc-input textarea { min-height:52px; padding:12px 14px; border:2px solid #e2d9f7; border-radius:16px; background:#fff; color:#2b2540; font:inherit; font-size:16px; line-height:1.45; resize:none; box-sizing:border-box; }
+.mc-input textarea:focus { outline:none; border-color:#7657d6; }
+.mc-input button { min-width:76px; border:0; border-radius:16px; background:#7657d6; color:#fff; font:inherit; font-size:16px; font-weight:800; cursor:pointer; }
+.mc-input button:disabled { opacity:.45; cursor:default; }
+.mc-input small { grid-column:1/-1; color:#8a80a6; font-size:12px; }
+
+/* 횟수 다 씀 */
+.mc-wall { display:grid; gap:10px; margin-top:12px; }
+.mc-wall-head { margin:0; font-size:15px; line-height:1.6; }
+.mc-offer { display:grid; gap:6px; padding:16px; border-radius:18px; background:#fff; box-shadow:0 2px 10px rgba(60,40,120,.07); color:#2b2540; text-decoration:none; }
+.mc-offer > b { font-size:16px; }
+.mc-offer > span { font-size:14px; color:#5a5070; line-height:1.55; }
+.mc-offer.is-report { border:2px solid #d9cdf6; }
+.mc-offer form { display:grid; gap:8px; margin-top:6px; }
+.mc-offer input[inputmode] { min-height:48px; padding:0 14px; border:2px solid #e2d9f7; border-radius:14px; font:inherit; font-size:16px; box-sizing:border-box; }
+.mc-offer small { color:#8a80a6; font-size:12px; }
+.mc-offer button { min-height:52px; border:0; border-radius:16px; background:#7657d6; color:#fff; font:inherit; font-size:17px; font-weight:800; cursor:pointer; }
+.mc-agree { display:flex; gap:8px; align-items:flex-start; font-size:13px; line-height:1.5; color:#5a5070; }
+.mc-agree input { margin-top:3px; }
+.mc-find summary { cursor:pointer; color:#7a6f96; font-size:14px; padding:6px 2px; }
+.mc-find form { display:flex; gap:8px; margin-top:6px; }
+.mc-find input { flex:1; min-height:44px; padding:0 12px; border:1px solid #e2d9f7; border-radius:12px; font:inherit; font-size:16px; }
+.mc-find button { padding:0 16px; border:0; border-radius:12px; background:#ece6fb; color:#5a3fb3; font:inherit; font-weight:700; cursor:pointer; }
+
+.mc-about { max-width:520px; margin:8px auto 40px; padding:0 16px; color:#5a5070; font-size:14px; line-height:1.7; box-sizing:border-box; }
+.mc-about h2 { font-size:17px; color:#2b2540; }
+.mc-about ul { padding-left:18px; }
+
+@media (max-width:360px) { .mc-pick { grid-template-columns:repeat(3,1fr); } }
+
+/* 지금 숲의 풍경 (2026-10-08): 시간대·날씨·특별한 날에 따라 대화창 바탕이 바뀝니다. 글자 대비는 모든 바탕에서 말풍선(흰 바탕)이 지킵니다. */
+.mc-scene { position:relative; margin-top:8px; padding-top:12px; border-radius:24px; transition:background .6s; }
+.mc-scene.is-dawn { background:linear-gradient(180deg,#2b2a55 0,#4a4380 140px,#efe9fb 360px); }
+.mc-scene.is-morning { background:linear-gradient(180deg,#ffe8c8 0,#fff3e2 140px,#f6f1fb 360px); }
+.mc-scene.is-lunch { background:linear-gradient(180deg,#cfeaff 0,#e9f6ff 140px,#f6f1fb 360px); }
+.mc-scene.is-afternoon { background:linear-gradient(180deg,#e2f1dc 0,#f1f8ec 140px,#f6f1fb 360px); }
+.mc-scene.is-evening { background:linear-gradient(180deg,#ffb88a 0,#f7c9c0 120px,#efe6f7 360px); }
+.mc-scene.is-night { background:linear-gradient(180deg,#1f2447 0,#3b3d6e 140px,#ebe6f7 360px); }
+.mc-scene.is-rain { background-image:repeating-linear-gradient(105deg,rgba(255,255,255,.0) 0 14px,rgba(120,150,190,.18) 14px 15px),linear-gradient(180deg,#b9c6d6 0,#dfe5ee 160px,#f1f1f7 360px); }
+.mc-scene.is-snow { background-image:radial-gradient(circle at 20% 30px,#fff 0 2px,transparent 3px),radial-gradient(circle at 70% 70px,#fff 0 2px,transparent 3px),radial-gradient(circle at 45% 110px,#fff 0 1.5px,transparent 2.5px),linear-gradient(180deg,#d7e3f0 0,#eef3f9 160px,#f6f1fb 360px); }
+.mc-scene.is-special { box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--mori) 45%,transparent); }
+.mc-sky { display:flex; justify-content:space-between; gap:8px; margin:0 4px 8px; font-size:13px; font-weight:700; color:#4b3f75; }
+.mc-scene.is-dawn .mc-sky, .mc-scene.is-night .mc-sky { color:#f1ecff; }
+.mc-sky span { padding:4px 10px; border-radius:99px; background:rgba(255,255,255,.55); backdrop-filter:blur(4px); }
+.mc-scene.is-dawn .mc-sky span, .mc-scene.is-night .mc-sky span { background:rgba(255,255,255,.14); }
+.mc-scene.is-dawn .mc-ai, .mc-scene.is-night .mc-ai { color:#e7e1fb; }
+.mc-ai button { margin-left:6px; padding:2px 8px; border:1px solid currentColor; border-radius:99px; background:none; color:inherit; font:inherit; font-size:11px; cursor:pointer; opacity:.8; }
+
+/* 사이트 안내 카드: 말풍선과 다르게(점선 테두리·「마음숲 안내」 머리말) — AI 가 한 말로 읽히지 않게 */
+.mc-promo { align-self:stretch; display:grid; gap:4px; margin:2px 0; padding:12px 14px; border:2px dashed #cdbff3; border-radius:16px; background:rgba(255,255,255,.92); color:#2b2540; text-decoration:none; }
+.mc-promo small { color:#7a6f96; font-size:11px; font-weight:700; letter-spacing:.02em; }
+.mc-promo b { font-size:15px; }
+.mc-promo span { font-size:13px; line-height:1.55; color:#5a5070; }
+.mc-promo i { font-style:normal; font-size:13px; font-weight:800; color:#5a3fb3; }
+.mc-promo.is-report { border-color:#e3b55c; background:#fffaf0; }
+@media (prefers-reduced-motion: reduce) { .mc-scene { transition:none; } }
+/* 휴대폰에서 이름·바꾸기 버튼이 두 줄로 꺾이지 않게 (10-08) */
+.mc-head b { font-size:15px; word-break:keep-all; line-height:1.35; }
+.mc-head button { flex-shrink:0; white-space:nowrap; }

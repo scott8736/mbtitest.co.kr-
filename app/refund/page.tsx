@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CHAT_CONSENT_TEXT, CHAT_PASS_PRICE, CHAT_PASS_SIZE } from "../../lib/mori-chat";
 import SiteFooter from "../../components/SiteFooter";
 import { ContactText } from "../../components/SellerInfo";
 import { REPORT_CONSENT_TEXT, REPORT_CONSENT_VERSION, REPORT_PRODUCT, SELLER } from "../../lib/report-config";
@@ -33,6 +34,9 @@ export default function RefundPage() {
         <h2>4. 환불 방법</h2>
         <p>문의하기의 오픈채팅, 전화·이메일(<ContactText />) 중 편한 곳으로 주문번호(또는 주문한 휴대폰 번호 뒤 4자리)와 사유를 알려 주세요. 카드·간편결제는 결제 취소로 환불합니다. 휴대폰 결제는 통신사의 취소 가능 기간이 지나면 결제 취소 대신 계좌로 환불해 드립니다. 취소 후 카드사 사정에 따라 3~7영업일이 걸릴 수 있습니다.</p>
         <p><Link href="/contact/">문의하기</Link> · <Link href="/report/find/">주문 다시 찾기</Link></p>
+        <h2>5. 모리 대화권</h2>
+        <p>대화권은 횟수로 나눠 쓰는 디지털 콘텐츠라, 결제일로부터 7일 안에 요청하시면 쓰지 않은 횟수만큼 환불해 드립니다(1번당 {Math.round(CHAT_PASS_PRICE / CHAT_PASS_SIZE)}원, 한 번도 쓰지 않았으면 전액). 이미 쓴 횟수와 7일이 지난 뒤 요청은 환불되지 않습니다. 대화권 자체는 기한 없이 쓸 수 있습니다. 모리가 답하지 못해 오류가 난 대화는 횟수에서 빠지지 않습니다. 주문할 때 아래 문구에 동의를 받습니다.</p>
+        <p>「{CHAT_CONSENT_TEXT}」</p>
       </article>
       <SiteFooter ads={false} />
     </main>
