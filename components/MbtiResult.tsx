@@ -6,7 +6,6 @@ import { MoriPortrait, MoriShare } from "./MoriCard";
 import MoriVideoShare from "./MoriVideoShare";
 import { MoriForestCard } from "./MoriWorld";
 import ForestEntry, { MoriChatBubble, MoriChatEntry } from "./ForestEntry";
-import { MORI_WORLD } from "../lib/mori-world";
 import { ForestInviteReturn } from "./OurForest";
 import { GuessMePanel } from "./GuessMe";
 import MbtiResultPick from "./MbtiResultPick";
@@ -80,7 +79,8 @@ export default function MbtiResult() {
           글자뿐이라 공유할 맛이 없었습니다. 공유 카드는 아래 MoriShare 가 9:16 으로 그립니다. */}
       <MoriPortrait code={result} name={resultInfo.name} />
       {/* 모리가 먼저 말을 거는 말풍선(2026-10-09). 클릭은 관리자 결과 화면 표 mbti-chat-bubble. */}
-      <MoriChatBubble code={result} says={MORI_WORLD[result]?.says} />
+      {/* 말버릇은 그림 위에 이미 있어 말풍선에는 넣지 않습니다(10-09 운영에서 두 번 보임). */}
+      <MoriChatBubble code={result} />
       {/* 친구 「우리 숲」 초대에서 「검사로 알아보기」로 온 사람만 보입니다(2026-10-07). */}
       <ForestInviteReturn code={result} />
       <h1>{resultInfo.name}</h1>
