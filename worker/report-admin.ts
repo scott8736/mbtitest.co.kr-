@@ -243,6 +243,7 @@ export async function handleReportAdmin(request: Request, url: URL, path: string
     tosssecret: "확인 키가 너무 짧습니다(32자 이상).",
     chaturl: "모리 대화 중계 주소는 https://….workers.dev/chat 모양이어야 합니다.",
     chatsecret: "모리 대화 확인 키가 너무 짧습니다(32자 이상).",
+    qadevice: "이 브라우저에 모리 대화 기기 번호가 없습니다. /mori/chat/ 을 한 번 연 뒤 다시 누르세요.",
   };
   const toss = {
     url: await readSetting(db, "toss_verify_url"),

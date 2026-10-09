@@ -10,7 +10,7 @@ import { CHAT_FREE_PER_DAY, CHAT_PASS_PRICE, CHAT_PASS_SIZE, CHAT_REPORT_DAYS, C
 import { REPORT_TEST_PRICE } from "../lib/report-config";
 import { chatRec } from "../lib/mori-chat-recs";
 import { readSetting, writeSetting } from "./naver";
-import { chatOpen, createPassOrder, ensureChatSchema, FREE_PAID_FALLBACK_PER_DAY, passSalesOpen, relayConfig } from "./mori-chat";
+import { chatOpen, createPassOrder, ensureChatSchema, forgetQaCache, FREE_PAID_FALLBACK_PER_DAY, passSalesOpen, relayConfig } from "./mori-chat";
 import { logEvent, newToken, payappKeys } from "./report";
 
 /** 처리한 POST 면 돌아갈 주소, 아니면 null. */
@@ -31,6 +31,23 @@ export async function moriChatAdminPost(path: string, form: FormData, db: D1Data
     if (kma === "-") await writeSetting(db, "kma_service_key", "");
     else if (kma) await writeSetting(db, "kma_service_key", kma);
     return "/admin/report/?saved=1#mori-chat";
+  }
+  if (path === "/admin/report/mori-chat/qa-device") {
+    // 이 브라우저의 대화 기기 번호를 시험 기기로(또는 해제). 지난 기록도 같이 표시를 바꿉니다.
+    const device = val("device");
+    if (!/^[a-z0-9-]{16,64}$/.test(device)) return "/admin/report/?err=qadevice#mori-chat";
+    let list: string[] = [];
+    try {
+      list = JSON.parse((await readSetting(db, "mori_chat_qa_devices")) || "[]") as string[];
+    } catch {
+      list = [];
+    }
+    const off = val("action") === "remove";
+    list = off ? list.filter((d) => d !== device) : [device, ...list.filter((d) => d !== device)].slice(0, 30);
+    await writeSetting(db, "mori_chat_qa_devices", JSON.stringify(list));
+    await db.prepare("UPDATE mori_chat_usage SET qa = ? WHERE device = ?").bind(off ? 0 : 1, device).run();
+    forgetQaCache();
+    return `/admin/report/?saved=1&qa=${off ? "off" : "on"}#mori-chat`;
   }
   if (path === "/admin/report/mori-chat/open") {
     await writeSetting(db, "mori_chat_open", val("open") === "1" ? "1" : "0");
@@ -65,10 +82,35 @@ export async function moriChatAdminPost(path: string, form: FormData, db: D1Data
 
 type Row = { day: string; kind: string; n: number; devices: number };
 
+/** 시험 기기 칸. 기기 번호는 브라우저(localStorage)에만 있어 작은 스크립트로 읽어 넣습니다. */
+async function qaBox(db: D1Database): Promise<string> {
+  let count = 0;
+  try {
+    count = (JSON.parse((await readSetting(db, "mori_chat_qa_devices")) || "[]") as string[]).length;
+  } catch {
+    count = 0;
+  }
+  const marked = await db.prepare("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE qa = 1").first<{ n: number }>();
+  return `<div class="row" style="margin-top:12px;gap:8px;display:flex;flex-wrap:wrap;align-items:center">
+<form method="post" action="/admin/report/mori-chat/qa-device" data-qa-form><input type="hidden" name="device"><input type="hidden" name="action" value="add"><button type="submit">이 기기를 시험 기기로</button></form>
+<form method="post" action="/admin/report/mori-chat/qa-device" data-qa-form><input type="hidden" name="device"><input type="hidden" name="action" value="remove"><button type="submit">시험 기기 해제</button></form>
+<span class="note" data-qa-state>시험 기기 ${count}대 · 통계에서 뺀 기록 ${Number(marked?.n ?? 0)}건 — 휴대폰·PC 각각 이 화면에서 한 번씩 누르세요(그 브라우저에서 모리 대화를 한 번 연 뒤).</span>
+</div>
+<script>
+(function () {
+  var id = ""; try { id = localStorage.getItem("mori-chat-device") || ""; } catch (e) {}
+  document.querySelectorAll("form[data-qa-form]").forEach(function (f) {
+    f.querySelector("input[name=device]").value = id;
+    f.addEventListener("submit", function (e) { if (!id) { e.preventDefault(); alert("이 브라우저에서 모리 대화(/mori/chat/)를 한 번 연 뒤 다시 누르세요."); } });
+  });
+})();
+</script>`;
+}
+
 /** 추천 카드(리포트·심리테스트) 노출·클릭과 이어가기, 대화에서 온 리포트 주문. 지난 7일. */
 async function promoTable(db: D1Database, since: string, esc: (v: unknown) => string): Promise<string> {
   const rows = (await db
-    .prepare("SELECT kind, ref, COUNT(*) AS n FROM mori_chat_usage WHERE day >= ? AND kind IN ('promo_seen','promo_click','resume_seen','resume_click','chip_click') GROUP BY kind, ref")
+    .prepare("SELECT kind, ref, COUNT(*) AS n FROM mori_chat_usage WHERE qa = 0 AND day >= ? AND kind IN ('promo_seen','promo_click','resume_seen','resume_click','chip_click') GROUP BY kind, ref")
     .bind(since)
     .all<{ kind: string; ref: string; n: number }>()).results ?? [];
   const refs = [...new Set(rows.filter((r) => r.kind.startsWith("promo")).map((r) => r.ref))].sort((a, b) => (a === "report" ? -1 : b === "report" ? 1 : a.localeCompare(b)));
@@ -100,26 +142,26 @@ export async function healthChecks(db: D1Database, since: string, ctx: { relayUr
   const today = new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10);
   const count = async (sql: string, ...binds: (string | number)[]) =>
     Number((await db.prepare(sql).bind(...binds).first<{ n: number }>())?.n ?? 0);
-  const talks = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day >= ? AND kind IN ('free','report','pass')", since);
-  const errors = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day >= ? AND kind = 'error'", since);
-  const errorsToday = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day = ? AND kind = 'error'", today);
-  const blocked = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day >= ? AND kind = 'blocked'", since);
-  const crisis = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day >= ? AND kind = 'crisis'", since);
-  const people = await count("SELECT COUNT(DISTINCT device) AS n FROM mori_chat_usage WHERE day >= ? AND kind IN ('free','report','pass')", since);
-  const walled = await count("SELECT COUNT(DISTINCT device) AS n FROM mori_chat_usage WHERE day >= ? AND kind = 'wall'", since);
-  const spill = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day = ? AND kind = 'free' AND tier = 'paid'", today);
+  const talks = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE qa = 0 AND day >= ? AND kind IN ('free','report','pass')", since);
+  const errors = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE qa = 0 AND day >= ? AND kind = 'error'", since);
+  const errorsToday = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE qa = 0 AND day = ? AND kind = 'error'", today);
+  const blocked = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE qa = 0 AND day >= ? AND kind = 'blocked'", since);
+  const crisis = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE qa = 0 AND day >= ? AND kind = 'crisis'", since);
+  const people = await count("SELECT COUNT(DISTINCT device) AS n FROM mori_chat_usage WHERE qa = 0 AND day >= ? AND kind IN ('free','report','pass')", since);
+  const walled = await count("SELECT COUNT(DISTINCT device) AS n FROM mori_chat_usage WHERE qa = 0 AND day >= ? AND kind = 'wall'", since);
+  const spill = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE qa = 0 AND day = ? AND kind = 'free' AND tier = 'paid'", today);
   const oneTurn = await count(
-    "SELECT COUNT(*) AS n FROM (SELECT MAX(turn) AS t FROM mori_chat_usage WHERE day >= ? AND kind IN ('free','report','pass') GROUP BY day, device) WHERE t <= 1",
+    "SELECT COUNT(*) AS n FROM (SELECT MAX(turn) AS t FROM mori_chat_usage WHERE qa = 0 AND day >= ? AND kind IN ('free','report','pass') GROUP BY day, device) WHERE t <= 1",
     since,
   );
-  const sessions = await count("SELECT COUNT(*) AS n FROM (SELECT 1 FROM mori_chat_usage WHERE day >= ? AND kind IN ('free','report','pass') GROUP BY day, device)", since);
-  const promoSeen = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day >= ? AND kind = 'promo_seen'", since);
-  const promoClick = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day >= ? AND kind = 'promo_click'", since);
+  const sessions = await count("SELECT COUNT(*) AS n FROM (SELECT 1 FROM mori_chat_usage WHERE qa = 0 AND day >= ? AND kind IN ('free','report','pass') GROUP BY day, device)", since);
+  const promoSeen = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE qa = 0 AND day >= ? AND kind = 'promo_seen'", since);
+  const promoClick = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE qa = 0 AND day >= ? AND kind = 'promo_click'", since);
   const passPaid = await count("SELECT COUNT(*) AS n FROM mori_chat_passes WHERE test = 0 AND status IN ('paid','partial') AND created_at >= ?", `${since} 00:00:00`);
   const rejected = await count("SELECT COUNT(*) AS n FROM report_events WHERE kind = 'feedback_rejected' AND detail LIKE 'chat-pass%' AND created_at >= ?", `${since} 00:00:00`);
   const stalePending = await count("SELECT COUNT(*) AS n FROM mori_chat_passes WHERE status = 'pending' AND created_at < datetime('now', '-1 day') AND created_at >= datetime('now', '-8 day')");
   const errorKinds = (await db
-    .prepare("SELECT ref, COUNT(*) AS n FROM mori_chat_usage WHERE day >= ? AND kind = 'error' GROUP BY ref ORDER BY n DESC LIMIT 5")
+    .prepare("SELECT ref, COUNT(*) AS n FROM mori_chat_usage WHERE qa = 0 AND day >= ? AND kind = 'error' GROUP BY ref ORDER BY n DESC LIMIT 5")
     .bind(since)
     .all<{ ref: string; n: number }>()).results ?? [];
 
@@ -202,7 +244,7 @@ export async function moriChatSummaryBox(db: D1Database): Promise<string> {
                   SUM(CASE WHEN kind = 'crisis' THEN 1 ELSE 0 END) AS crisis,
                   SUM(CASE WHEN kind = 'promo_click' THEN 1 ELSE 0 END) AS clicks,
                   SUM(CASE WHEN kind = 'error' THEN 1 ELSE 0 END) AS errors
-             FROM mori_chat_usage WHERE day >= ?`,
+             FROM mori_chat_usage WHERE qa = 0 AND day >= ?`,
         )
         .bind(from)
         .first<{ people: number; talks: number; walled: number; crisis: number; clicks: number; errors: number }>()) ?? { people: 0, talks: 0, walled: 0, crisis: 0, clicks: 0, errors: 0 };
@@ -240,13 +282,13 @@ export async function moriChatAdminBox(db: D1Database, q: URLSearchParams, esc: 
 
   const since = new Date(Date.now() + 9 * 3600_000 - 6 * 86400_000).toISOString().slice(0, 10);
   const rows = (await db
-    .prepare("SELECT day, kind, COUNT(*) AS n, COUNT(DISTINCT device) AS devices FROM mori_chat_usage WHERE day >= ? GROUP BY day, kind ORDER BY day DESC")
+    .prepare("SELECT day, kind, COUNT(*) AS n, COUNT(DISTINCT device) AS devices FROM mori_chat_usage WHERE qa = 0 AND day >= ? GROUP BY day, kind ORDER BY day DESC")
     .bind(since)
     .all<Row>()).results ?? [];
   const days = [...new Set(rows.map((r) => r.day))];
   const cell = (day: string, kind: string) => rows.find((r) => r.day === day && r.kind === kind);
   const people = (await db
-    .prepare("SELECT day, COUNT(DISTINCT device) AS n FROM mori_chat_usage WHERE day >= ? AND kind IN ('free','report','pass') GROUP BY day")
+    .prepare("SELECT day, COUNT(DISTINCT device) AS n FROM mori_chat_usage WHERE qa = 0 AND day >= ? AND kind IN ('free','report','pass') GROUP BY day")
     .bind(since)
     .all<{ day: string; n: number }>()).results ?? [];
   const tableRows = days
@@ -257,7 +299,7 @@ export async function moriChatAdminBox(db: D1Database, q: URLSearchParams, esc: 
   const depth = (await db
     .prepare(
       `SELECT CASE WHEN t >= 10 THEN '10+' ELSE CAST(t AS text) END AS bucket, COUNT(*) AS n FROM (
-         SELECT MAX(turn) AS t FROM mori_chat_usage WHERE day >= ? AND kind IN ('free','report','pass') GROUP BY day, device
+         SELECT MAX(turn) AS t FROM mori_chat_usage WHERE qa = 0 AND day >= ? AND kind IN ('free','report','pass') GROUP BY day, device
        ) GROUP BY bucket`,
     )
     .bind(since)
@@ -266,7 +308,7 @@ export async function moriChatAdminBox(db: D1Database, q: URLSearchParams, esc: 
   const depthText = order.map((b) => `${b}번째 ${depth.find((x) => x.bucket === b)?.n ?? 0}`).join(" · ");
 
   const models = (await db
-    .prepare("SELECT model, tier, COUNT(*) AS n FROM mori_chat_usage WHERE day >= ? AND model != '' GROUP BY model, tier ORDER BY n DESC")
+    .prepare("SELECT model, tier, COUNT(*) AS n FROM mori_chat_usage WHERE qa = 0 AND day >= ? AND model != '' GROUP BY model, tier ORDER BY n DESC")
     .bind(since)
     .all<{ model: string; tier: string; n: number }>()).results ?? [];
 
@@ -292,6 +334,7 @@ export async function moriChatAdminBox(db: D1Database, q: URLSearchParams, esc: 
 ① 중계 워커: ${relay.url ? `등록됨 (${esc(relay.url)})` : "<b style='color:#b6483c'>주소 미등록</b>"} · 확인 키: ${relay.secret ? `등록됨 (${relay.secret.length}자)` : "<b style='color:#b6483c'>미등록</b>"}<br>
 ② 스위치: ${openFlag ? "켜짐" : "꺼짐"} — 대화권 판매는 위 페이앱 키·판매자 정보도 갖춰져야 열립니다.</p>
 ${madeBox}${payBox}
+${await qaBox(db)}
 <form method="post" action="/admin/report/mori-chat/open" class="row"><input type="hidden" name="open" value="${openFlag ? "0" : "1"}">
 <button type="submit">${openFlag ? "대화 닫기" : "대화 열기"}</button></form>
 <form method="post" action="/admin/report/mori-chat/relay" autocomplete="off" style="margin-top:12px"><div class="fields">

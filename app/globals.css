@@ -1887,3 +1887,13 @@ main.tarot .generic-intro { min-height:auto; padding-bottom:64px; }
 
 /* 결과 화면 모리 대화 입구 (10-08): 숲 산책 버튼과 같은 모양, 보라색으로만 구분 */
 .forest-entry.is-chat { background:linear-gradient(135deg,#f3eefc,#e9e1fb); border-color:#d9cdf6; }
+
+/* 결과 화면 모리 말풍선 (2026-10-09): 모리 그림 바로 아래, 위쪽 꼬리가 모리를 가리킴 */
+.mori-chat-bubble { position:relative; display:flex; align-items:center; justify-content:space-between; gap:10px; max-width:360px; margin:-8px auto 18px; padding:12px 14px; border:2px solid #d9cdf6; border-radius:18px; background:#fff; color:#2b2540; text-align:left; text-decoration:none; box-shadow:0 8px 20px rgba(60,40,120,.10); box-sizing:border-box; }
+.mori-chat-bubble::before { content:""; position:absolute; top:-9px; left:50%; width:14px; height:14px; background:#fff; border-left:2px solid #d9cdf6; border-top:2px solid #d9cdf6; transform:translateX(-50%) rotate(45deg); }
+.mori-chat-bubble-text { font-size:14px; line-height:1.5; word-break:keep-all; }
+.mori-chat-bubble-text q { color:#7657d6; font-weight:700; }
+.mori-chat-bubble-text q::before { content:"“"; } .mori-chat-bubble-text q::after { content:"”"; }
+.mori-chat-bubble-go { flex:none; padding:8px 12px; border-radius:999px; background:#7657d6; color:#fff; font-size:13px; font-weight:800; white-space:nowrap; }
+@media (prefers-reduced-motion: no-preference) { .mori-chat-bubble { animation:mori-bubble-in .5s .6s both ease-out; } }
+@keyframes mori-bubble-in { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }

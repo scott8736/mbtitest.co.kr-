@@ -21,6 +21,8 @@ export const RESULT_CLICK_PLACEMENTS = {
   "mbti-forest": "MBTI 결과 · 내 모리랑 숲 산책하기",
   // 모리 AI 대화(2026-10-08~)
   "mbti-chat": "MBTI 결과 · 내 모리랑 이야기하기(AI 대화)",
+  "mbti-chat-bubble": "MBTI 결과 · 모리 그림 아래 말풍선 → AI 대화",
+  "mori-world-chat": "모리 세계관 페이지 → AI 대화",
   "home-mori-forest": "홈 · 모리 영상 아래 숲 산책하기",
   "forest-quest": "숲 산책 · 주민 부탁 → 다른 검사",
   "forest-types": "숲 산책 · 말버릇 퀴즈 → 헷갈린 유형 페이지",

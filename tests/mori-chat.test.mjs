@@ -612,3 +612,22 @@ test("힘들어하는 말에는 추천하지 않는다(지시에서 빼고, 붙�
   assert.ok(!res.reply.includes("**"));
   assert.ok(!res.reply.includes("[추천"));
 });
+
+
+test("시험 기기: 표시한 기기 기록은 관리자 통계에서 빠지고, 횟수 계산에는 그대로 들어간다", async () => {
+  const db = await setup();
+  const r = relayStub();
+  for (let i = 0; i < 2; i++) await send(db, {}, { fetcher: r.fetcher });
+  const form = new FormData();
+  form.set("device", DEVICE);
+  form.set("action", "add");
+  assert.match(await C.moriChatAdminPost("/admin/report/mori-chat/qa-device", form, db), /qa=on/);
+  for (let i = 0; i < 3; i++) await send(db, {}, { fetcher: r.fetcher });
+  assert.equal(db.sql.prepare("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE qa = 1 AND kind = 'free'").get().n, 5, "지난 기록도 표시");
+  assert.equal((await read(await send(db, {}, { fetcher: r.fetcher }))).status, 402, "시험 기기도 무료 5번에서 막힌다");
+  const summary = await C.moriChatSummaryBox(db);
+  assert.match(summary, /<tr><td>오늘<\/td><td>0<\/td><td>0<\/td>/, "통계에서 빠짐");
+  const bad = new FormData();
+  bad.set("device", "x");
+  assert.match(await C.moriChatAdminPost("/admin/report/mori-chat/qa-device", bad, db), /err=qadevice/);
+});

@@ -100,6 +100,8 @@ export function ensureChatSchema(db: D1Database): Promise<void> {
   if (!ready) {
     ready = ensureReportSchema(db)
       .then(() => db.batch(CHAT_SCHEMA.map((sql) => db.prepare(sql))))
+      // 시험 기기 표시(2026-10-09): 관리자 통계에서 빼려고. 이미 있는 표에는 열을 붙이고, 있으면 오류를 넘깁니다.
+      .then(() => db.prepare("ALTER TABLE mori_chat_usage ADD COLUMN qa integer DEFAULT 0 NOT NULL").run().catch(() => undefined))
       .then(() => undefined)
       .catch((error) => {
         schemaReady.delete(db);
@@ -280,13 +282,34 @@ export async function computeQuota(
   return { quota: { open, free, report, reportUntil, pass, total: free + report + pass }, reportRef, passTokens };
 }
 
+/**
+ * 시험 기기(관리자 화면에서 「이 기기를 시험 기기로」 누른 기기). 이 기기 기록은 qa=1 로 남아 관리자 통계에서 빠진다.
+ * 횟수 계산에는 그대로 들어간다(시험도 실제처럼 막혀야 하므로). 아이솔레이트 안에서 1분 기억.
+ */
+let qaCache: { at: number; set: Set<string> } | null = null;
+export async function qaDevices(db: D1Database): Promise<Set<string>> {
+  if (qaCache && Date.now() - qaCache.at < 60_000) return qaCache.set;
+  let list: string[] = [];
+  try {
+    list = JSON.parse((await readSetting(db, "mori_chat_qa_devices")) || "[]") as string[];
+  } catch {
+    list = [];
+  }
+  qaCache = { at: Date.now(), set: new Set(Array.isArray(list) ? list : []) };
+  return qaCache.set;
+}
+export function forgetQaCache(): void {
+  qaCache = null;
+}
+
 async function recordUsage(
   db: D1Database,
   row: { day: string; device: string; ip: string; kind: string; ref?: string; mori?: string; model?: string; tier?: string; chars?: number; turn?: number },
 ): Promise<number> {
+  const qa = row.device && (await qaDevices(db)).has(row.device) ? 1 : 0;
   const res = (await db
-    .prepare("INSERT INTO mori_chat_usage (day, device, ip, kind, ref, mori, model, tier, chars, turn) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-    .bind(row.day, row.device, row.ip, row.kind, row.ref ?? "", row.mori ?? "", row.model ?? "", row.tier ?? "", row.chars ?? 0, row.turn ?? 0)
+    .prepare("INSERT INTO mori_chat_usage (day, device, ip, kind, ref, mori, model, tier, chars, turn, qa) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    .bind(row.day, row.device, row.ip, row.kind, row.ref ?? "", row.mori ?? "", row.model ?? "", row.tier ?? "", row.chars ?? 0, row.turn ?? 0, qa)
     .run()) as { meta?: { last_row_id?: number }; lastInsertRowid?: number | bigint };
   await purgeOld(db, row.day);
   return Number(res?.meta?.last_row_id ?? res?.lastInsertRowid ?? 0);
@@ -319,12 +342,13 @@ async function reserveUsage(
           sql: `(SELECT COUNT(*) FROM mori_chat_usage WHERE day = ? AND kind = 'report' AND ref = ?) < ?`,
           binds: [row.day, row.ref, CHAT_REPORT_PER_DAY] as (string | number)[],
         };
+  const qa = (await qaDevices(db)).has(row.device) ? 1 : 0;
   const res = (await db
     .prepare(
-      `INSERT INTO mori_chat_usage (day, device, ip, kind, ref, mori, chars, turn)
-       SELECT ?, ?, ?, ?, ?, ?, ?, ? WHERE ${cond.sql}`,
+      `INSERT INTO mori_chat_usage (day, device, ip, kind, ref, mori, chars, turn, qa)
+       SELECT ?, ?, ?, ?, ?, ?, ?, ?, ? WHERE ${cond.sql}`,
     )
-    .bind(row.day, row.device, row.ip, row.kind, row.ref, row.mori, row.chars, row.turn, ...cond.binds)
+    .bind(row.day, row.device, row.ip, row.kind, row.ref, row.mori, row.chars, row.turn, qa, ...cond.binds)
     .run()) as { meta?: { changes?: number; last_row_id?: number }; changes?: number; lastInsertRowid?: number | bigint };
   const changed = (res?.meta?.changes ?? res?.changes ?? 0) > 0;
   if (!changed) return 0;
