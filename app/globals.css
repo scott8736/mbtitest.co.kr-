@@ -1085,6 +1085,18 @@ main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% -
   font-weight:700;
 }
 
+/* MBTI 마지막 답 뒤 예고 카드 — 유형 일부만 보이고 결과는 링크로 엽니다 */
+.mbti-teaser { text-align:center; }
+.mbti-teaser h2 { margin:14px 0 18px; }
+.mbti-teaser-mori { position:relative; width:180px; height:180px; margin:0 auto; }
+.mbti-teaser-mori img { width:100%; height:100%; object-fit:contain; filter:brightness(0) opacity(.18); }
+.mbti-teaser-mori b { position:absolute; inset:0; display:grid; place-items:center; font-size:72px; font-weight:850; color:#6952b4; }
+.mbti-teaser-letters { display:flex; justify-content:center; gap:10px; margin:20px 0 12px; }
+.mbti-teaser-letters span { width:56px; height:64px; display:grid; place-items:center; border-radius:14px; background:#6952b4; color:#fff; font-size:34px; font-weight:850; }
+.mbti-teaser-letters span.hidden { background:#f0ebff; color:#6952b4; border:2px dashed #c9bdf0; }
+.mbti-teaser-hint { margin:0 0 22px; color:var(--muted); font-size:15px; line-height:1.6; }
+.mbti-teaser-cta { display:flex; align-items:center; justify-content:center; max-width:360px; height:62px; margin:0 auto; border-radius:14px; background:linear-gradient(135deg,#7b5fe0,#5a43b8); color:#fff; font-size:19px; font-weight:800; text-decoration:none; box-shadow:0 10px 24px rgba(90,67,184,.28); }
+
 /* 결과 화면의 유형 딥링크 · 운세 CTA — .related-results 를 재사용하되 간격만 조정 */
 .result-deep-link { margin-top:64px; }
 .result-fortune-cta { margin-top:56px; }
