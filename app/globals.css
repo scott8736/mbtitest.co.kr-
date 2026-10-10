@@ -1882,7 +1882,7 @@ main.tarot .generic-intro { min-height:auto; padding-bottom:64px; }
 .mori-resume { position:fixed; top:84px; right:12px; z-index:40; display:flex; align-items:center; gap:2px; max-width:calc(100vw - 24px); padding:4px 4px 4px 6px; border-radius:999px; background:#fff; box-shadow:0 6px 20px rgba(60,40,120,.18); border:2px solid #d9cdf6; box-sizing:border-box; }
 .mori-resume a { display:flex; align-items:center; gap:8px; min-height:40px; padding:0 8px 0 2px; color:#4b3f75; font-size:14px; font-weight:800; text-decoration:none; }
 .mori-resume img { width:32px; height:32px; border-radius:50%; object-fit:contain; background:#f3eefc; }
-.mori-resume button { width:32px; height:32px; border:0; border-radius:50%; background:#f3eefc; color:#7a6f96; font-size:18px; line-height:1; cursor:pointer; }
+.mori-resume button { width:32px; height:32px; border:0; border-radius:50%; background:#f3eefc; color:#665b82; font-size:18px; line-height:1; cursor:pointer; }
 @media (max-width:640px) { .mori-resume { top:78px; } .mori-resume a { font-size:13px; } }
 
 /* 결과 화면 모리 대화 입구 (10-08): 숲 산책 버튼과 같은 모양, 보라색으로만 구분 */
