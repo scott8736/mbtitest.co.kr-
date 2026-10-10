@@ -16,7 +16,7 @@ import { testCatalog } from "../../lib/test-catalog";
  * 뽑아가지 않습니다.
  */
 export const metadata: Metadata = {
-  title: "성향 테스트 모음 — 무료 심리테스트 50가지",
+  title: "무료 심리테스트·성향 테스트 50가지 모음",
   description:
     "연애·소비·업무·성격 성향 테스트와 MBTI, 애착유형, 자존감까지 무료 심리테스트를 한곳에 모았습니다. 회원가입 없이 바로 시작합니다.",
   keywords: [
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: "/tests/" },
   openGraph: {
-    title: "성향 테스트 모음 — 무료 심리테스트 50가지",
+    title: "무료 심리테스트·성향 테스트 50가지 모음",
     description: "회원가입 없이 바로 하는 무료 성향·성격·연애·마음건강 테스트 모음",
     url: "/tests/",
 
@@ -42,7 +42,7 @@ export default function TestsPage() {
       <SiteHeader active="/tests" />
       <section className="directory-hero">
         <span className="eyebrow">무료 성향 테스트</span>
-        <h1>성향 테스트<br />모음</h1>
+        <h1>심리·성향 테스트<br />모음</h1>
         <p>성향 테스트는 성격의 좋고 나쁨을 가리는 검사가 아니라, 같은 상황에서 사람마다 다르게 나오는 반응 방식을 확인하는 도구입니다.<br />연애·소비·업무·관계 성향부터 MBTI와 마음건강 자가진단까지 {testCatalog.length}가지가 있고, 대부분 2~3분이면 끝납니다. 모두 회원가입 없이 무료입니다.</p>
       </section>
       <section className="directory-section" aria-label="심리테스트 목록">

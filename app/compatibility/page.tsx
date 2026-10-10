@@ -7,7 +7,7 @@ import { mbtiCodes, profiles } from "../../lib/mbti-content";
 import { moriImage } from "../../lib/mori";
 
 export const metadata: Metadata = {
-  title: "MBTI 궁합표와 유형별 관계",
+  title: "MBTI 궁합표 - 16유형 연애·친구 궁합 한눈에",
   description:
     "MBTI 궁합을 소통, 갈등, 생활 방식 관점에서 확인하고 관계를 더 편안하게 만드는 방법을 알아보세요.",
   alternates: { canonical: "/compatibility/" },
