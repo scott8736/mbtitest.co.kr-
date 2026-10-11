@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { buildCouple } from "../lib/fortune-couple";
 import { elementLabels, earthlyBranchesKo, heavenlyStemsKo } from "../lib/fortune-engine";
 import styles from "../lib/fortune.module.css";
@@ -80,6 +80,11 @@ export default function CoupleFortuneTool({ resultOnly = false }: { resultOnly?:
   const [b, setB] = useState<Side>(empty);
   const [shown, setShown] = useState<{ a: Side; b: Side } | null>(null);
   const [teaser, setTeaser] = useState<{ a: Side; b: Side } | null>(null);
+  const teaserRef = useRef<HTMLDivElement>(null);
+  // 입력칸 자리에 예고 화면이 들어가 높이가 줄어듭니다. 화면 밖에 남지 않게 가운데로 가져옵니다.
+  useEffect(() => {
+    if (teaser) teaserRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [teaser]);
 
   // 결과 페이지: 이 탭에 남긴 두 사람 생년월일로 계산합니다. 없으면 입력 화면으로 보냅니다.
   useEffect(() => {
@@ -137,7 +142,7 @@ export default function CoupleFortuneTool({ resultOnly = false }: { resultOnly?:
 
       {/* 예고 화면. 점수·풀이는 가리고 일간 관계 이름만. 버튼 옆에 광고를 두지 않습니다(실수 클릭). */}
       {teaserResult && (
-        <div className="question-card test-teaser">
+        <div className="question-card test-teaser" ref={teaserRef}>
           <span className="question-kicker">궁합 계산 완료!</span>
           <h2>두 사람의 궁합 점수는…</h2>
           <div className="screener-score" style={{ borderColor: "#c9bdf0" }}>
@@ -145,7 +150,7 @@ export default function CoupleFortuneTool({ resultOnly = false }: { resultOnly?:
           </div>
           <p className="test-teaser-traits" aria-label="결과 일부 공개">
             <span>일간 관계 · {teaserResult.relation}</span>
-            <span className="hidden">띠 관계 ? ? ?</span>
+            <span className="masked">띠 관계 ? ? ?</span>
           </p>
           <p className="mbti-teaser-hint">궁합 점수와 띠 관계, 서로 채워 주는 기운,<br />같이 지낼 때 조언까지 결과 화면에 있어요.</p>
           <a className="mbti-teaser-cta" href={RESULT_PATH}>내 결과 확인하기 →</a>

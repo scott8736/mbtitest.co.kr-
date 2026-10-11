@@ -90,7 +90,7 @@ export default function MbtiQuiz() {
           </div>
           <p className="mbti-teaser-letters" aria-label="유형 일부 공개">
             {done.split("").map((letter, i) => (
-              <span key={i} className={HIDDEN_LETTERS.includes(i) ? "hidden" : undefined}>
+              <span key={i} className={HIDDEN_LETTERS.includes(i) ? "masked" : undefined}>
                 {HIDDEN_LETTERS.includes(i) ? "?" : letter}
               </span>
             ))}

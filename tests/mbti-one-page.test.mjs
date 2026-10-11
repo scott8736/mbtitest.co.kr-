@@ -64,3 +64,10 @@ test("자가진단: 결과 링크가 있되, 도움이 필요한 사람은 예�
   assert.match(src, /if \(nextUrgent\) \{[\s\S]*?setScreen\("result"\);[\s\S]*?\} else \{[\s\S]*?setScreen\("teaser"\);/);
   read("app/check/[slug]/result/page.tsx");
 });
+
+test("예고 화면에서 가린 칸에 Tailwind 의 hidden 클래스를 쓰지 않는다(display:none 으로 사라짐, 10-11 실사이트에서 발견)", () => {
+  for (const f of ["MbtiQuiz", "GenericTestRunner", "TarotDaily", "CoupleFortuneTool", "FortuneTool", "IqTestRunner", "ScreenerRunner"]) {
+    const s = read(`components/${f}.tsx`);
+    assert.ok(!/className=\{?["'][^"']*\bhidden\b/.test(s) && !/\? "hidden"/.test(s) && !/: "hidden"/.test(s), `${f} 에 hidden 클래스`);
+  }
+});

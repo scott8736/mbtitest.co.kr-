@@ -204,7 +204,7 @@ export default function GenericTestRunner({ test, resultOnly = false }: { test: 
             </div>
             <p className="test-teaser-traits" aria-label="결과 키워드 일부 공개">
               {result.traits.slice(0, 3).map((trait, i) => (
-                <span key={trait} className={i === 0 ? undefined : "hidden"}>{i === 0 ? trait : "? ? ?"}</span>
+                <span key={trait} className={i === 0 ? undefined : "masked"}>{i === 0 ? trait : "? ? ?"}</span>
               ))}
             </p>
             <p className="mbti-teaser-hint">내 결과 이름과 강점·주의할 패턴,<br />관계 속의 나까지 결과 화면에 있어요.</p>

@@ -152,7 +152,7 @@ export default function TarotDaily({ fortune, resultOnly = false }: { fortune: T
             </div>
             <p className="test-teaser-traits" aria-label="키워드 일부 공개">
               <span>{teaser.keyword.split(" · ")[0]}</span>
-              <span className="hidden">? ? ?</span>
+              <span className="masked">? ? ?</span>
             </p>
             <p className="mbti-teaser-hint">카드 이름과 오늘의 풀이,<br />행운의 색·물건·숫자까지 결과 화면에 있어요.</p>
             <a className="mbti-teaser-cta" href={resultPath}>내 결과 확인하기 →</a>
