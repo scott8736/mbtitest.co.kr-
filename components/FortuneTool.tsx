@@ -100,6 +100,9 @@ export default function FortuneTool({ mode, resultOnly = false }: { mode: Fortun
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [submitted, setSubmitted] = useState<Draft | null>(null);
   const [restored, setRestored] = useState(false);
+  // 입력 뒤 같은 화면에 보이는 예고(띠·별자리만). 결과는 「내 결과 확인하기」 <a href> 로 엽니다(2026-10-11).
+  // 예전에는 location.assign() 으로 저절로 넘겼는데, 애드센스 전면광고는 링크 클릭에만 붙습니다.
+  const [teaser, setTeaser] = useState<Draft | null>(null);
 
   // 결과는 별도 주소에서 보여줍니다. 입력값은 브라우저에 저장해 둔 것을 다시 읽습니다.
   useEffect(() => {
@@ -149,8 +152,20 @@ export default function FortuneTool({ mode, resultOnly = false }: { mode: Fortun
     event.preventDefault();
     if (!valid) return;
     storeDraft(draft);
-    location.assign(`/fortune/${mode}/result/`);
+    setTeaser(draft);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  const teaserChart = useMemo(() => {
+    if (!teaser) return null;
+    const chart = buildChart({ year: Number(teaser.year), month: Number(teaser.month), day: Number(teaser.day), timeSlot: Number(teaser.timeSlot) || 0 });
+    return { zodiac: zodiacFortunes[chart.zodiacIndex].name, starSign: starSigns[chart.starSignIndex].name };
+  }, [teaser]);
+  const teaserCopy = {
+    today: { kicker: "오늘의 운세 준비 완료!", title: "오늘 나의 총운은…", hidden: "총운 ? ? 점", hint: "오늘의 총운 점수와 애정·금전·건강운,<br />행운의 색·방향까지 결과 화면에 있어요." },
+    saju: { kicker: "사주 풀이 준비 완료!", title: "내 사주 여덟 글자는…", hidden: "일간 ? ? ?", hint: "사주 여덟 글자와 오행 분포,<br />타고난 기질 풀이까지 결과 화면에 있어요." },
+    "saju-mbti": { kicker: "사주 × MBTI 준비 완료!", title: "사주로 본 내 MBTI는…", hidden: "사주 MBTI ? ? ? ?", hint: "사주로 본 MBTI 네 글자와<br />내 MBTI와의 차이까지 결과 화면에 있어요." },
+  }[mode];
 
   const update = (key: keyof Draft) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setDraft((current) => ({ ...current, [key]: event.target.value }));
@@ -158,7 +173,22 @@ export default function FortuneTool({ mode, resultOnly = false }: { mode: Fortun
 
   return (
     <>
-      {!resultOnly && (
+      {/* 예고 화면. 띠·별자리(생년월일로 이미 아는 것)만 보이고 풀이는 가립니다. 버튼 옆에 광고를 두지 않습니다(실수 클릭). */}
+      {!resultOnly && teaser && teaserChart && (
+        <div className="question-card test-teaser">
+          <span className="question-kicker">{teaserCopy.kicker}</span>
+          <h2>{teaserCopy.title}</h2>
+          <p className="test-teaser-traits" aria-label="결과 일부 공개">
+            <span>{teaserChart.zodiac}</span>
+            <span>{teaserChart.starSign}</span>
+            <span className="hidden">{teaserCopy.hidden}</span>
+          </p>
+          <p className="mbti-teaser-hint" dangerouslySetInnerHTML={{ __html: teaserCopy.hint }} />
+          <a className="mbti-teaser-cta" href={`/fortune/${mode}/result/`}>내 결과 확인하기 →</a>
+        </div>
+      )}
+
+      {!resultOnly && !teaser && (
       <form className={styles.form} onSubmit={submit}>
         <div className={styles.formRow}>
           <div className={styles.field}>

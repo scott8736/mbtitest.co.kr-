@@ -6,6 +6,7 @@ import { moriImage } from "../lib/mori";
 import type { TarotCard, TarotFortune } from "../lib/tarot";
 import {
   dailyCandidates,
+  tarotCards,
   tarotFortunes,
   tarotTypeLabels,
   todayKst,
@@ -47,15 +48,44 @@ function getVisitorId(): string {
   }
 }
 
-export default function TarotDaily({ fortune }: { fortune: TarotFortune }) {
+const PICKED_KEY = (slug: string) => `tarot-picked:${slug}`;
+
+/**
+ * 카드를 고르면 같은 화면에 예고(카드 상징·첫 키워드만)를 보여 주고, 풀이는
+ * 「내 결과 확인하기」 <a href> 로 /tarot/<slug>/result/ 에서 엽니다(2026-10-11, MBTI 와 같은 구조).
+ * 애드센스 전면광고는 링크 클릭에만 붙습니다.
+ */
+export default function TarotDaily({ fortune, resultOnly = false }: { fortune: TarotFortune; resultOnly?: boolean }) {
   const [dateKey, setDateKey] = useState("");
   const [candidates, setCandidates] = useState<TarotCard[]>([]);
   const [picked, setPicked] = useState<TarotCard | null>(null);
+  const [teaser, setTeaser] = useState<TarotCard | null>(null);
   const [ready, setReady] = useState(false);
   const [round, setRound] = useState(0);
+  const resultPath = `/tarot/${fortune.slug}/result/`;
+
+  // 결과 페이지: 이 탭에서 뽑은 카드를 읽습니다. 없으면 카드 고르는 화면으로 보냅니다.
+  useEffect(() => {
+    if (!resultOnly) return;
+    const id = setTimeout(() => {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(PICKED_KEY(fortune.slug)) || "null") as { no: number; date: string } | null;
+        const card = saved && tarotCards.find((c) => c.no === saved.no);
+        if (!saved || !card) throw new Error("no pick");
+        setDateKey(saved.date);
+        setPicked(card);
+        setReady(true);
+        recordCompletionOnce(fortune.slug);
+      } catch {
+        location.replace(`/tarot/${fortune.slug}/`);
+      }
+    }, 0);
+    return () => clearTimeout(id);
+  }, [resultOnly, fortune.slug]);
 
   // localStorage 는 붙은 뒤에만 읽을 수 있어 한 박자 늦게 채웁니다(정적 렌더와 어긋나지 않게).
   useEffect(() => {
+    if (resultOnly) return;
     const id = setTimeout(() => {
       const date = todayKst();
       setDateKey(date);
@@ -63,7 +93,7 @@ export default function TarotDaily({ fortune }: { fortune: TarotFortune }) {
       setReady(true);
     }, 0);
     return () => clearTimeout(id);
-  }, [fortune.slug, fortune.type, round]);
+  }, [fortune.slug, fortune.type, round, resultOnly]);
 
   const again = () => {
     setPicked(null);
@@ -73,9 +103,14 @@ export default function TarotDaily({ fortune }: { fortune: TarotFortune }) {
 
   const choose = (card: TarotCard) => {
     recordTestEvent(fortune.slug, "answered");
-    setPicked(card);
+    try {
+      sessionStorage.setItem(PICKED_KEY(fortune.slug), JSON.stringify({ no: card.no, date: dateKey }));
+    } catch {
+      // 저장이 막힌 브라우저는 결과 페이지에서 카드 고르기로 돌아갑니다.
+    }
     markTestCompleted(fortune.slug);
-    recordCompletionOnce(fortune.slug);
+    recordTestEvent(fortune.slug, "teaser");
+    setTeaser(card);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -105,7 +140,27 @@ export default function TarotDaily({ fortune }: { fortune: TarotFortune }) {
         </section>
       )}
 
-      {ready && !picked && (
+      {/* 예고 화면. 카드 이름·풀이는 가리고 상징과 첫 키워드만. 버튼 옆에 광고를 두지 않습니다(실수 클릭). */}
+      {teaser && (
+        <section className="test-shell">
+          <div className="question-card test-teaser">
+            <span className="question-kicker">카드를 뽑았어요</span>
+            <h2>오늘 나에게 온 카드는…</h2>
+            <div className="tarot-card-face" style={{ background: teaser.color }}>
+              <span className="tarot-symbol">{teaser.symbol}</span>
+              <b>? ? ?</b>
+            </div>
+            <p className="test-teaser-traits" aria-label="키워드 일부 공개">
+              <span>{teaser.keyword.split(" · ")[0]}</span>
+              <span className="hidden">? ? ?</span>
+            </p>
+            <p className="mbti-teaser-hint">카드 이름과 오늘의 풀이,<br />행운의 색·물건·숫자까지 결과 화면에 있어요.</p>
+            <a className="mbti-teaser-cta" href={resultPath}>내 결과 확인하기 →</a>
+          </div>
+        </section>
+      )}
+
+      {ready && !picked && !teaser && (
         <section className="tarot-pick">
           <Mascot className="tarot-mascot" type="INFJ" size={104} />
           <p className="tarot-guide">
@@ -188,7 +243,9 @@ export default function TarotDaily({ fortune }: { fortune: TarotFortune }) {
 
           <div className="tarot-again">
             <p>다른 질문이 떠올랐다면 <b>카드를 다시 뽑아</b> 보세요.</p>
-            <button type="button" className="primary-button" onClick={again}>🔄 카드 다시 뽑기</button>
+            {resultOnly
+              ? <a className="primary-button" href={`/tarot/${fortune.slug}/`}>🔄 카드 다시 뽑기</a>
+              : <button type="button" className="primary-button" onClick={again}>🔄 카드 다시 뽑기</button>}
           </div>
 
           <div className="tarot-others">

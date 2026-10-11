@@ -133,3 +133,16 @@ test("지난 날짜 확정 기준: 서울 기준 그날 자정 + 1분 전에 만
   assert.ok(Date.parse("2026-10-05T23:00:00Z") > mod.dayEndMs("2026-10-05"));
   assert.equal(new Date(mod.dayEndMs("2026-10-05")).toISOString(), "2026-10-05T15:01:00.000Z");
 });
+
+test("체류·회유: 한 페이지 검사(2026-10-11~)는 2단계 없이 검사 화면 → 결과면 완료자", () => {
+  const rows = [
+    // F: 2단계 페이지 없이 검사 → 결과 → 다른 검사
+    page("F", "/tests/mbti/", "10:00:00"), page("F", "/mbti-result/", "10:04:00"),
+    page("F", "/tests/burnout/", "10:06:00", { source: "internal", referrer: "https://mbtitest.co.kr/mbti-result/" }),
+    // G: 공유받은 결과를 먼저 보고, 그 뒤에 검사 화면을 염 -> 완료자 아님(결과보다 검사가 늦다)
+    page("G", "/mbti-result/", "11:00:00", { source: "naver", referrer: "https://m.search.naver.com/" }), page("G", "/tests/mbti/", "11:01:00"),
+  ];
+  const r = mod.buildRollup("2026-10-12", rows, []);
+  assert.equal(r.journey.mbti_done, 1);
+  assert.equal(r.journey.mbti_next, 1);
+});

@@ -35,7 +35,7 @@ export default function CheckIndexPage() {
         <h1>심리 자가진단 모음</h1>
         <p>
           지금 내 상태를 점수로 확인해 보는 선별 검사 {screeners.length}가지입니다. 검사마다{" "}
-          {qMin}~{qMax}문항이라 회원가입 없이 2분이면 끝나고, 응답은 어디에도 저장되지 않습니다.
+          {qMin}~{qMax}문항이라 회원가입 없이 2분이면 끝나고, 응답은 서버로 보내지 않습니다.
         </p>
         <p className="test-disclaimer">
           모두 <b>진단이 아니라 선별 도구</b>입니다. 결과가 어떤 질환의 진단을 대신하지

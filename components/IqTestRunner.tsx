@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { IQ_AREAS, IQ_SLUG, iqBandFor, iqFaq, iqIntro, iqQuestions } from "../lib/iq-test";
 import AdUnit from "./AdUnit";
@@ -32,12 +32,37 @@ function formatDuration(ms: number): string {
   return m ? `${m}분 ${s}초` : `${s}초`;
 }
 
-export default function IqTestRunner() {
-  const [screen, setScreen] = useState<"intro" | "test" | "result">("intro");
+const RESULT_KEY = "iq-test-result";
+const RESULT_PATH = "/tests/iq/result/";
+
+/**
+ * 마지막 문제 뒤에는 예고 화면(teaser)에서 「내 결과 확인하기」 <a href> 로 결과 페이지를 엽니다
+ * (2026-10-11, MBTI 와 같은 구조). 애드센스 전면광고는 링크 클릭에만 붙습니다.
+ */
+export default function IqTestRunner({ resultOnly = false }: { resultOnly?: boolean }) {
+  const [screen, setScreen] = useState<"intro" | "test" | "teaser" | "result">(resultOnly ? "result" : "intro");
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [elapsed, setElapsed] = useState(0);
   const startedAt = useRef(0);
+  const [loaded, setLoaded] = useState(!resultOnly);
+
+  // 결과 페이지는 이 탭에 남긴 답으로 그립니다. 없으면 테스트 첫 화면으로 보냅니다.
+  useEffect(() => {
+    if (!resultOnly) return;
+    try {
+      const saved = sessionStorage.getItem(RESULT_KEY);
+      if (!saved) throw new Error("no result");
+      const parsed = JSON.parse(saved) as { answers: number[]; elapsed: number };
+      if (!Array.isArray(parsed.answers)) throw new Error("invalid result");
+      setAnswers(parsed.answers);
+      setElapsed(parsed.elapsed || 0);
+      setLoaded(true);
+      recordCompletionOnce(IQ_SLUG);
+    } catch {
+      location.replace("/tests/iq/");
+    }
+  }, [resultOnly]);
 
   const total = iqQuestions.length;
   const question = iqQuestions[index];
@@ -59,6 +84,10 @@ export default function IqTestRunner() {
   );
 
   const start = () => {
+    if (resultOnly) {
+      location.assign("/tests/iq/");
+      return;
+    }
     setAnswers([]);
     setIndex(0);
     startedAt.current = now();
@@ -76,10 +105,16 @@ export default function IqTestRunner() {
       setIndex(index + 1);
       return;
     }
-    setElapsed(now() - startedAt.current);
+    const took = now() - startedAt.current;
+    setElapsed(took);
+    try {
+      sessionStorage.setItem(RESULT_KEY, JSON.stringify({ answers: next, elapsed: took }));
+    } catch {
+      // 저장이 막힌 브라우저는 결과 페이지에서 첫 화면으로 돌아갑니다.
+    }
     markTestCompleted(IQ_SLUG);
-    recordCompletionOnce(IQ_SLUG);
-    setScreen("result");
+    recordTestEvent(IQ_SLUG, "teaser");
+    setScreen("teaser");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -179,7 +214,30 @@ export default function IqTestRunner() {
         </section>
       )}
 
-      {screen === "result" && (
+      {/* 예고 화면. 점수는 가리고 가장 강한 영역만 보여 줍니다. 버튼 옆에 광고를 두지 않습니다(실수 클릭). */}
+      {screen === "teaser" && (
+        <section className="test-shell">
+          <div className="progress"><i style={{ width: "100%" }} /></div>
+          <div className="question-card test-teaser">
+            <span className="question-kicker">{total}문제 완료!</span>
+            <h2>채점이 끝났어요</h2>
+            <div className="screener-score" style={{ borderColor: "#c9bdf0" }}>
+              <strong>? ?<span>/ {total}문제</span></strong>
+            </div>
+            <p className="test-teaser-traits" aria-label="결과 일부 공개">
+              <span>가장 강한 영역 · {[...byArea].sort((a, b) => b.hit / b.total - a.hit / a.total)[0].area}</span>
+            </p>
+            <p className="mbti-teaser-hint">맞힌 개수와 영역별 정답률,<br />문제별 해설까지 결과 화면에 있어요.</p>
+            <a className="mbti-teaser-cta" href={RESULT_PATH}>내 결과 확인하기 →</a>
+          </div>
+        </section>
+      )}
+
+      {screen === "result" && !loaded && (
+        <section className="result-shell result-loading" aria-busy="true"><p>결과를 불러오는 중입니다…</p></section>
+      )}
+
+      {screen === "result" && loaded && (
         <section className="rich-result">
           <span className="result-kicker">IQ 테스트 결과</span>
 

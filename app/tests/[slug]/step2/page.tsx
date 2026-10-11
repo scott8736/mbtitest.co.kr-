@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import GenericTestRunner from "../../../../components/GenericTestRunner";
 import { genericTests } from "../../../../lib/generic-tests";
-import { testCatalog } from "../../../../lib/test-catalog";
 
 export const dynamicParams = false;
 
@@ -10,18 +8,18 @@ export function generateStaticParams() {
   return Object.keys(genericTests).map((slug) => ({ slug }));
 }
 
-// 문항을 푸는 화면이라 색인하지 않습니다. 검색 유입은 /tests/[slug]/ 가 받습니다.
+// 2026-10-11부터 문항을 /tests/[slug]/ 한 페이지에서 풉니다. 예전 2단계 주소로 들어오면
+// (뒤로가기·북마크) 앞 단계 답이 없으므로 테스트 첫 화면으로 보냅니다.
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const item = testCatalog.find((test) => test.slug === slug);
   return {
-    title: item ? `${item.shortTitle} 2단계` : "테스트 2단계",
-    description: item ? `${item.title}의 나머지 문항에 답하고 결과를 확인하세요.` : "남은 문항에 답해 주세요.",
-    alternates: { canonical: `/tests/${slug}/step2/` },
+    title: "테스트 처음 화면으로",
+    description: "이 테스트는 첫 화면에서 처음부터 진행합니다.",
+    alternates: { canonical: `/tests/${slug}/` },
     robots: { index: false, follow: true },
   };
 }
@@ -32,7 +30,13 @@ export default async function TestStepTwoPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const test = genericTests[slug];
-  if (!test) notFound();
-  return <GenericTestRunner test={test} part={2} />;
+  if (!genericTests[slug]) notFound();
+  return (
+    <main>
+      <meta httpEquiv="refresh" content={`0;url=/tests/${slug}/`} />
+      <p style={{ padding: 24, textAlign: "center" }}>
+        <a href={`/tests/${slug}/`}>테스트 처음 화면으로 이동합니다</a>
+      </p>
+    </main>
+  );
 }

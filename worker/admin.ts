@@ -17,6 +17,7 @@ import { RESULT_CLICK_PLACEMENTS, RESULT_CLICK_PLACEMENT_KEYS } from "../lib/res
 import { loadRollups, mergeRollups } from "./rollup";
 import { SHARE_CHANNELS, SHARE_CHANNEL_KEYS } from "../lib/mori";
 import { tarotSlugs } from "../lib/tarot";
+import { screenerSlugs } from "../lib/screeners";
 import { SOURCE_LABELS } from "../lib/analytics";
 import {
   DEFAULT_TREND_KEYWORDS,
@@ -247,6 +248,11 @@ const ANSWERED_SINCE = "2026-09-07";
 const COMPLETED_SINCE = "2026-09-10";
 /** 2단계 도착을 페이지뷰가 아니라 이벤트(사람당 한 번)로 세기 시작한 날 */
 const STEP2_SINCE = "2026-10-01";
+/** 검사를 한 페이지로 바꾸고 마지막에 예고 화면 + 「내 결과 확인하기」 링크를 넣은 날(MBTI·일반 테스트·IQ).
+ *  이날부터 「2단계」는 같은 화면에서 문항 절반에 도착한 수이고, 「완주」는 결과 버튼까지 누른 수입니다. */
+const ONE_PAGE_SINCE = "2026-10-11";
+/** 예고 화면 도착(teaser = 문항을 다 푼 사람)을 세기 시작한 첫 온전한 날. 배포한 10-11 은 반나절이라 다음 날부터 비율을 냅니다. */
+const TEASER_SINCE = "2026-10-12";
 /** 결과 화면 쿠팡 카드 클릭을 직접 세기 시작한 날. 쿠팡 리포트에 결과 카드 채널(mbtitest_result_*)이
  *  30일간 한 건도 없어서, 안 누른 건지 눌렀는데 채널이 안 붙은 건지 가르려고 넣었습니다. */
 const PICK_SINCE = "2026-10-01";
@@ -426,6 +432,23 @@ async function dashboard(
   const visitedBySlug = countsFor("visited");
   const completedBySlug = countsFor("completed");
   const step2BySlug = countsFor("step2");
+  const teaserBySlug = countsFor("teaser");
+  // 결과 버튼(전면광고 자리) 묶음별: 예고 화면 도착(teaser) → 결과 화면 연 사람(completed).
+  // 자가진단은 위급 구간이면 예고 없이 바로 결과라 완주가 다 풂보다 클 수 있습니다.
+  const sumWhere = (m: Map<string, number>, pick: (slug: string) => boolean) => [...m].filter(([slug]) => pick(slug)).reduce((n, [, c]) => n + c, 0);
+  const tarotKeys = new Set<string>(tarotSlugs);
+  const screenerKeys = new Set<string>(screenerSlugs);
+  const buttonGroups: Array<[string, (slug: string) => boolean]> = [
+    ["MBTI 검사", (s) => s === "mbti"],
+    ["성향 테스트(일반)", (s) => s !== "mbti" && s !== "iq" && !tarotKeys.has(s) && !screenerKeys.has(s)],
+    ["IQ 테스트", (s) => s === "iq"],
+    ["오늘의 타로", (s) => tarotKeys.has(s)],
+    ["자가진단", (s) => screenerKeys.has(s)],
+  ];
+  const buttonRows = buttonGroups.map(([label, pick]) => ({ label, solved: sumWhere(teaserBySlug, pick), opened: sumWhere(completedBySlug, pick) }));
+  // 운세·궁합은 이벤트가 없어 입력 화면과 결과 화면 조회수로만 봅니다(새로고침 섞임).
+  const fortuneRows = [["오늘의 운세", "/fortune/today/"], ["사주", "/fortune/saju/"], ["사주 × MBTI", "/fortune/saju-mbti/"], ["사주 궁합", "/fortune/gunghap/"]]
+    .map(([label, path]) => ({ label, input: all.paths[path] ?? 0, result: all.paths[`${path}result/`] ?? 0 }));
   const pickBySlug = countsFor("pick_click");
   const reportSeen = eventCount("report_seen", "mbti");
   const reportClick = eventCount("report_click", "mbti");
@@ -604,16 +627,20 @@ ${liveBox}
 <br>「결과 조회」는 결과 화면 조회수입니다. 공유 링크로 들어온 사람과 새로고침이 섞여 있어 완주 수보다 큽니다. 비율에는 쓰지 않습니다.
 <br>「쿠팡 클릭」은 결과 화면의 추천 카드를 누른 수입니다(${PICK_SINCE} 부터). 쿠팡 화면의 채널별 클릭과 비교해, 여기는 있는데 쿠팡에 없으면 채널(subId)이 안 붙고 있다는 뜻입니다.
 <br>「고유 방문」은 검사 화면을 연 사람 수입니다. 답하기 전까지는 새로고침해도 한 번만 세고, 다시 검사하면 새로 셉니다. 「실제 시작률」 = 첫 응답 ÷ 고유 방문으로, 페이지뷰로 나눈 「응답 시작률」보다 정확합니다(${VISIT_SINCE} 부터, MBTI·일반 테스트만).
-<br>「2단계」는 2단계 화면에 도착한 사람 수입니다. ${STEP2_SINCE} 부터는 사람당 한 번만 세고, 그 전 기간은 새로고침이 섞인 화면 조회수라 회색으로 표시합니다.
+<br>「절반」은 문항 절반에 도착한 사람 수입니다. ${STEP2_SINCE} 부터는 사람당 한 번만 세고, 그 전 기간은 새로고침이 섞인 2단계 화면 조회수라 회색으로 표시합니다. ${ONE_PAGE_SINCE} 부터는 2단계 페이지 없이 같은 화면에서 셉니다.
+<br><b>${ONE_PAGE_SINCE} 한 페이지 검사 전환</b> — 마지막 답 뒤에 저절로 넘어가지 않고 예고 화면(결과 일부)에서 「내 결과 확인하기」 링크를 눌러야 결과가 열립니다(그 링크 클릭이 애드센스 전면광고 자리).
+「다 풂」은 예고 화면에 도착한 사람, <b>「결과 버튼」 = 완주 ÷ 다 풂</b>은 예고 화면에서 결과를 연 비율입니다(${TEASER_SINCE} 부터). 이 비율이 낮으면 예고 화면에서 새고 있다는 뜻입니다.
+그래서 이날부터 「완주율」은 결과 버튼 클릭까지 포함해 그 전보다 조금 낮게 나오는 것이 정상입니다. 묶음별 클릭률은 아래 「결과 버튼」 표에 있습니다.
 <br>첫 응답은 ${ANSWERED_SINCE}, 완주는 ${COMPLETED_SINCE} 부터 쌓기 시작했습니다. 조회 기간이 그 전을 포함하면 비율은 「-」로 나옵니다.
 표본이 ${MIN_SAMPLE}건 미만이어도 비율 대신 「표본 부족」으로 적습니다.
 </p>${
       steps.length === 0
         ? `<p class="empty">아직 기록이 없습니다.</p>`
-        : `<div class="scroll"><table><thead><tr><th>테스트</th><th>방문</th><th>고유 방문</th><th>첫 응답</th><th>2단계</th><th>결과 조회</th><th>완주</th><th>응답 시작률</th><th>실제 시작률</th><th>완주율</th><th>쿠팡 클릭</th></tr></thead><tbody>${steps
+        : `<div class="scroll"><table><thead><tr><th>테스트</th><th>방문</th><th>고유 방문</th><th>첫 응답</th><th>절반</th><th>다 풂</th><th>결과 조회</th><th>완주</th><th>응답 시작률</th><th>실제 시작률</th><th>완주율</th><th>결과 버튼</th><th>쿠팡 클릭</th></tr></thead><tbody>${steps
             .map((s) => {
               const began = answeredBySlug.get(s.slug) ?? 0;
               const finished = completedBySlug.get(s.slug) ?? 0;
+              const solved = teaserBySlug.get(s.slug) ?? 0;
               // 조회 기간이 집계 시작 전을 포함하면 분모만 짧은 기간이라 비율이
               // 부풀려집니다. 표본이 작아도 마찬가지로 숫자를 내지 않습니다.
               const rate = (part: number, whole: number, since: string) => {
@@ -621,17 +648,31 @@ ${liveBox}
                 if (whole < MIN_SAMPLE) return "표본 부족";
                 return Math.round((part / whole) * 100) + "%";
               };
-              return `<tr><td>${named(testLabel(s.slug), s.slug)}</td><td>${s.intro}</td><td>${visitedBySlug.get(s.slug) ?? "-"}</td><td>${began || "-"}</td><td>${from >= STEP2_SINCE ? (step2BySlug.get(s.slug) ?? "-") : `<span class="muted">${s.step2}</span>`}</td><td>${s.result}</td><td>${finished || "-"}</td>
-<td>${rate(began, s.intro, ANSWERED_SINCE)}</td><td>${rate(began, visitedBySlug.get(s.slug) ?? 0, VISIT_SINCE)}</td><td>${rate(finished, began, COMPLETED_SINCE)}</td><td>${pickBySlug.get(s.slug) ?? (from >= PICK_SINCE ? 0 : "-")}</td></tr>`;
+              return `<tr><td>${named(testLabel(s.slug), s.slug)}</td><td>${s.intro}</td><td>${visitedBySlug.get(s.slug) ?? "-"}</td><td>${began || "-"}</td><td>${from >= STEP2_SINCE ? (step2BySlug.get(s.slug) ?? "-") : `<span class="muted">${s.step2}</span>`}</td><td>${solved || (from >= TEASER_SINCE ? 0 : "-")}</td><td>${s.result}</td><td>${finished || "-"}</td>
+<td>${rate(began, s.intro, ANSWERED_SINCE)}</td><td>${rate(began, visitedBySlug.get(s.slug) ?? 0, VISIT_SINCE)}</td><td>${rate(finished, began, COMPLETED_SINCE)}</td><td>${rate(finished, solved, TEASER_SINCE)}</td><td>${pickBySlug.get(s.slug) ?? (from >= PICK_SINCE ? 0 : "-")}</td></tr>`;
             })
             .join("")}</tbody></table></div>`
     }</div>
+
+<div class="box"><h2>결과 버튼 (전면광고 자리)</h2>
+<p class="note">${ONE_PAGE_SINCE} 부터 검사·운세·타로·자가진단 모두 결과가 저절로 열리지 않고, 예고 화면의 「내 결과 확인하기」 링크를 눌러야 열립니다.
+애드센스 전면광고(비네트)는 이런 링크 클릭에만 붙습니다. <b>클릭률 = 결과 연 사람 ÷ 예고 화면 도착</b>(${TEASER_SINCE} 부터). 낮으면 예고 화면에서 새는 것이니 문구·공개 범위를 손봅니다.
+전면광고가 실제로 붙었는지는 애드센스 보고서 → 광고 형식별 「전면」 행에서 확인합니다(여기서는 안 보입니다).
+자가진단은 도움이 필요한 구간이면 예고 없이 바로 결과를 보여 줘서 「결과 연 사람」이 더 클 수 있습니다.</p>
+<div class="scroll"><table><thead><tr><th>묶음</th><th>예고 화면 도착</th><th>결과 연 사람</th><th>클릭률</th></tr></thead><tbody>${buttonRows
+  .map((r) => `<tr><td>${r.label}</td><td>${from >= TEASER_SINCE ? r.solved : "-"}</td><td>${r.opened}</td><td>${from < TEASER_SINCE ? "-" : r.solved < MIN_SAMPLE ? "표본 부족" : Math.round((r.opened / r.solved) * 100) + "%"}</td></tr>`)
+  .join("")}</tbody></table></div>
+<p class="note">운세·궁합(이벤트 없음 — 화면 조회수, 새로고침 섞임). 결과 ÷ 입력은 대략의 클릭률입니다.</p>
+<div class="scroll"><table><thead><tr><th>운세</th><th>입력 화면</th><th>결과 화면</th><th>결과 ÷ 입력</th></tr></thead><tbody>${fortuneRows
+  .map((r) => `<tr><td>${r.label}</td><td>${r.input}</td><td>${r.result}</td><td>${r.input < MIN_SAMPLE ? "표본 부족" : Math.round((r.result / r.input) * 100) + "%"}</td></tr>`)
+  .join("")}</tbody></table></div>
+</div>
 
 <div class="box"><h2>체류·회유</h2>
 <p class="note">
 MBTI 하나만 하고 나가는지, 다른 검사로 이어 가며 머무는지를 봅니다. 새로 모으는 값 없이 접속 기록으로 계산합니다.
 「방문자」는 하루 단위 사람(날짜가 바뀌면 다른 사람으로 셈)입니다. 「검사 2개+」는 서로 다른 검사 첫 화면(/tests/…, /check/…)을 2개 이상 연 사람입니다.
-<b>「MBTI → 다른 검사」 = MBTI를 끝낸 사람(2단계와 결과를 모두 본 사람) 중 그 뒤에 다른 검사를 연 비율</b> — 회유 개선의 핵심 숫자입니다.
+<b>「MBTI → 다른 검사」 = MBTI를 끝낸 사람(검사 화면을 거쳐 결과를 본 사람 — ${ONE_PAGE_SINCE} 전에는 2단계와 결과를 모두 본 사람) 중 그 뒤에 다른 검사를 연 비율</b> — 회유 개선의 핵심 숫자입니다.
 체류 시간은 첫 조회부터 마지막 조회까지라 마지막 페이지에 머문 시간은 빠집니다. 화면을 바꾼 날 전·후를 기간 조회로 나눠 비교하세요.
 </p>
 <div class="cards">

@@ -138,7 +138,7 @@ export function buildRollup(day: string, pages: PageRow[], events: EventRow[]): 
     landingSourceKr: {},
   };
 
-  type Visitor = { views: number; first: number; last: number; tests: Set<string>; tookMbti: boolean; mbtiAt: number; otherAt: number; shareAt: number; mbtiStartAt: number; testShareAt: number; introAt: number; landing: string; landingSource: string; country: string };
+  type Visitor = { views: number; first: number; last: number; tests: Set<string>; tookMbti: boolean; mbtiIntroAt: number; mbtiAt: number; otherAt: number; shareAt: number; mbtiStartAt: number; testShareAt: number; introAt: number; landing: string; landingSource: string; country: string };
   const visitors = new Map<string, Visitor>();
 
   for (const p of pages) {
@@ -158,7 +158,7 @@ export function buildRollup(day: string, pages: PageRow[], events: EventRow[]): 
     const at = toMs(p.created_at);
     let v = visitors.get(p.visitor_hash);
     if (!v) {
-      v = { views: 0, first: at, last: at, tests: new Set(), tookMbti: false, mbtiAt: Infinity, otherAt: -Infinity, shareAt: Infinity, mbtiStartAt: -Infinity, testShareAt: Infinity, introAt: -Infinity, landing: p.path, landingSource: p.source, country: p.country };
+      v = { views: 0, first: at, last: at, tests: new Set(), tookMbti: false, mbtiIntroAt: Infinity, mbtiAt: Infinity, otherAt: -Infinity, shareAt: Infinity, mbtiStartAt: -Infinity, testShareAt: Infinity, introAt: -Infinity, landing: p.path, landingSource: p.source, country: p.country };
       visitors.set(p.visitor_hash, v);
     }
     v.views += 1;
@@ -175,6 +175,7 @@ export function buildRollup(day: string, pages: PageRow[], events: EventRow[]): 
       if (p.path !== "/tests/mbti/") v.otherAt = Math.max(v.otherAt, at);
     }
     if (p.path === "/tests/mbti/step2/") v.tookMbti = true;
+    if (p.path === "/tests/mbti/") v.mbtiIntroAt = Math.min(v.mbtiIntroAt, at);
     if (p.path === "/mbti-result/") v.mbtiAt = Math.min(v.mbtiAt, at);
     if (isSharePage(p.path)) {
       r.share!.views += 1;
@@ -189,14 +190,16 @@ export function buildRollup(day: string, pages: PageRow[], events: EventRow[]): 
   }
 
   // 체류·회유. 체류 시간은 첫 조회 ~ 마지막 조회라 마지막 페이지에 머문 시간은 빠집니다.
-  // MBTI 완료자는 2단계와 결과를 둘 다 본 사람입니다 — 공유받은 결과 링크만 연 사람을 빼려고요.
+  // MBTI 완료자는 검사 화면을 거쳐 결과를 본 사람입니다 — 공유받은 결과 링크만 연 사람을 빼려고요.
+  // 2026-10-11부터 2단계 페이지가 없어져(한 페이지 검사) 「2단계를 봤거나, 결과보다 먼저 검사 첫 화면을 연」 사람으로 셉니다.
+  // 지난 날짜는 저장된 집계(2단계 기준) 그대로 둡니다 — 그때는 둘이 거의 같은 사람입니다.
   const j = r.journey;
   for (const v of visitors.values()) {
     const span = (v.last - v.first) / 1000;
     j.visitors += 1;
     j.views += v.views;
     if (v.tests.size >= 2) j.multi += 1;
-    const done = v.tookMbti && v.mbtiAt !== Infinity;
+    const done = v.mbtiAt !== Infinity && (v.tookMbti || v.mbtiIntroAt < v.mbtiAt);
     if (done) j.mbti_done += 1;
     if (done && v.otherAt > v.mbtiAt) j.mbti_next += 1;
     if (v.shareAt !== Infinity) {

@@ -36,6 +36,7 @@ export type TestEventName =
   | "visited"
   | "answered"
   | "step2"
+  | "teaser"
   | "completed"
   | "pick_click"
   | "report_seen"

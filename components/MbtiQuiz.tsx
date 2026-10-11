@@ -6,7 +6,7 @@ import AdUnit from "./AdUnit";
 import Mascot, { moodForQuestion } from "./Mascot";
 import { isFlipped, questions, scoreType, type Answer, type Axis } from "../lib/mbti-data";
 import { moriImage } from "../lib/mori";
-import { markStep2Reached, markTestCompleted, recordAnswered, recordStep2Once, recordVisitOnce, remainingMinutes } from "../lib/test-events";
+import { markStep2Reached, markTestCompleted, recordAnswered, recordStep2Once, recordTestEvent, recordVisitOnce, remainingMinutes } from "../lib/test-events";
 
 /** 관리자 퍼널의 「2단계 도착」을 이어서 세는 지점입니다. 주소는 바뀌지 않습니다. */
 export const HALF_POINT = 20;
@@ -66,6 +66,8 @@ export default function MbtiQuiz() {
     const type = scoreType(next, nextLast);
     sessionStorage.setItem(RESULT_KEY, JSON.stringify({ result: type, scores: next }));
     markTestCompleted("mbti");
+    // 문항을 다 푼 사람. 결과 화면의 「완주」 ÷ 이것 = 결과 버튼을 누른 비율입니다.
+    recordTestEvent("mbti", "teaser");
     setDone(type);
     window.scrollTo({ top: 0 });
   };
