@@ -1,6 +1,6 @@
 /**
- * 결과 화면의 「프리미엄 사주」 배너 (2026-10-04~). 누르면 사주랩(4ju.sajulab.kr)으로 갑니다.
- * 사주랩은 이 사이트 운영자가 직접 운영하는 유료 사이트라 제휴 광고가 아닙니다 —
+ * 결과 화면의 「프리미엄 사주」 배너 (2026-10-04~). 누르면 saju.mbtitest.co.kr 로 갑니다(2026-10-11, 그 전에는 4ju.sajulab.kr/4ju).
+ * 이 사주 사이트는 이 사이트 운영자가 직접 운영하는 유료 사이트라 제휴 광고가 아닙니다 —
  * 그래서 「광고」 표시와 rel="sponsored" 를 붙이지 않습니다.
  *
  * 배너가 붙은 결과 화면의 종류를 여기 한 곳에 둡니다. 브라우저(배너)와 워커(이벤트 수신),
@@ -11,7 +11,7 @@
  * 파는 것은 맞지 않다고 봤습니다 — 쿠팡 카드를 빼 둔 것과 같은 이유입니다.
  */
 
-export const SAJULAB_URL = "https://4ju.sajulab.kr/4ju";
+export const SAJULAB_URL = "https://saju.mbtitest.co.kr/";
 
 /** 배너 자리 → 관리자 표에 찍힐 이름 */
 export const SAJULAB_PLACEMENTS = {
