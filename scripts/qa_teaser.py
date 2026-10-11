@@ -69,6 +69,20 @@ async def click_cta_and_wait(page, path_expect):
     return page.url.replace(BASE, "").split("?")[0] == path_expect
 
 
+async def banner_check(page, name):
+    """결과 화면의 유료 사주 배너: 옛 주소(sajulab.kr)가 없고, 배너가 있으면 saju.mbtitest.co.kr 새 탭."""
+    await page.wait_for_timeout(600)
+    old = await page.locator("a[href*='sajulab.kr']").count()
+    banners = page.locator("a.sajulab-banner")
+    bad = []
+    for k in range(await banners.count()):
+        href = await banners.nth(k).get_attribute("href")
+        tgt = await banners.nth(k).get_attribute("target")
+        if not (href or "").startswith("https://saju.mbtitest.co.kr") or tgt != "_blank":
+            bad.append(f"{href} target={tgt}")
+    add(name + f" 유료 사주 배너({await banners.count()}개)", old == 0 and not bad, f"옛주소 {old}개 {bad}")
+
+
 async def qa_mbti(browser):
     ctx, page, errors = await new_page(browser)
     try:
@@ -98,6 +112,7 @@ async def qa_mbti(browser):
         await page.wait_for_selector(".mori-portrait figcaption b", timeout=10000)
         code = (await page.locator(".mori-portrait figcaption b").inner_text()).split()[0]
         add("MBTI 결과 유형이 예고 글자와 일치", code[0] == letters[0] and code[2] == letters[2], f"예고 {letters} 결과 {code}")
+        await banner_check(page, "MBTI")
         add("MBTI 콘솔 오류 없음", not errors, " | ".join(errors[:3]))
     finally:
         await ctx.close()
@@ -124,6 +139,7 @@ async def qa_generic(browser, slug):
         await page.wait_for_selector(".rich-result h1", timeout=10000)
         pills = await page.locator(".trait-pills span").all_inner_texts()
         add(name + f" 결과({n}문항)", ok and trait in pills, f"url={page.url} 예고키워드={trait} 결과={pills}")
+        await banner_check(page, name)
         add(name + " 콘솔 오류 없음", not errors, " | ".join(errors[:3]))
     except Exception as e:
         add(name, False, repr(e)[:200])
@@ -144,6 +160,7 @@ async def qa_iq(browser):
         await page.wait_for_selector(".screener-score strong", timeout=10000)
         score = await page.locator(".screener-score strong").inner_text()
         add("IQ 결과", ok and "/ 20" in score, score)
+        await banner_check(page, "IQ")
         add("IQ 콘솔 오류 없음", not errors, " | ".join(errors[:3]))
     except Exception as e:
         add("IQ", False, repr(e)[:200])
@@ -164,6 +181,7 @@ async def qa_tarot(browser, slug):
         await page.wait_for_selector(".rich-result .tarot-card-face b", timeout=10000)
         sym2 = await page.locator(".rich-result .tarot-symbol").first.inner_text()
         add(name + " 결과 카드가 예고와 같음", ok and sym == sym2, f"{sym} vs {sym2}")
+        await banner_check(page, name)
         add(name + " 콘솔 오류 없음", not errors, " | ".join(errors[:3]))
     except Exception as e:
         add(name, False, repr(e)[:200])
@@ -194,6 +212,7 @@ async def qa_screener(browser, slug, urgent):
             ok = await click_cta_and_wait(page, f"/check/{slug}/result/")
             await page.wait_for_selector(".screener-score", timeout=10000)
             add(name + " 결과", ok, page.url)
+        await banner_check(page, name)
         add(name + " 콘솔 오류 없음", not errors, " | ".join(errors[:3]))
     except Exception as e:
         add(name, False, repr(e)[:200])
@@ -219,6 +238,7 @@ async def qa_fortune(browser, mode):
         await page.wait_for_timeout(1500)
         body = await page.locator("main").inner_text()
         add(name + " 결과", ok and chips[0] in body and "undefined" not in body and "NaN" not in body, f"chips={chips} len={len(body)}")
+        await banner_check(page, name)
         add(name + " 콘솔 오류 없음", not errors, " | ".join(errors[:3]))
     except Exception as e:
         add(name, False, repr(e)[:200])
@@ -242,6 +262,7 @@ async def qa_gunghap(browser):
         await page.wait_for_timeout(1500)
         body = await page.locator("main").inner_text()
         add("궁합 결과(일간 관계 일치)", ok and rel in body and "/ 100" in body, f"rel={rel}")
+        await banner_check(page, "궁합")
         add("궁합 콘솔 오류 없음", not errors, " | ".join(errors[:3]))
     except Exception as e:
         add("궁합", False, repr(e)[:200])
