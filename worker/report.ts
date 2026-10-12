@@ -360,15 +360,14 @@ const TRANSITIONS: Record<string, { to: string; from: string[] }> = {
 };
 
 const NOTIFY_HEAD: Record<string, string> = {
-  paid: "💰 리포트 결제 완료", refunded: "↩️ 리포트 환불", partial: "↩️ 리포트 부분 취소", cancelled: "리포트 결제 요청 취소",
+  paid: "결제", refunded: "↩️환불", partial: "↩️부분 취소", cancelled: "결제 요청 취소",
 };
 
 /** 텔레그램 알림 문구. 휴대폰은 뒤 4자리만(저장도 그것뿐입니다). */
 export function feedbackMessage(to: string, order: { type: string; price: number; test: number; phone_last4: string }, orderNo: string): string {
   const at = new Date(Date.now() + 9 * 3600_000).toISOString().slice(5, 16).replace("T", " ");
   return [
-    `${NOTIFY_HEAD[to] ?? to}${order.test ? " (시험)" : ""}`,
-    `${order.type} · ${order.price.toLocaleString()}원`,
+    `🧩 MBTI테스트 · ${order.test ? "🧪시험 " : ""}${NOTIFY_HEAD[to] ?? to} · ${order.type} 리포트 · ${order.price.toLocaleString()}원`,
     `주문 ${orderNo} · 휴대폰 ***-${order.phone_last4}`,
     `${at} (한국 시각)`,
   ].join("\n");

@@ -200,8 +200,7 @@ export async function handleTossGrant(
   await logEvent(db, orderNo, "toss_paid", `orderId=${orderId} status=${v.status}${test ? " test" : ""}`);
   notify(
     [
-      `💰 리포트 결제 완료 (토스)${test ? " (시험)" : ""}`,
-      `${order.type} · ${TOSS_REPORT_PRICE.toLocaleString()}원`,
+      `🧩 MBTI(토스) · ${test ? "🧪시험 " : ""}결제 · ${order.type} 리포트 · ${TOSS_REPORT_PRICE.toLocaleString()}원`,
       `주문 ${orderNo}`,
       `${new Date(Date.now() + 9 * 3600_000).toISOString().slice(5, 16).replace("T", " ")} (한국 시각)`,
     ].join("\n"),

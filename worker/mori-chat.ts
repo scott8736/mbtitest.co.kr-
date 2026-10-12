@@ -386,7 +386,7 @@ export async function noteError(db: D1Database, day: string, reason: string, not
     const row = await db.prepare("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE day = ? AND kind = 'error'").bind(day).first<{ n: number }>();
     const n = Number(row?.n ?? 0);
     if (ERROR_ALERT_STEPS.includes(n)) {
-      await alertOnce(db, `error:${day}:${n}`, `⚠️ 모리 대화 오류 오늘 ${n}건 (마지막: ${reason})\n관리자 /admin/report/#mori-chat 「점검」에서 종류를 확인하세요.`, notify);
+      await alertOnce(db, `error:${day}:${n}`, `🧩 MBTI테스트 · ⚠️ 모리 대화 오류 오늘 ${n}건 (마지막: ${reason})\n관리자 /admin/report/#mori-chat 「점검」에서 종류를 확인하세요.`, notify);
     }
   } catch {
     // 기록 실패가 응답을 막으면 안 됩니다.
@@ -495,7 +495,7 @@ export async function handleSend(
     // 누가 보냈는지는 남기지 않는다(민감한 기록). 날짜별 건수만.
     await recordUsage(db, { day, device: "", ip: "", kind: "crisis", mori, chars: 0, turn: 0 });
     // 그날 처음 나간 안내는 알립니다(누가 보냈는지는 없음). 안내 흐름이 제대로 도는지 사람이 한 번씩 보게.
-    await alertOnce(db, `crisis:${day}`, `🆘 오늘 처음으로 모리 대화에서 상담 전화 안내가 나갔어요 (${mori} 모리).\n보낸 사람은 기록하지 않아요. 안내 문구·번호가 맞는지만 가끔 확인해 주세요.`, deps.notify);
+    await alertOnce(db, `crisis:${day}`, `🧩 MBTI테스트 · 🆘 오늘 처음으로 모리 대화에서 상담 전화 안내가 나갔어요 (${mori} 모리).\n보낸 사람은 기록하지 않아요. 안내 문구·번호가 맞는지만 가끔 확인해 주세요.`, deps.notify);
     const { quota } = await computeQuota(db, { device, ip, day, reports: tokenList(raw.reports, 10), passes: tokenList(raw.passes, 10) }, now);
     return json({ reply: CRISIS_REPLY, crisis: true, quota });
   }
@@ -541,7 +541,7 @@ export async function handleSend(
       .first<{ n: number }>();
     if (Number(spilled?.n ?? 0) >= FREE_PAID_FALLBACK_PER_DAY) {
       tier = "freeonly";
-      await alertOnce(db, `cap:${day}`, `💸 오늘 무료 사용자의 유료 키 사용이 상한(${FREE_PAID_FALLBACK_PER_DAY}건)에 닿았어요. 지금부터 무료 사용자는 무료 키만 써요.\n무료 키 8개가 한도에 걸린 날이라 손님에게 「잠시 후」가 늘 수 있어요.`, deps.notify);
+      await alertOnce(db, `cap:${day}`, `🧩 MBTI테스트 · 💸 오늘 무료 사용자의 유료 키 사용이 상한(${FREE_PAID_FALLBACK_PER_DAY}건)에 닿았어요. 지금부터 무료 사용자는 무료 키만 써요.\n무료 키 8개가 한도에 걸린 날이라 손님에게 「잠시 후」가 늘 수 있어요.`, deps.notify);
     }
   }
 
@@ -658,7 +658,7 @@ const PASS_TRANSITIONS: Record<string, { to: string; from: string[] }> = {
   "71": { to: "partial", from: ["paid"] },
 };
 const PASS_HEAD: Record<string, string> = {
-  paid: "💬 모리 대화권 결제 완료", refunded: "↩️ 대화권 환불", partial: "↩️ 대화권 부분 취소", cancelled: "대화권 결제 요청 취소",
+  paid: "결제", refunded: "↩️환불", partial: "↩️부분 취소", cancelled: "결제 요청 취소",
 };
 
 export async function handlePassFeedback(db: D1Database, form: URLSearchParams, notify?: (text: string) => void): Promise<string> {
@@ -693,8 +693,8 @@ export async function handlePassFeedback(db: D1Database, form: URLSearchParams, 
     if (notify && changed) {
       const at = new Date(Date.now() + 9 * 3600_000).toISOString().slice(5, 16).replace("T", " ");
       notify([
-        `${PASS_HEAD[move.to] ?? move.to}${row.test ? " (시험)" : ""}`,
-        `${CHAT_PASS_NAME} · ${row.price.toLocaleString()}원 · 쓴 횟수 ${row.used}/${row.size}`,
+        `🧩 MBTI테스트 · ${row.test ? "🧪시험 " : ""}${PASS_HEAD[move.to] ?? move.to} · ${CHAT_PASS_NAME} · ${row.price.toLocaleString()}원`,
+        `쓴 횟수 ${row.used}/${row.size}`,
         `주문 ${orderNo} · 휴대폰 ***-${row.phone_last4}`,
         `${at} (한국 시각)`,
       ].join("\n"));

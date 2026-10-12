@@ -130,7 +130,7 @@ export async function handleReportAdmin(request: Request, url: URL, path: string
     }
 
     if (path === "/admin/report/telegram-test") {
-      const ok = await sendTelegram(db, "mbtitest 리포트 판매 알림 시험입니다. 이 메시지가 보이면 결제·환불 알림이 여기로 옵니다.");
+      const ok = await sendTelegram(db, "🧩 MBTI테스트 · ✅ 관리자 알림 시험입니다. 이 메시지가 보이면 결제·환불 알림이 여기로 옵니다.");
       return redirect(ok ? "/admin/report/?tgsent=1" : "/admin/report/?err=tgsend");
     }
 

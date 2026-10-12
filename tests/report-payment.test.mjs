@@ -138,8 +138,8 @@ test("결제 흐름: 위조·금액 불일치 거절 → 결제완료 → 중복
   assert.equal(await R.handleFeedback(db, fb(row()), notify), "SUCCESS");
   assert.equal(row().status, "paid");
   assert.equal(alerts.length, 1, "결제 완료를 알린다");
-  assert.match(alerts[0], /결제 완료/);
-  assert.match(alerts[0], /INFP · 9,900원/);
+  // 첫 줄은 「사이트 · 구분 · 상품 · 금액」(10-12 텔레그램 형식 통일)
+  assert.match(alerts[0].split("\n")[0], /^🧩 MBTI테스트 · 결제 · INFP 리포트 · 9,900원$/);
   assert.match(alerts[0], /\*\*\*-5678/);
   assert.ok(!alerts[0].includes("01012345678"), "알림에 휴대폰 전체 번호를 넣지 않는다");
   assert.equal(await R.handleFeedback(db, fb(row()), notify), "SUCCESS", "같은 통보 재전송");
