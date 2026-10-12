@@ -36,7 +36,7 @@ export default function SellerInfo() {
       {row("대표", SELLER.owner)}
       {row("사업자등록번호", SELLER.bizNo)}
       {row("통신판매업 신고", SELLER.mailOrderNo)}
-      {row("주소", SELLER.address)}
+      {SELLER.address ? row("주소", SELLER.address) : null}
       {row("문의", SELLER.contact ? <ContactText /> : "")}
       {row("호스팅", SELLER.hosting)}
     </p>

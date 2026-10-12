@@ -92,7 +92,7 @@ test("주문 입력 검사: 유형·점수 짝, 휴대폰, 동의, 이름 정리
 
 test("손님 주문은 판매자 정보 + 스위치 + 연동 키 + 해독 키가 모두 있어야 열린다", async () => {
   const db = await setup(); // 연동 키는 들어 있음
-  assert.equal(R.isSellerInfoComplete(), true, "통신판매업 신고번호·주소·연락처 입력됨(2026-10-04)");
+  assert.equal(R.isSellerInfoComplete(), true, "통신판매업 신고번호·연락처 입력됨(주소는 10-12부터 표시 안 함)");
   assert.equal(await R.salesOpen(db), false, "스위치 꺼짐");
   const order = () => R.handleReport(new Request("https://x/api/report/order", { method: "POST", body: "{}" }), new URL("https://x/api/report/order"), { DB: db }, ctx);
   assert.equal((await order()).status, 503);

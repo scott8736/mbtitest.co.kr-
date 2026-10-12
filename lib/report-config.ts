@@ -69,7 +69,8 @@ export const PAYAPP_USERID = PAYMENT.payappUserid;
 export const SELLER = SELLER_INFO;
 
 export function isSellerInfoComplete(): boolean {
-  return Boolean(SELLER.name && SELLER.owner && SELLER.bizNo && SELLER.mailOrderNo && SELLER.address && SELLER.contact);
+  // 주소는 표시하지 않는다(2026-10-12 사용자 요청). 판매 열림 조건에서도 뺀다.
+  return Boolean(SELLER.name && SELLER.owner && SELLER.bizNo && SELLER.mailOrderNo && SELLER.contact);
 }
 
 export const MBTI_TYPES = [
