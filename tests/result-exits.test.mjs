@@ -149,3 +149,13 @@ test("사주랩 배너가 결과 화면 9자리 모두에 붙어 있고, 자가�
   assert.ok(!/무료로|무료 보기|무료 제공|기간 한정/.test(visible), "사주랩은 유료다. 무료로 볼 수 있다고 쓰지 않는다");
   assert.ok(/유료/.test(visible), "유료임을 배너에 밝힌다");
 });
+
+test("사주 배너는 사주를 보러 온 화면에만 보인다(10-13, MBTI 결과는 리포트 자리)", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const lib = await readFile(new URL("../lib/sajulab.ts", import.meta.url), "utf8");
+  const hidden = lib.slice(lib.indexOf("SAJULAB_HIDDEN"));
+  for (const p of ['"mbti"', '"test"', '"shared"']) assert.ok(hidden.includes(p), `${p} 자리는 배너를 내린다`);
+  for (const p of ['"fortune-saju"', '"gunghap"']) assert.ok(!hidden.includes(p), `${p} 자리는 배너를 남긴다`);
+  const banner = await readFile(new URL("../components/SajuLabBanner.tsx", import.meta.url), "utf8");
+  assert.ok(banner.includes("SAJULAB_HIDDEN.has(placement)) return null"));
+});

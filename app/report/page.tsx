@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import ReportBuy, { ReportPreview } from "../../components/ReportBuy";
+import ReportBuy, { ReportPreview, ReportTopCta } from "../../components/ReportBuy";
 import SiteFooter from "../../components/SiteFooter";
 import ReportPriceBox from "../../components/ReportEvent";
 import { REPORT_PRODUCT } from "../../lib/report-config";
@@ -43,6 +43,8 @@ export default function ReportPage() {
           생년월일을 넣으면 사주 이야기가 한 장 더해집니다.
         </p>
 
+        <ReportTopCta />
+
         {/* 무료 미리보기 6쪽을 맨 위에(2026-10-04 사용자 요청). 아래 주문까지 내려가기 전에 실물을 먼저 보여 줍니다. */}
         <ReportPreview />
         <p className="rp-muted">무료 미리보기 6쪽 · 견본 이름 「하늘」 · 내 유형·점수로 만들어지는 나머지 쪽은 결제 후에 열립니다.</p>
@@ -76,7 +78,7 @@ export default function ReportPage() {
           <p>이 리포트는 공식 MBTI® 검사 결과가 아니라 자기이해를 돕는 콘텐츠입니다. 의료·심리 진단을 대신하지 않습니다. 사주 장은 전통 해석을 재미로 풀어 쓴 것으로 미래를 단정하지 않습니다.</p>
         </div>
 
-        <h2>주문하기</h2>
+        <h2 id="order">주문하기</h2>
         <ReportBuy />
 
         <h2>환불 안내</h2>

@@ -1486,6 +1486,10 @@ main:not(.screener) .result-card-image {
 /* ── 유료 리포트 (2026-10-04) ── */
 .rp .rp-price { display:flex; flex-direction:column; gap:6px; margin:28px 0 8px; padding:22px 24px; border-radius:20px; background:#f3eefc; max-width:780px; }
 .rp .rp-price b { font-size:34px; letter-spacing:-.03em; }
+.rp .rp-top-cta { display:flex; flex-direction:column; gap:8px; margin:18px 0 22px; padding:18px 20px; border-radius:18px; background:#f3eefc; max-width:780px; }
+.rp .rp-top-cta b { font-size:28px; letter-spacing:-.03em; }
+.rp .rp-top-cta span { font-size:15px; }
+.rp #order { scroll-margin-top:16px; }
 .rp .rp-price small { color:var(--muted); font-size:14px; }
 .rp-event { align-self:flex-start; padding:4px 12px; border-radius:99px; background:#7657d6; color:#fff; font-size:13px; font-weight:700; }
 .rp-preview { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; max-width:780px; }

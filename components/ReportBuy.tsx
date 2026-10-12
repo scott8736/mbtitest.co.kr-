@@ -12,7 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import { questions, typeData, type Axis } from "../lib/mbti-data";
 import { readLastResult } from "../lib/my-mori";
 import { BIRTH_TIME_SLOTS, REPORT_CONSENT_TEXT, REPORT_CONSENT_VERSION } from "../lib/report-config";
-import { useReportPricing, won } from "./ReportEvent";
+import ReportPriceBox, { useReportPricing, won } from "./ReportEvent";
 import { bestCoupon, discounted, myCoupons, normalizeCode, untilText, type Coupon } from "../lib/invite-coupon";
 import { recordTestEventOnce, type ReportStep } from "../lib/test-events";
 
@@ -306,6 +306,20 @@ export function ReportPreview() {
           </div>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+/**
+ * 맨 위 결제 버튼(2026-10-13). 10-08~13 「폼 봄」 63명 중 칸을 누른 사람이 1명뿐이라,
+ * 미리보기·목차를 다 내려가기 전에 가격·대화 혜택·버튼을 먼저 보여 줍니다. 누르면 주문 폼(#order)으로 내려갑니다.
+ */
+export function ReportTopCta() {
+  return (
+    <div className="rp-top-cta">
+      <ReportPriceBox />
+      <span>💬 결제일부터 7일 동안 내 모리와 하루 50번 AI 대화 포함</span>
+      <a className="rp-button" href="#order" onClick={() => step("top_cta")}>결제하러 가기</a>
     </div>
   );
 }

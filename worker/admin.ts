@@ -457,7 +457,7 @@ async function dashboard(
   const reportCompleted = completedBySlug.get("mbti") ?? 0;
   // 판매 페이지 안 단계(2026-10-08~). 탭당 한 번씩 셉니다(components/ReportBuy.tsx).
   const rs = (s: string) => eventCount("report_step", s);
-  const step = { has: rs("page_has"), none: rs("page_none"), seen: rs("form_seen"), start: rs("form_start"), submit: rs("submit"), error: rs("error") };
+  const step = { has: rs("page_has"), none: rs("page_none"), top: rs("top_cta"), seen: rs("form_seen"), start: rs("form_start"), submit: rs("submit"), error: rs("error") };
   // 유료 리포트 판매(2026-10-04~). created_at 은 UTC 라 한국 날짜로 바꿔 기간을 자릅니다. 표가 없으면 0.
   const sales = { orders: 0, paid: 0, won: 0, viewed: 0, refunded: 0, bySource: [] as { src: string; n: number; won: number }[] };
   try {
@@ -793,11 +793,11 @@ ${chatSummary}
 </tbody></table></div>
 <h3 style="margin:22px 0 6px;font-size:16px">판매 페이지 안에서 (2026-10-08~)</h3>
 <p class="note">판매 페이지를 연 사람(탭당 한 번)을 이 기기에 MBTI 결과가 <b>있는/없는</b> 사람으로 나눕니다 — 결과가 없으면 주문 폼 대신 「검사 먼저」만 보여 주문할 수 없습니다.
-「폼 봄」은 주문 폼이 화면에 절반 이상 들어온 사람, 「입력 시작」은 폼 칸을 처음 누른 사람, 「결제 버튼」은 버튼을 누른 사람, 「막힘」은 번호·동의 누락이나 서버 오류로 결제창 대신 오류가 뜬 사람입니다.
+「폼 봄」은 주문 폼이 화면에 절반 이상 들어온 사람, 「위 버튼」은 맨 위 「결제하러 가기」를 누른 사람(10-13~), 「입력 시작」은 폼 칸을 처음 누른 사람, 「결제 버튼」은 버튼을 누른 사람, 「막힘」은 번호·동의 누락이나 서버 오류로 결제창 대신 오류가 뜬 사람입니다.
 같은 날 주문 폼도 바꿨습니다(선택 칸 접기·번호 안내) — 10-08 전후로 기간을 나눠 비교하세요.</p>
-<div class="scroll"><table><thead><tr><th>결과 있음</th><th>결과 없음</th><th>폼 봄</th><th>입력 시작</th><th>결제 버튼</th><th>막힘</th><th>결제창 열기</th></tr></thead><tbody>
-<tr><td>${step.has}</td><td>${step.none}</td><td>${step.seen}</td><td>${step.start}</td><td>${step.submit}</td><td>${step.error}</td><td>${sales.orders}</td></tr>
-<tr class="muted"><td>${reportRate(step.has, step.has + step.none)}</td><td>${reportRate(step.none, step.has + step.none)}</td><td>${reportRate(step.seen, step.has)}</td><td>${reportRate(step.start, step.seen)}</td><td>${reportRate(step.submit, step.start)}</td><td>${reportRate(step.error, step.submit)}</td><td>${reportRate(sales.orders, step.has)}</td></tr>
+<div class="scroll"><table><thead><tr><th>결과 있음</th><th>결과 없음</th><th>위 버튼</th><th>폼 봄</th><th>입력 시작</th><th>결제 버튼</th><th>막힘</th><th>결제창 열기</th></tr></thead><tbody>
+<tr><td>${step.has}</td><td>${step.none}</td><td>${step.top}</td><td>${step.seen}</td><td>${step.start}</td><td>${step.submit}</td><td>${step.error}</td><td>${sales.orders}</td></tr>
+<tr class="muted"><td>${reportRate(step.has, step.has + step.none)}</td><td>${reportRate(step.none, step.has + step.none)}</td><td>${reportRate(step.top, step.has)}</td><td>${reportRate(step.seen, step.has)}</td><td>${reportRate(step.start, step.seen)}</td><td>${reportRate(step.submit, step.start)}</td><td>${reportRate(step.error, step.submit)}</td><td>${reportRate(sales.orders, step.has)}</td></tr>
 </tbody></table></div>
 ${sales.bySource.length ? `<div class="scroll"><table><thead><tr><th>유입 경로(결제된 주문)</th><th>결제</th><th>매출</th></tr></thead><tbody>
 ${sales.bySource.map((r) => `<tr><td>${esc(SOURCE_LABELS[r.src] ?? (r.src || "기록 전"))}</td><td>${r.n}</td><td>${r.won.toLocaleString()}원</td></tr>`).join("")}

@@ -29,3 +29,10 @@ export const SAJULAB_PLACEMENTS = {
 export type SajulabPlacement = keyof typeof SAJULAB_PLACEMENTS;
 
 export const SAJULAB_PLACEMENT_KEYS = Object.keys(SAJULAB_PLACEMENTS) as SajulabPlacement[];
+
+/**
+ * 배너를 내린 자리(2026-10-13). 10/4~13 노출 931번에 클릭 3번(0.3%)이라 MBTI 결과에서는
+ * 리포트 카드 자리만 차지했습니다. 사주를 보러 온 화면(사주·사주 MBTI·궁합)에만 남깁니다.
+ * 다시 켜려면 여기서 빼면 됩니다 — 컴포넌트·이벤트·관리자 표는 그대로 둡니다.
+ */
+export const SAJULAB_HIDDEN: ReadonlySet<SajulabPlacement> = new Set<SajulabPlacement>(["mbti", "test", "shared", "iq", "tarot", "fortune-today"]);

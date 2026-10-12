@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { recordTestEventOnce } from "../lib/test-events";
-import { SAJULAB_URL, type SajulabPlacement } from "../lib/sajulab";
+import { SAJULAB_HIDDEN, SAJULAB_URL, type SajulabPlacement } from "../lib/sajulab";
 
 /**
  * 결과 화면의 「프리미엄 사주」 배너. 자리 목록과 이유는 lib/sajulab.ts 에 있습니다.
@@ -32,6 +32,8 @@ export default function SajuLabBanner({ placement }: { placement: SajulabPlaceme
     observer.observe(node);
     return () => observer.disconnect();
   }, [placement]);
+
+  if (SAJULAB_HIDDEN.has(placement)) return null;
 
   return (
     <a

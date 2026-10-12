@@ -27,9 +27,10 @@ import type { ShareChannel } from "./mori";
 /**
  * 판매 페이지(/report/) 안에서 어디까지 갔는지(2026-10-08~). 판매 페이지 → 결제창이 2.0% 라 어디서 빠지는지 보려고 셉니다.
  * page_has·page_none: 이 기기에 MBTI 결과가 있는/없는 방문(없으면 주문 폼 대신 「검사 먼저」만 보입니다)
+ * top_cta: 맨 위 「결제하러 가기」 버튼을 누름(2026-10-13~, 폼 봄 63 → 입력 1 대응)
  * form_seen: 주문 폼이 화면에 들어옴 · form_start: 폼 칸을 처음 누름 · submit: 결제 버튼 누름 · error: 결제창 대신 오류 문구가 뜸
  */
-export const REPORT_STEP_KEYS = ["page_has", "page_none", "form_seen", "form_start", "submit", "error"] as const;
+export const REPORT_STEP_KEYS = ["page_has", "page_none", "top_cta", "form_seen", "form_start", "submit", "error"] as const;
 export type ReportStep = (typeof REPORT_STEP_KEYS)[number];
 
 export type TestEventName =
