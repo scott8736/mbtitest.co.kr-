@@ -159,7 +159,8 @@ export default function ReportBuy() {
         <input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="numeric" placeholder="01012345678" required autoComplete="tel" autoFocus />
         <small className="rp-hint">결제 확인과 리포트 다시 찾기에만 써요. 광고 문자는 보내지 않아요.</small>
       </label>
-      <details className="rp-extra">
+      {/* 2026-10-14 사용자 요청: 처음부터 펼쳐 두고, 생년월일이 없으면 사주 장이 없다는 것을 알립니다. */}
+      <details className="rp-extra" open>
         <summary>표지 이름 바꾸기 · 생년월일 넣기 (선택 · 생일을 넣으면 사주 장 6쪽 추가)</summary>
         <label>
           <span>표지에 넣을 이름 (바꿔도 돼요 · 10자)</span>
@@ -168,6 +169,7 @@ export default function ReportBuy() {
         <label>
           <span>생년월일</span>
           <input type="date" value={birth} onChange={(e) => setBirth(e.target.value)} min="1900-01-01" max="2026-12-31" />
+          <small className="rp-hint">{birth ? "입력한 생년월일로 사주 분석 6쪽이 더해져 110쪽으로 만들어져요." : "생년월일을 입력하지 않으면 사주 분석은 제공되지 않아요. (104쪽)"}</small>
         </label>
         {birth ? (
           <label>
