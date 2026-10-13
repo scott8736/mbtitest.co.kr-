@@ -13,7 +13,7 @@ import { questions, typeData, type Axis } from "../lib/mbti-data";
 import { readLastResult } from "../lib/my-mori";
 import { BIRTH_TIME_SLOTS, REPORT_CONSENT_TEXT, REPORT_CONSENT_VERSION, REPORT_TERMS } from "../lib/report-config";
 import { randomNick } from "../lib/random-nick";
-import ReportPriceBox, { useReportPricing, won } from "./ReportEvent";
+import { useReportPricing, won } from "./ReportEvent";
 import { recordTestEventOnce, type ReportStep } from "../lib/test-events";
 
 const step = (s: ReportStep) => recordTestEventOnce(s, "report_step");
@@ -296,19 +296,6 @@ export function ReportPreview() {
           </div>
         </div>
       ) : null}
-    </div>
-  );
-}
-
-/**
- * 맨 위 결제 버튼(2026-10-13). 10-08~13 「폼 봄」 63명 중 칸을 누른 사람이 1명뿐이라,
- * 미리보기·목차를 다 내려가기 전에 가격·대화 혜택·버튼을 먼저 보여 줍니다. 누르면 주문 폼(#order)으로 내려갑니다.
- */
-export function ReportTopCta() {
-  return (
-    <div className="rp-top-cta">
-      <ReportPriceBox />
-      <a className="rp-button" href="#order" onClick={() => step("top_cta")}>결제하러 가기</a>
     </div>
   );
 }

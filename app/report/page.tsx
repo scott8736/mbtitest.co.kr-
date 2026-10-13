@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import ReportBuy, { ReportPreview, ReportTopCta } from "../../components/ReportBuy";
+import ReportBuy, { ReportPreview } from "../../components/ReportBuy";
 import SiteFooter from "../../components/SiteFooter";
 import ReportSampleCta from "../../components/ReportSampleCta";
 import { REPORT_PRODUCT } from "../../lib/report-config";
@@ -43,8 +43,7 @@ export default function ReportPage() {
           생년월일을 넣으면 사주 이야기가 한 장 더해집니다.
         </p>
 
-        <ReportTopCta />
-
+        {/* 맨 위 가격·결제 박스는 2026-10-14 사용자 요청으로 뺐습니다. 가격은 주문 폼 버튼에 보입니다. */}
         {/* 104쪽 전체 샘플(2026-10-14): 미리보기 6쪽 위에서 먼저 실물 전체를 보여 줍니다. 새 창으로 엽니다. */}
         <ReportSampleCta />
 
