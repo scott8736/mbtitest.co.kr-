@@ -15,7 +15,7 @@ const KEY_FILE = "D:/00 cloud/report_content.key";
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const { outputFiles } = await build({
   stdin: {
-    contents: `export * from "./worker/report"; export { validateOrder, REPORT_CONSENT_VERSION, isSellerInfoComplete, reportEventOn, reportPrice, REPORT_EVENT, REPORT_EVENT_PRICE, REPORT_REGULAR_PRICE } from "./lib/report-config"; export { writeSetting } from "./worker/naver"; export { sendTelegram, findTelegramChatId } from "./worker/telegram";`,
+    contents: `export * from "./worker/report"; export { validateOrder, REPORT_CONSENT_VERSION, isSellerInfoComplete, reportPrice, REPORT_PRICE } from "./lib/report-config"; export { writeSetting } from "./worker/naver"; export { sendTelegram, findTelegramChatId } from "./worker/telegram";`,
     resolveDir: repoRoot,
     loader: "ts",
   },
@@ -61,16 +61,9 @@ const fb = (row, extra = {}) =>
   new URLSearchParams({ userid: "charry333", linkkey: KEY, linkval: VAL, mul_no: row.mul_no, price: String(row.price), var1: row.order_no, pay_state: "4", pay_type: "1", ...extra });
 const ctx = { waitUntil: (p) => p };
 
-test("이벤트 표시는 한국 시각 기준 기간 안에서만 켜진다(지난 기한을 띄우지 않음)", () => {
-  const { from, to } = R.REPORT_EVENT;
-  const kstMidnight = (d) => new Date(`${d}T00:00:00+09:00`);
-  assert.equal(R.reportEventOn(kstMidnight(from)), true);
-  assert.equal(R.reportEventOn(new Date(kstMidnight(from).getTime() - 1)), false);
-  assert.equal(R.reportEventOn(new Date(kstMidnight(to).getTime() + 86400_000 - 1)), true);
-  assert.equal(R.reportEventOn(new Date(kstMidnight(to).getTime() + 86400_000)), false);
-  assert.equal(R.reportPrice(kstMidnight(to)), R.REPORT_EVENT_PRICE);
-  assert.equal(R.reportPrice(new Date(kstMidnight(to).getTime() + 86400_000)), R.REPORT_REGULAR_PRICE);
-  assert.ok(R.REPORT_REGULAR_PRICE > R.REPORT_EVENT_PRICE, "이벤트가가 실제로 더 싸야 「이벤트」 표시가 사실이다");
+test("가격은 9,900원 고정이다 — 날짜가 지나도 오르지 않는다(2026-10-14 사용자 결정)", () => {
+  assert.equal(R.REPORT_PRICE, 9900);
+  assert.equal(R.reportPrice(), 9900);
 });
 
 test("주문 입력 검사: 유형·점수 짝, 휴대폰, 동의, 이름 정리", () => {

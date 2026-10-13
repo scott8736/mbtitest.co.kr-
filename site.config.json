@@ -19,11 +19,9 @@
 
   "product": {
     "name": "MBTI 유형 마음숲 안내서",
-    "eventPrice": 9900,
-    "regularPrice": 14900,
+    "price": 9900,
     "testPrice": 1000,
-    "tossPrice": 9900,
-    "event": { "label": "오픈 기념 특별 이벤트", "from": "2026-10-05", "to": "2026-10-31" }
+    "tossPrice": 9900
   },
 
   "payment": {

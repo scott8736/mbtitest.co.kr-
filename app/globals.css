@@ -1491,7 +1491,6 @@ main:not(.screener) .result-card-image {
 .rp .rp-top-cta span { font-size:15px; }
 .rp #order { scroll-margin-top:16px; }
 .rp .rp-price small { color:var(--muted); font-size:14px; }
-.rp-event { align-self:flex-start; padding:4px 12px; border-radius:99px; background:#7657d6; color:#fff; font-size:13px; font-weight:700; }
 .rp-preview { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; max-width:780px; }
 .rp-preview img { width:100%; aspect-ratio:148/210; object-fit:cover; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.12); background:#fffaf3; }
 .rp-topics { max-width:780px; columns:2; gap:28px; color:var(--muted); line-height:1.9; }

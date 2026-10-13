@@ -13,13 +13,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { readLastResult } from "../lib/my-mori";
 import { moriImage } from "../lib/mori";
-import { REPORT_EVENT, fmtEventDate as fmt } from "../lib/report-config";
 import { useReportPricing, won } from "./ReportEvent";
 import { REPORT_READY_TYPES } from "../report/content/ready";
 
 export default function ReportCrossSell({ from, pageType }: { from: string; pageType?: string }) {
   const [mine, setMine] = useState<string | null>(null);
-  const { ready: priced, eventOn, price } = useReportPricing();
+  const { ready: priced, price } = useReportPricing();
   useEffect(() => {
     const id = setTimeout(() => setMine(readLastResult()?.result ?? null), 0);
     return () => clearTimeout(id);
@@ -42,7 +41,7 @@ export default function ReportCrossSell({ from, pageType }: { from: string; page
       {/* eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기(output: export)라 next/image 최적화를 쓰지 않습니다 */}
       <img className="report-xsell-mori" src={moriImage(showType)} alt="" width={88} height={88} loading="lazy" />
       <div className="report-xsell-text">
-        <span>MORI REPORT{priced ? ` · ${eventOn ? `${REPORT_EVENT.label} ${fmt(REPORT_EVENT.to)}까지 ` : ""}${won(price)}` : ""}</span>
+        <span>MORI REPORT{priced ? ` · ${won(price)}` : ""}</span>
         <strong>{title}</strong>
         <small>{sub}</small>
       </div>

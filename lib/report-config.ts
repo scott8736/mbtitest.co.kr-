@@ -14,46 +14,22 @@ import { PAYMENT, PRODUCT, SELLER_INFO } from "./site-config";
 export const REPORT_PRODUCT = PRODUCT.name;
 
 /**
- * 가격(사용자 결정 2026-10-05): 오픈 이벤트 기간 9,900원, 11월 1일부터 14,900원.
- * 「이벤트가」 표시는 끝난 뒤 실제로 오르는 가격이 있어야 사실이 됩니다(표시광고법). 판 적 없는 「정가」 취소선은 쓰지 않습니다.
- * 결제 금액은 서버가 주문 시각으로 reportPrice() 를 불러 정하고 주문에 저장합니다. 페이앱 통보는 저장된 금액과 대조합니다.
+ * 가격(사용자 결정 2026-10-14): 9,900원 고정 — 기간 이벤트·인상 계획은 없앴습니다. 올리려면 사용자 결정이 먼저입니다.
+ * 결제 금액은 서버가 reportPrice() 로 정하고 주문에 저장합니다. 페이앱 통보는 저장된 금액과 대조합니다.
  */
-export const REPORT_EVENT_PRICE = PRODUCT.eventPrice;
-export const REPORT_REGULAR_PRICE = PRODUCT.regularPrice;
+export const REPORT_PRICE = PRODUCT.price;
 /** 관리자 시험 결제 금액. 페이앱 최소 금액입니다. */
 export const REPORT_TEST_PRICE = PRODUCT.testPrice;
 /**
- * 토스 미니앱 인앱결제 가격(사용자 결정 2026-10-07: "무조건 9,900원" — 웹처럼 11/1 에 올리지 않는다).
+ * 토스 미니앱 인앱결제 가격(사용자 결정 2026-10-07: "무조건 9,900원").
  * 토스 콘솔 상품 가격과 같아야 한다. 수수료 20%(앱마켓 15% + 토스 5%)는 정산에서 빠진다.
  */
 export const TOSS_REPORT_PRICE = PRODUCT.tossPrice;
-/** 이벤트 기간. 비워 두면 「이벤트」 문구 없이 가격만 보입니다. */
-export const REPORT_EVENT = PRODUCT.event;
-
-/**
- * 지금(한국 시각) 이벤트 기간인가. 기간이 지나면 화면에서 이벤트 문구가 저절로 빠집니다
- * (2026-10-05 판매 문구 검수: 지난 기한을 계속 띄우면 틀린 표시가 됩니다).
- * 정적 페이지라 빌드 시각이 아니라 방문자 브라우저에서 판단합니다 — useReportEvent() 를 쓰세요.
- */
-export function reportEventOn(now: Date = new Date()): boolean {
-  if (!REPORT_EVENT.label) return false;
-  const kst = new Date(now.getTime() + 9 * 3600_000).toISOString().slice(0, 10);
-  return kst >= REPORT_EVENT.from && kst <= REPORT_EVENT.to;
-}
 
 /** 지금 받을 가격. 서버(주문)와 화면이 같은 함수를 씁니다. */
-export function reportPrice(now: Date = new Date()): number {
-  return reportEventOn(now) ? REPORT_EVENT_PRICE : REPORT_REGULAR_PRICE;
+export function reportPrice(): number {
+  return REPORT_PRICE;
 }
-
-/** 이벤트가 끝난 다음 날(「11월 1일부터 14,900원」 안내용) */
-export function eventEndNextDay(): string {
-  const d = new Date(`${REPORT_EVENT.to}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + 1);
-  return d.toISOString().slice(0, 10);
-}
-
-export const fmtEventDate = (d: string) => d.replace(/^\d{4}-(\d{2})-(\d{2})$/, (_, m, dd) => `${Number(m)}월 ${Number(dd)}일`);
 
 /** 환불 동의 문구 판. 문구를 바꾸면 판을 올립니다 — 주문마다 어느 판에 동의했는지 남깁니다. */
 export const REPORT_CONSENT_VERSION = "2026-10-13";
