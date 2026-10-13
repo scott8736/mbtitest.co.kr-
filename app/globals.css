@@ -1946,3 +1946,7 @@ main.tarot .generic-intro { min-height:auto; padding-bottom:64px; }
 .partner-note { color:var(--muted); font-size:13px; }
 .partner-error { color:#c0392b; }
 .partner-done strong { font-size:20px; }
+
+/* 리포트 주문 요약 줄 (2026-10-13) */
+.rp-sum { margin:4px 0 14px; font-size:15px; line-height:1.6; }
+.rp-sum b { font-size:19px; }

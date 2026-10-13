@@ -56,9 +56,9 @@ export function eventEndNextDay(): string {
 export const fmtEventDate = (d: string) => d.replace(/^\d{4}-(\d{2})-(\d{2})$/, (_, m, dd) => `${Number(m)}월 ${Number(dd)}일`);
 
 /** 환불 동의 문구 판. 문구를 바꾸면 판을 올립니다 — 주문마다 어느 판에 동의했는지 남깁니다. */
-export const REPORT_CONSENT_VERSION = "2026-10-04";
+export const REPORT_CONSENT_VERSION = "2026-10-13";
 export const REPORT_CONSENT_TEXT =
-  "디지털 콘텐츠 특성상 결제 후 리포트를 열람하면 청약철회(환불)가 제한됨을 확인했고, 무료 미리보기로 내용을 확인했습니다.";
+  "결제 후 리포트를 열어 보면 디지털 콘텐츠라 환불(청약철회)이 안 된다는 것을 확인했어요. 무료 미리보기 6쪽으로 내용도 봤어요.";
 
 /** 가상계좌는 취소가 안 되어 뺍니다(페이앱 관리자 「결제 설정」이 우선하니 거기서도 꺼 두세요). */
 export const REPORT_PAY_TYPES = PAYMENT.payTypes;

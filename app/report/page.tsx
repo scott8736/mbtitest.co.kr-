@@ -54,6 +54,12 @@ export default function ReportPage() {
           <small>A5 104쪽(생년월일을 넣으면 110쪽) · PDF 저장 · 휴대폰 배경화면 3종 · 결제 후 바로 열람</small>
         </div>
 
+        {/* 2026-10-13 결제 폼 바로 위에서 여기로 옮김(내용 그대로) */}
+        <div className="notice-box">
+          <strong>읽기 전에</strong>
+          <p>이 리포트는 공식 MBTI® 검사 결과가 아니라 자기이해를 돕는 콘텐츠입니다. 의료·심리 진단을 대신하지 않습니다. 사주 장은 전통 해석을 재미로 풀어 쓴 것으로 미래를 단정하지 않습니다.</p>
+        </div>
+
         <h2>들어 있는 것</h2>
         <ol className="rp-chapters">
           {TOPICS.map(([icon, title, desc], i) => (
@@ -73,10 +79,6 @@ export default function ReportPage() {
             <li key={x}>{x}</li>
           ))}
         </ul>
-        <div className="notice-box">
-          <strong>읽기 전에</strong>
-          <p>이 리포트는 공식 MBTI® 검사 결과가 아니라 자기이해를 돕는 콘텐츠입니다. 의료·심리 진단을 대신하지 않습니다. 사주 장은 전통 해석을 재미로 풀어 쓴 것으로 미래를 단정하지 않습니다.</p>
-        </div>
 
         <h2 id="order">주문하기</h2>
         <ReportBuy />

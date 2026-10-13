@@ -58,6 +58,8 @@ export default function ReportBuy() {
   const [bt, setBt] = useState(0);
   const [phone, setPhone] = useState("");
   const [agree, setAgree] = useState(false);
+  // 2026-10-13 폼 63명 중 1명만 입력 시작 → 처음엔 결제 버튼만 보이고, 누르면 번호·동의 칸이 열립니다.
+  const [opened, setOpened] = useState(false);
   const [busy, setBusy] = useState(false);
   const { ready: priced, price } = useReportPricing();
   const [error, setError] = useState("");
@@ -158,10 +160,26 @@ export default function ReportBuy() {
       <p className="rp-mine">
         내 결과 <b>{stored.result}</b> · {AXES.map((axis, i) => `${axis[percents[i] >= 50 ? 0 : 1]} ${Math.max(percents[i], 100 - percents[i])}%`).join(" · ")}
       </p>
+      <p className="rp-sum">
+        <b>{priced ? won(price) : "9,900원"}</b> · A5 104쪽 PDF · 내 모리와 AI 대화 7일 포함
+      </p>
+      {!opened ? (
+        <button
+          className="rp-button"
+          type="button"
+          onClick={() => {
+            step("form_start");
+            setOpened(true);
+          }}
+        >
+          {priced ? (coupon ? `${won(discounted(price, coupon.amount))} 결제하기` : `${won(price)} 결제하기`) : "결제하기"}
+        </button>
+      ) : (
+      <>
       {/* 2026-10-08 판매 페이지 → 결제창 2.0%: 처음에는 꼭 필요한 칸(번호·동의)만 보이게 하고, 선택 칸 셋은 접어 둡니다. */}
       <label>
         <span>휴대폰 번호 (필수)</span>
-        <input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="numeric" placeholder="01012345678" required autoComplete="tel" />
+        <input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="numeric" placeholder="01012345678" required autoComplete="tel" autoFocus />
         <small className="rp-hint">결제 확인과 리포트 다시 찾기에만 써요. 광고 문자는 보내지 않아요.</small>
       </label>
       <details className="rp-extra">
@@ -187,7 +205,7 @@ export default function ReportBuy() {
       </details>
       <label className="rp-agree">
         <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
-        <span>(필수) {REPORT_CONSENT_TEXT} <a href="/refund/" target="_blank" rel="noopener">환불 안내 보기</a></span>
+        <span>(필수) {REPORT_CONSENT_TEXT} <a href="/refund/">환불 안내 보기</a></span>
       </label>
       <div className="rp-coupon">
         {coupon ? (
@@ -217,6 +235,8 @@ export default function ReportBuy() {
               : `${won(price)} 결제하기`
             : "결제하기"}
       </button>
+      </>
+      )}
     </form>
   );
 }
