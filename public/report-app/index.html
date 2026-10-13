@@ -333,8 +333,10 @@ p.body.center { text-align: center; font-size: 8.2pt; }
       var loadAll = function () {
         var imgs = [].slice.call(document.images);
         imgs.forEach(function (i) { i.loading = "eager"; });
+        // 아직 받지 않은 지연 로딩 그림은 complete 가 true 로 보고될 수 있어 naturalWidth 까지 봅니다.
         return Promise.all(imgs.map(function (i) {
-          return i.complete ? 1 : new Promise(function (r) { i.onload = i.onerror = r; });
+          if (i.complete && i.naturalWidth > 0) return 1;
+          return new Promise(function (r) { i.addEventListener("load", r, { once: true }); i.addEventListener("error", r, { once: true }); });
         }));
       };
       window.addEventListener("beforeprint", loadAll);
