@@ -48,7 +48,7 @@ let chNo = 0;
 const chapter = (title, sub, scene, memo) => {
   chNo++;
   toc.push([chNo, title, sub, pageNo + 1]);
-  page("chapter", `<img src="${scene}"><div class="inner">
+  page("chapter", `<img loading="lazy" decoding="async" src="${scene}"><div class="inner">
     <div class="num">${String(chNo).padStart(2, "0")}</div><div class="label">CHAPTER</div><h2>${esc(title)}</h2><p>${esc(sub)}</p>
     ${memo ? `<div class="memo"><b>내 점수 메모 · ${memo.badge}</b>${esc(memo.text)}</div>` : ""}</div>`);
 };
@@ -119,7 +119,7 @@ if (/^\d{4}-\d{2}-\d{2}$/.test(BIRTH)) {
 // 1. 표지 (첫 쪽 고지 포함)
 page("cover", `<div class="inner">
   <div class="brand">MBTI · 마음숲 안내서</div>
-  <div class="arch"><img src="${SCENE("profile")}"><div class="says">“${esc(W.says)}”</div></div>
+  <div class="arch"><img loading="lazy" decoding="async" src="${SCENE("profile")}"><div class="says">“${esc(W.says)}”</div></div>
   <h1><em>${CODE} 유형</em>의<br>마음숲 안내서</h1>
   <div class="owner">${esc(NAME)} 님의 마음속에 사는 ${esc(T.name)}</div>
   <div class="chips"><span class="chip v">${esc(V.name)} 주민</span><span class="chip">${esc(W.role)}</span></div>
@@ -150,16 +150,16 @@ page("", `<div class="inner fit">
   <p class="body lead">모든 사람의 마음속에는 작은 숲, 마음숲이 있고 거기에는 숲의 정령 모리가 살아요.</p>
   <p class="body">모리는 그 사람이 세상을 느끼고, 고르고, 쉬는 방식을 닮았어요. 그래서 모리는 열여섯 가지 모습으로 깨어나요. 수줍게 호숫가를 걷는 모리도 있고, 광장 한가운데서 축제를 여는 모리도 있어요.</p>
   <p class="body">숲 한가운데에는 커다란 마음나무가 있어요. 마음나무의 열매는 모리들이 서로를 이해할 때 하나씩 열려요. 그래서 마음숲에서는 이런 말을 자주 해요.</p>
-  <div class="quote"><img src="${IMG(CODE)}"><p>달라서 틀린 게 아니라,<br>달라서 숲이 완성돼요.</p></div>
+  <div class="quote"><img loading="lazy" decoding="async" src="${IMG(CODE)}"><p>달라서 틀린 게 아니라,<br>달라서 숲이 완성돼요.</p></div>
 </div>`, "WORLD");
 page("", `<div class="inner">
   ${kick("VILLAGES")}<h2 class="t">마음숲의 네 마을</h2>
   <p class="body">모리들은 비슷한 결끼리 모여 네 마을을 이루고 살아요. ${esc(NAME)} 님의 모리는 <b>${esc(V.name)}</b>에 살아요.</p>
-  <div class="villages">${Object.entries(D.VILLAGES).map(([k, v]) => `<figure class="${k === VK ? "home" : ""}"><img src="${VIMG(k)}"><figcaption><b>${esc(v.name)}</b>${esc(v.scene)}</figcaption></figure>`).join("")}</div>
+  <div class="villages">${Object.entries(D.VILLAGES).map(([k, v]) => `<figure class="${k === VK ? "home" : ""}"><img loading="lazy" decoding="async" src="${VIMG(k)}"><figcaption><b>${esc(v.name)}</b>${esc(v.scene)}</figcaption></figure>`).join("")}</div>
 </div>`, "VILLAGES");
 page("", `<div class="inner">
   ${kick("MY MORI")}<h2 class="t">${esc(NAME)} 님의 모리를 소개해요</h2>
-  <div class="hero"><img src="${SCENE("profile")}"></div>
+  <div class="hero"><img loading="lazy" decoding="async" src="${SCENE("profile")}"></div>
   <dl class="facts">
     <div><dt>이름</dt><dd>${CODE} 모리 · ${esc(T.name)}</dd></div>
     <div><dt>사는 곳</dt><dd>${esc(V.name)} — ${esc(V.landmarks)}</dd></div>
@@ -174,7 +174,7 @@ const codes = Object.keys(D.MORI);
 page("", `<div class="inner">
   ${kick("16 MORI")}<h2 class="t">마음숲의 열여섯 모리</h2>
   <p class="body">${esc(W.line)} 짝꿍은 ${mate} 모리, 티격태격하면서도 서로를 키우는 라이벌도 있어요.</p>
-  <div class="pairs-grid">${codes.map((c) => { const cls = c === CODE ? "me" : c === mate ? "mate" : rivals.includes(c) ? "rival" : ""; return `<div class="${cls}">${c === mate ? "<em>💞</em>" : rivals.includes(c) ? "<em>⚡</em>" : ""}<img src="${IMG(c)}"><b>${c}</b><small>${esc(D.typeData[c].name.split(" ").slice(-1)[0])}</small></div>`; }).join("")}</div>
+  <div class="pairs-grid">${codes.map((c) => { const cls = c === CODE ? "me" : c === mate ? "mate" : rivals.includes(c) ? "rival" : ""; return `<div class="${cls}">${c === mate ? "<em>💞</em>" : rivals.includes(c) ? "<em>⚡</em>" : ""}<img loading="lazy" decoding="async" src="${IMG(c)}"><b>${c}</b><small>${esc(D.typeData[c].name.split(" ").slice(-1)[0])}</small></div>`; }).join("")}</div>
   <div class="key"><span>💞 짝꿍 ${mate}</span><span>⚡ 라이벌</span><span>진한 테두리 = 나</span></div>
 </div>`, "16 MORI");
 
@@ -224,7 +224,7 @@ codes.filter((c) => c !== CODE && B.pairs[c]).forEach((c) => {
   const tag = c === mate ? `<span class="tag mate">💞 짝꿍</span>` : rivals.includes(c) ? `<span class="tag rival">⚡ 라이벌</span>` : "";
   page("", `<div class="inner fit">
     ${kick(`${c} 모리`)}
-    <div class="pair-head"><img src="${IMG(c)}"><div><small>${c} 모리 ${tag}</small><h2 class="t">${esc(x.title)}</h2></div></div>
+    <div class="pair-head"><img loading="lazy" decoding="async" src="${IMG(c)}"><div><small>${c} 모리 ${tag}</small><h2 class="t">${esc(x.title)}</h2></div></div>
     <p class="body lead">${esc(x.lead)}</p>
     ${(x.body || []).map((b) => `<p class="body">${esc(b)}</p>`).join("")}
     <div class="pair-boxes"><div><b>잘 맞는 점</b>${esc(x.good)}</div><div><b>부딪히기 쉬운 점</b>${esc(x.clash)}</div><div><b>함께 지내는 팁</b>${esc(x.tip)}</div></div>
@@ -284,12 +284,12 @@ MC.slice(0, 13).forEach((c, i) => textPage(`${ym(MONTHS[i])} · ${TAGN[TAG[i]]}`
 chapter("소장 페이지", "휴대폰 배경화면 3종 · 포스터 쪽", SCENE("wall1"));
 [["wall1", "배경화면 1 · 달 위의 모리"], ["wall2", "배경화면 2 · 별 쿠션"], ["wall3", "배경화면 3 · 숲속 산책"]].forEach(([k, cap]) => page("", `<div class="inner">
   ${kick("KEEP")}<h2 class="t">${cap}</h2>
-  <div class="phone"><img src="${SCENE(k)}"><div class="clock">9:41</div></div>
+  <div class="phone"><img loading="lazy" decoding="async" src="${SCENE(k)}"><div class="clock">9:41</div></div>
   <p class="body center">리포트 화면 위쪽 「배경화면」 버튼으로 세로 그림 파일을 따로 받을 수 있어요. 휴대폰 잠금화면에 맞춰 위쪽에 시계 자리를 비워 두었어요.</p>
 </div>`, "KEEP"));
 page("", `<div class="inner">
   ${kick("POSTER")}<h2 class="t">포스터 쪽</h2>
-  <div class="poster-mini"><div class="img"><img src="${SCENE("profile")}"></div><b>${CODE} 모리</b><span>${esc(T.name)}</span></div>
+  <div class="poster-mini"><div class="img"><img loading="lazy" decoding="async" src="${SCENE("profile")}"></div><b>${CODE} 모리</b><span>${esc(T.name)}</span></div>
   <div class="frame-tip">🖼️ <b>액자 팁</b> — PDF로 저장한 뒤 이 쪽만 인쇄하면 A5 크기 포스터가 돼요. <b>A5 액자</b>에 넣거나, 여백을 두고 싶으면 <b>A4 액자 + 매트</b>에 넣으면 갤러리 느낌이 나요.</div>
 </div>`, "POSTER");
 
@@ -299,9 +299,9 @@ page("", `<div class="inner fit">
   <p class="body lead">여기까지 함께 걸어 줘서 고마워요. 나는 ${esc(NAME)} 님 마음숲에 사는 ${esc(T.name)}예요.</p>
   <p class="body">이 책에 적힌 말들은 ${esc(NAME)} 님을 정해 버리는 말이 아니라, 숲을 걷다가 잠깐 들여다보는 지도 같은 거예요. 맞는 길도 있고 아닌 길도 있을 거예요. 아닌 길은 지워도 괜찮아요. 숲은 ${esc(NAME)} 님이 걸을 때마다 조금씩 모양이 바뀌니까요.</p>
   <p class="body">힘든 날엔 ${esc(V.name)}의 오두막을 떠올려 주세요. 나는 거기서 늘 이렇게 말하고 있을 거예요.</p>
-  <div class="quote"><img src="${IMG(CODE)}"><p>“${esc(W.says)}”</p></div>
+  <div class="quote"><img loading="lazy" decoding="async" src="${IMG(CODE)}"><p>“${esc(W.says)}”</p></div>
 </div>`, "LETTER");
-page("back", `<div class="inner"><img src="${IMG(CODE)}"><p>달라서 틀린 게 아니라,<br>달라서 숲이 완성돼요.</p><small>MORI · mbtitest.co.kr</small></div>`);
+page("back", `<div class="inner"><img loading="lazy" decoding="async" src="${IMG(CODE)}"><p>달라서 틀린 게 아니라,<br>달라서 숲이 완성돼요.</p><small>MORI · mbtitest.co.kr</small></div>`);
 
 // 차례 채우기
 pages[TOC_INDEX] = pages[TOC_INDEX].replace("%%TOC%%", toc.map(([n, t, s, p]) => `<li><span class="no">${String(n).padStart(2, "0")}</span><span class="tt">${esc(t)}<small>${esc(s)}</small></span><span class="pg">${p}</span></li>`).join(""));
@@ -320,7 +320,7 @@ document.fonts.ready.then(() => {
 
 // 배경화면 3종 + 포스터 (따로 내려받는 파일)
 document.getElementById("extras").innerHTML = `
-  <div class="wall" id="wall1"><img class="bg" src="${SCENE("wall1")}"><div class="foot">${CODE} 모리 · ${esc(T.name)}</div></div>
-  <div class="wall" id="wall2"><img class="bg" src="${SCENE("wall2")}"><div class="foot">“${esc(W.says)}”</div></div>
-  <div class="wall" id="wall3"><img class="bg" src="${SCENE("wall3")}"><div class="foot">${esc(V.name)}</div></div>
-  <div class="poster" id="poster"><div class="top">MORI · 마음숲</div><div class="img"><img src="${SCENE("profile")}"></div><h3>${CODE} 모리</h3><div class="nm">${esc(T.name)}</div><div class="ln">${esc(W.line)}<br>“${esc(W.says)}”</div><div class="vil">${esc(V.name)} · ${esc(NAME)}</div></div>`;
+  <div class="wall" id="wall1"><img loading="lazy" decoding="async" class="bg" src="${SCENE("wall1")}"><div class="foot">${CODE} 모리 · ${esc(T.name)}</div></div>
+  <div class="wall" id="wall2"><img loading="lazy" decoding="async" class="bg" src="${SCENE("wall2")}"><div class="foot">“${esc(W.says)}”</div></div>
+  <div class="wall" id="wall3"><img loading="lazy" decoding="async" class="bg" src="${SCENE("wall3")}"><div class="foot">${esc(V.name)}</div></div>
+  <div class="poster" id="poster"><div class="top">MORI · 마음숲</div><div class="img"><img loading="lazy" decoding="async" src="${SCENE("profile")}"></div><h3>${CODE} 모리</h3><div class="nm">${esc(T.name)}</div><div class="ln">${esc(W.line)}<br>“${esc(W.says)}”</div><div class="vil">${esc(V.name)} · ${esc(NAME)}</div></div>`;

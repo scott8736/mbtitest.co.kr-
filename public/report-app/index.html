@@ -328,7 +328,17 @@ p.body.center { text-align: center; font-size: 8.2pt; }
         a.href = "walls/" + p.type + "-" + n + ".jpg";
         a.setAttribute("download", "mori-" + p.type.toLowerCase() + "-wallpaper-" + n + ".jpg");
       });
-      document.getElementById("vprint").onclick = function () { window.print(); };
+      // 2026-10-14 이미지를 화면에 가까워질 때만 받도록(loading=lazy) 바꿨습니다(휴대폰에서 37장·2MB를 한꺼번에 받아 느렸음).
+      // 인쇄·PDF 저장에는 모든 그림이 필요하므로, 인쇄 직전에 전부 받아 둡니다(버튼·Ctrl+P 모두).
+      var loadAll = function () {
+        var imgs = [].slice.call(document.images);
+        imgs.forEach(function (i) { i.loading = "eager"; });
+        return Promise.all(imgs.map(function (i) {
+          return i.complete ? 1 : new Promise(function (r) { i.onload = i.onerror = r; });
+        }));
+      };
+      window.addEventListener("beforeprint", loadAll);
+      document.getElementById("vprint").onclick = function () { loadAll().then(function () { window.print(); }); };
       var s = document.createElement("script");
       s.src = "report_main.js";
       s.onload = function () {
