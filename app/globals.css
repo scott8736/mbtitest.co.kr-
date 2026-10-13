@@ -621,7 +621,7 @@ main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% -
 .report-teaser-chapters b { flex-shrink:0; color:var(--result-color); font-size:12px; font-weight:900; }
 .report-teaser-chapters span { flex:1; color:var(--ink); font-weight:650; }
 .report-teaser-chapters i { font-style:normal; font-size:12px; opacity:.55; }
-.report-teaser-buy { margin-top:24px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; }
+.report-teaser-buy { margin-top:24px; display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:16px; }
 .report-teaser-price { margin:0; display:flex; flex-direction:column; gap:4px; }
 .report-teaser-price s { color:#9aa1ad; font-size:14px; }
 .report-teaser-price strong { color:var(--ink); font-size:24px; font-weight:900; }
