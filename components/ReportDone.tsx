@@ -97,7 +97,7 @@ function OrderList({ items }: { items: Found[] }) {
       {items.map((r) => (
         <li key={r.token}>
           <a href={`/report-app/?o=${r.token}`}>
-            <b>{r.type ? `${r.type} 모리의 마음숲 안내서` : "모리 마음숲 안내서"}</b>
+            <b>{r.type ? `${r.type} 유형 마음숲 안내서` : "MBTI 유형 마음숲 안내서"}</b>
             <span>주문번호 {r.orderNo}{r.paidAt ? ` · ${r.paidAt.slice(0, 10)}` : ""}</span>
             <i>열기 →</i>
           </a>

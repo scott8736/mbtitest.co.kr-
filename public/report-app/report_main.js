@@ -41,7 +41,7 @@ const toc = []; // [장 번호, 제목, 부제, 시작 쪽]
 const page = (cls, html, ribbon) => {
   pageNo++;
   const bare = /cover|chapter|back|full/.test(cls);
-  pages.push(`<section class="page ${cls}">${ribbon ? `<div class="ribbon">${ribbon}</div>` : ""}${html}${bare ? "" : `<div class="folio"><span>${CODE} 모리의 마음숲 안내서</span><b>${pageNo}</b></div>`}</section>`);
+  pages.push(`<section class="page ${cls}">${ribbon ? `<div class="ribbon">${ribbon}</div>` : ""}${html}${bare ? "" : `<div class="folio"><span>${CODE} 유형 마음숲 안내서</span><b>${pageNo}</b></div>`}</section>`);
   return pageNo;
 };
 let chNo = 0;
@@ -118,9 +118,9 @@ if (/^\d{4}-\d{2}-\d{2}$/.test(BIRTH)) {
 // ════════════════════════════ 본문 시작 ════════════════════════════
 // 1. 표지 (첫 쪽 고지 포함)
 page("cover", `<div class="inner">
-  <div class="brand">MORI · 마음숲 안내서</div>
+  <div class="brand">MBTI · 마음숲 안내서</div>
   <div class="arch"><img src="${SCENE("profile")}"><div class="says">“${esc(W.says)}”</div></div>
-  <h1><em>${CODE} 모리</em>의<br>마음숲 안내서</h1>
+  <h1><em>${CODE} 유형</em>의<br>마음숲 안내서</h1>
   <div class="owner">${esc(NAME)} 님의 마음속에 사는 ${esc(T.name)}</div>
   <div class="chips"><span class="chip v">${esc(V.name)} 주민</span><span class="chip">${esc(W.role)}</span></div>
   <div class="date">자기이해를 돕는 콘텐츠이며 심리 진단이 아닙니다 · mbtitest.co.kr</div>

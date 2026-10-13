@@ -6,7 +6,7 @@ import ReportSampleCta from "../../components/ReportSampleCta";
 import { REPORT_PRODUCT } from "../../lib/report-config";
 
 export const metadata: Metadata = {
-  title: "모리 마음숲 안내서 — 내 점수로 만든 리포트",
+  title: "MBTI 유형 마음숲 안내서 — 내 점수로 만든 리포트",
   description: "40문항 점수로 같은 유형 안에서도 내 성향의 농도에 맞춘 이야기를 11가지 주제로 풀어 드립니다.",
   alternates: { canonical: "/report/" },
 };

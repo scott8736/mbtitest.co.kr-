@@ -11,7 +11,7 @@ import { afterEventText, useReportPricing, won } from "./ReportEvent";
 import { REPORT_READY_TYPES } from "../report/content/ready";
 
 /**
- * 유료 리포트 「모리 마음숲 안내서」 안내 카드.
+ * 유료 리포트 「MBTI 유형 마음숲 안내서」 안내 카드.
  *
  * 2026-10-03~ 수요 측정 카드였고(가짜 결제 없이 클릭만 셈), 2026-10-04 실제 판매로 바꿨습니다.
  * report_seen·report_click 은 그대로 세어 측정 기간과 이어 볼 수 있게 합니다.

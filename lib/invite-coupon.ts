@@ -15,7 +15,7 @@ export const COUPON_DAYS = 30;
 export const MIN_PRICE = 1000;
 
 export const COUPON_TERMS = [
-  "리포트 「모리 마음숲 안내서」 웹 결제에만 쓸 수 있어요",
+  "리포트 「MBTI 유형 마음숲 안내서」 웹 결제에만 쓸 수 있어요",
   `발급일부터 ${COUPON_DAYS}일 동안 쓸 수 있어요`,
   "결제 한 번에 한 장만 쓸 수 있어요",
   "현금으로 바꾸거나 다른 사람에게 줄 수 없어요",

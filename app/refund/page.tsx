@@ -7,7 +7,7 @@ import { REPORT_CONSENT_TEXT, REPORT_CONSENT_VERSION, REPORT_PRODUCT, SELLER } f
 
 export const metadata: Metadata = {
   title: "환불 안내",
-  description: "유료 리포트 「모리 마음숲 안내서」의 청약철회·환불 기준입니다.",
+  description: "유료 리포트 「MBTI 유형 마음숲 안내서」의 청약철회·환불 기준입니다.",
   alternates: { canonical: "/refund/" },
 };
 
