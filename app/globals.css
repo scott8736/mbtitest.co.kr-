@@ -1924,3 +1924,25 @@ main.tarot .generic-intro { min-height:auto; padding-bottom:64px; }
 .mori-chat-bubble-go { flex:none; padding:8px 12px; border-radius:999px; background:#7657d6; color:#fff; font-size:13px; font-weight:800; white-space:nowrap; }
 @media (prefers-reduced-motion: no-preference) { .mori-chat-bubble { animation:mori-bubble-in .5s .6s both ease-out; } }
 @keyframes mori-bubble-in { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+
+/* 브랜드 테스트 제휴 /partners/ (2026-10-13) */
+.partner-points { padding-left:20px; line-height:1.9; color:var(--muted); font-size:17px; }
+.partner-points strong { color:inherit; margin-right:8px; }
+.partner-packages { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; }
+.partner-package { padding:26px; border-radius:20px; background:#f6f3ff; }
+.partner-package>span { font-weight:700; font-size:20px; }
+.partner-package>small { display:block; margin-top:6px; color:var(--muted); }
+.partner-package ul { margin:14px 0 0; padding-left:18px; line-height:1.8; color:#4b4660; }
+.partner-steps { padding-left:22px; line-height:2; font-size:17px; }
+.partner-faq dt { margin-top:22px; font-weight:700; }
+.partner-faq dd { margin:6px 0 0; color:var(--muted); line-height:1.75; }
+.partner-form { max-width:760px; padding:28px; border-radius:20px; background:#f6f3ff; }
+.partner-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; }
+.partner-form label { display:flex; flex-direction:column; gap:6px; font-size:14px; }
+.partner-form input, .partner-form select, .partner-form textarea { padding:12px; border:1px solid #d6cff0; border-radius:10px; font:inherit; background:#fff; }
+.partner-wide { margin-top:14px; }
+.partner-agree { flex-direction:row !important; align-items:flex-start; margin-top:16px; line-height:1.6; }
+.partner-trap { position:absolute; left:-9999px; width:1px; height:1px; opacity:0; }
+.partner-note { color:var(--muted); font-size:13px; }
+.partner-error { color:#c0392b; }
+.partner-done strong { font-size:20px; }

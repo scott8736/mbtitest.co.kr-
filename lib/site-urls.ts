@@ -137,7 +137,7 @@ export function siteUrls(now: Date = new Date()): SiteUrl[] {
       changeFrequency: "monthly" as const,
       priority: 0.75,
     })),
-    ...["about", "contact", "privacy", "refund"].map((page) => ({
+    ...["about", "contact", "partners", "privacy", "refund"].map((page) => ({
       path: `/${page}/`,
       lastModified: now,
       changeFrequency: "yearly" as const,

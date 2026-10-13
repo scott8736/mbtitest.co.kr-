@@ -40,6 +40,7 @@ export default function SiteFooter({
           <a href="/blog/">MBTI 콘텐츠</a>
           <a href="/about/">사이트 소개</a>
           <a href="/contact/">문의하기</a>
+          <a href="/partners/">브랜드 테스트 제작</a>
           <a href="/privacy/">개인정보처리방침</a>
           <a href="/refund/">환불 안내</a>
         </nav>
