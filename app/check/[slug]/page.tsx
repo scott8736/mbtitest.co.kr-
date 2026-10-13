@@ -4,7 +4,8 @@ import ScreenerRunner from "../../../components/ScreenerRunner";
 import { screenerBySlug, screenerSlugs } from "../../../lib/screeners";
 import "../screener.css";
 import { SITE_ORIGIN } from "../../../lib/site-config";
-
+
+import { pageOgImage } from "../../../lib/page-og";
 export const dynamicParams = false;
 
 export function generateStaticParams() {
@@ -32,7 +33,7 @@ export async function generateMetadata({
       description: screener.description,
       images: [
         {
-          url: "/images/og/mbti-mori-og.jpg",
+          url: pageOgImage(`/check/${slug}/`),
           width: 1200,
           height: 630,
           alt: screener.title,

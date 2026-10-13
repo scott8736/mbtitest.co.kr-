@@ -6,7 +6,8 @@ import { newTestSlugs } from "../../../lib/test-meta";
 import { testCatalog } from "../../../lib/test-catalog";
 import { clipDescription } from "../../../lib/meta-text";
 import { SITE_ORIGIN } from "../../../lib/site-config";
-
+
+import { pageOgImage } from "../../../lib/page-og";
 export const dynamicParams = false;
 
 export function generateStaticParams() {
@@ -36,7 +37,7 @@ export async function generateMetadata({
       description: item.description,
       images: [
         {
-          url: "/images/og/mbti-mori-og.jpg",
+          url: pageOgImage(`/tests/${slug}/`),
           width: 1200,
           height: 630,
           alt: item.title,

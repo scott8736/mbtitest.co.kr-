@@ -95,5 +95,5 @@ export type ShareChannel = keyof typeof SHARE_CHANNELS;
 export const SHARE_CHANNEL_KEYS = Object.keys(SHARE_CHANNELS) as ShareChannel[];
 
 export function shareText(code: string, name: string): string {
-  return `나는 ${code} ${name} 모리! 너는 어떤 모리야? 👀`;
+  return `나는 ${code} ${name}! 너는 어떤 유형이야? 👀`;
 }

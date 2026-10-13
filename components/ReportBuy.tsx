@@ -3,17 +3,17 @@
 /**
  * 리포트 주문 폼 (2026-10-04). 검사 결과(sessionStorage)의 유형·점수로 주문합니다.
  * 금액은 화면에 보여 주기만 하고 서버로 보내지 않습니다 — 서버가 lib/report-config.ts 의 값으로 결제창을 엽니다.
- * 초대 할인권(2026-10-08): 이 기기에 받은 할인권을 자동으로 붙이고, 번호를 직접 넣을 수도 있습니다.
- * 서버가 번호를 다시 확인해 금액을 깎습니다(worker/report.ts) — 화면의 할인 금액은 보여 주기용입니다.
+ * 할인권은 2026-10-14 사용자 결정("효과 없다")으로 화면에서 뺐습니다. 서버(worker/report.ts)의 할인 처리는 그대로 두되 화면은 번호를 보내지 않습니다.
+ * 2026-10-14: 표지 이름은 랜덤으로 미리 채우고, 약관 동의는 미리 체크해 두고 눌러서 내용을 봅니다.
  * 판매 페이지 안 단계 기록(2026-10-08): 결과 있음/없음 → 폼 봄 → 입력 시작 → 결제 버튼 → 오류. 관리자 깔때기 표 아래 줄에 나옵니다.
  */
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { questions, typeData, type Axis } from "../lib/mbti-data";
 import { readLastResult } from "../lib/my-mori";
-import { BIRTH_TIME_SLOTS, REPORT_CONSENT_TEXT, REPORT_CONSENT_VERSION } from "../lib/report-config";
+import { BIRTH_TIME_SLOTS, REPORT_CONSENT_TEXT, REPORT_CONSENT_VERSION, REPORT_TERMS } from "../lib/report-config";
+import { randomNick } from "../lib/random-nick";
 import ReportPriceBox, { useReportPricing, won } from "./ReportEvent";
-import { bestCoupon, discounted, myCoupons, normalizeCode, untilText, type Coupon } from "../lib/invite-coupon";
 import { recordTestEventOnce, type ReportStep } from "../lib/test-events";
 
 const step = (s: ReportStep) => recordTestEventOnce(s, "report_step");
@@ -57,38 +57,17 @@ export default function ReportBuy() {
   const [birth, setBirth] = useState("");
   const [bt, setBt] = useState(0);
   const [phone, setPhone] = useState("");
-  const [agree, setAgree] = useState(false);
+  // 약관 동의는 미리 체크해 두고(2026-10-14 사용자 요청) 눌러서 내용을 봅니다. 체크를 풀면 결제가 막힙니다.
+  const [agree, setAgree] = useState(true);
   // 2026-10-13 폼 63명 중 1명만 입력 시작 → 처음엔 결제 버튼만 보이고, 누르면 번호·동의 칸이 열립니다.
   const [opened, setOpened] = useState(false);
   const [busy, setBusy] = useState(false);
   const { ready: priced, price } = useReportPricing();
   const [error, setError] = useState("");
-  const [coupon, setCoupon] = useState<Coupon | null>(null);
-  const [codeInput, setCodeInput] = useState("");
-  const [couponMsg, setCouponMsg] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
 
-  /** 서버에 번호를 확인합니다. 쓴 것·기한 지난 것은 붙이지 않습니다. */
-  const applyCode = async (raw: string, quiet = false) => {
-    const code = normalizeCode(raw);
-    if (!code) return;
-    setCouponMsg("");
-    try {
-      const r = await fetch(`/api/forest/coupon?c=${encodeURIComponent(code)}`);
-      const j = (await r.json()) as { code?: string; amount?: number; expiresAt?: number; error?: string };
-      if (!r.ok || !j.code) throw new Error(j.error || "할인권을 확인하지 못했어요.");
-      setCoupon({ code: j.code, amount: Number(j.amount), expiresAt: Number(j.expiresAt), kind: "friend" });
-      setCodeInput("");
-    } catch (e) {
-      if (!quiet) setCouponMsg(e instanceof Error ? e.message : "할인권을 확인하지 못했어요.");
-    }
-  };
-
-  useEffect(() => {
-    const saved = bestCoupon(myCoupons());
-    if (saved) void applyCode(saved.code, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 처음 한 번만 이 기기에 받은 할인권을 붙입니다
-  }, []);
+  // 표지에 넣을 이름은 입력이 귀찮으니 랜덤으로 미리 채웁니다(2026-10-14). 마음에 안 들면 고치면 됩니다.
+  useEffect(() => setName(randomNick(10)), []);
 
   // sessionStorage 는 마운트 뒤에만 읽을 수 있어 한 박자 늦게 읽습니다(정적 렌더와 어긋나지 않게).
   useEffect(() => {
@@ -139,12 +118,10 @@ export default function ReportBuy() {
       const response = await fetch("/api/report/order", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ type: stored.result, scores: percents, name, birth, bt: birth ? bt : 0, phone, agree, consentVersion: REPORT_CONSENT_VERSION, touch: readTouch(), coupon: coupon?.code }),
+        body: JSON.stringify({ type: stored.result, scores: percents, name, birth, bt: birth ? bt : 0, phone, agree, consentVersion: REPORT_CONSENT_VERSION, touch: readTouch() }),
       });
       const data = (await response.json()) as { payurl?: string; error?: string };
       if (!response.ok || !data.payurl) {
-        // 할인권 문제면 빼고 다시 결제할 수 있게 합니다.
-        if (data.error?.includes("할인권")) setCoupon(null);
         throw new Error(data.error || "결제창을 열지 못했어요.");
       }
       location.assign(data.payurl);
@@ -161,7 +138,7 @@ export default function ReportBuy() {
         내 결과 <b>{stored.result}</b> · {AXES.map((axis, i) => `${axis[percents[i] >= 50 ? 0 : 1]} ${Math.max(percents[i], 100 - percents[i])}%`).join(" · ")}
       </p>
       <p className="rp-sum">
-        <b>{priced ? won(price) : "9,900원"}</b> · A5 104쪽 PDF · 내 모리와 AI 대화 7일 포함
+        <b>{priced ? won(price) : "9,900원"}</b> · A5 104쪽 PDF · 내 유형 캐릭터와 AI 대화 7일 포함
       </p>
       {!opened ? (
         <button
@@ -172,7 +149,7 @@ export default function ReportBuy() {
             setOpened(true);
           }}
         >
-          {priced ? (coupon ? `${won(discounted(price, coupon.amount))} 결제하기` : `${won(price)} 결제하기`) : "결제하기"}
+          {priced ? `${won(price)} 결제하기` : "결제하기"}
         </button>
       ) : (
       <>
@@ -183,10 +160,10 @@ export default function ReportBuy() {
         <small className="rp-hint">결제 확인과 리포트 다시 찾기에만 써요. 광고 문자는 보내지 않아요.</small>
       </label>
       <details className="rp-extra">
-        <summary>표지 이름·생년월일 넣기 (선택 · 생일을 넣으면 사주 장 6쪽 추가)</summary>
+        <summary>표지 이름 바꾸기 · 생년월일 넣기 (선택 · 생일을 넣으면 사주 장 6쪽 추가)</summary>
         <label>
-          <span>표지에 넣을 이름 (10자)</span>
-          <input value={name} onChange={(e) => setName(e.target.value)} maxLength={10} placeholder="예: 하늘" autoComplete="nickname" />
+          <span>표지에 넣을 이름 (바꿔도 돼요 · 10자)</span>
+          <input value={name} onChange={(e) => setName(e.target.value)} maxLength={10} placeholder="예: 하늘" autoComplete="off" />
         </label>
         <label>
           <span>생년월일</span>
@@ -203,37 +180,28 @@ export default function ReportBuy() {
           </label>
         ) : null}
       </details>
-      <label className="rp-agree">
-        <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
-        <span>(필수) {REPORT_CONSENT_TEXT} <a href="/refund/">환불 안내 보기</a></span>
-      </label>
-      <div className="rp-coupon">
-        {coupon ? (
-          <p>
-            🎁 할인권 <b>-{won(price ? price - discounted(price, coupon.amount) : coupon.amount)}</b> 적용 · {untilText(coupon.expiresAt)}
-            <button type="button" onClick={() => setCoupon(null)}>빼기</button>
-          </p>
-        ) : (
-          <details>
-            <summary>할인권 번호가 있어요</summary>
-            <div>
-              <input value={codeInput} onChange={(e) => setCodeInput(e.target.value)} placeholder="10자리 번호" maxLength={14} autoCapitalize="characters" />
-              <button type="button" onClick={() => applyCode(codeInput)}>적용</button>
-            </div>
-          </details>
-        )}
-        {couponMsg ? <p className="rp-error" role="alert">{couponMsg}</p> : null}
+      <div className="rp-terms">
+        <label className="rp-agree">
+          <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
+          <span>(필수) 이용약관·환불 안내에 동의해요. {REPORT_CONSENT_TEXT}</span>
+        </label>
+        <details>
+          <summary>이용약관·환불 안내 내용 보기</summary>
+          <div className="rp-terms-body">
+            {REPORT_TERMS.map(([title, body]) => (
+              <div key={title}>
+                <h4>{title}</h4>
+                <p>{body}</p>
+              </div>
+            ))}
+            <p><a href="/refund/">환불 안내 전문 보기</a></p>
+          </div>
+        </details>
       </div>
       {error ? <p className="rp-error" role="alert">{error}</p> : null}
       {/* 번호 칸이 비면 브라우저가 onSubmit 전에 막으므로, 누름은 버튼에서 셉니다. */}
       <button className="rp-button" type="submit" disabled={busy} onClick={() => step("submit")}>
-        {busy
-          ? "결제창 여는 중…"
-          : priced
-            ? coupon
-              ? `${won(discounted(price, coupon.amount))} 결제하기 (${won(price)}에서 할인)`
-              : `${won(price)} 결제하기`
-            : "결제하기"}
+        {busy ? "결제창 여는 중…" : priced ? `${won(price)} 결제하기` : "결제하기"}
       </button>
       </>
       )}
@@ -241,7 +209,7 @@ export default function ReportBuy() {
   );
 }
 
-/** 무료 미리보기 여섯 쪽(표지·내 모리·내 점수·16모리·연애 장·13개월 달력). 내 검사 결과가 있으면 내 유형 견본을, 없거나 아직 없는 유형이면 INFP 견본을 보여 줍니다. */
+/** 무료 미리보기 여섯 쪽(표지·내 유형·내 점수·16유형·연애 장·13개월 달력). 내 검사 결과가 있으면 내 유형 견본을, 없거나 아직 없는 유형이면 INFP 견본을 보여 줍니다. */
 const PREVIEW_PAGES = [1, 2, 3, 4, 5, 6];
 
 /**
@@ -338,7 +306,7 @@ export function ReportTopCta() {
   return (
     <div className="rp-top-cta">
       <ReportPriceBox />
-      <span>💬 결제일부터 7일 동안 내 모리와 하루 50번 AI 대화 포함</span>
+      <span>💬 결제일부터 7일 동안 내 유형 캐릭터와 하루 50번 AI 대화 포함</span>
       <a className="rp-button" href="#order" onClick={() => step("top_cta")}>결제하러 가기</a>
     </div>
   );

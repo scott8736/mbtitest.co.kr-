@@ -66,7 +66,7 @@ export default function ShareButtons({ title, url, label, variant = "article" }:
       <img className="share-mori" src="/characters/mori-enfp.webp" alt="" width={64} height={64} loading="lazy" aria-hidden="true" />
       <div className="share-copy">
         <span>{label ?? (variant === "footer" ? "친구에게도 알려 줄래요?" : "이 글, 친구에게도 보여 줄래요?")}</span>
-        <small>카톡·인스타로 보내면 친구도 자기 모리를 찾을 수 있어요</small>
+        <small>카톡·인스타로 보내면 친구도 자기 MBTI를 찾을 수 있어요</small>
       </div>
       <div className="share-actions">
         <button type="button" onClick={share}>💌 친구에게 공유</button>

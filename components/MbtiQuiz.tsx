@@ -83,7 +83,7 @@ export default function MbtiQuiz() {
         <div className="progress"><i style={{ width: "100%" }} /></div>
         <div className="question-card mbti-teaser">
           <span className="question-kicker">40문항 완료!</span>
-          <h2>잠들어 있던 내 모리가<br />깨어나고 있어요</h2>
+          <h2>내 MBTI 유형이<br />거의 나왔어요</h2>
           <div className="mbti-teaser-mori" aria-hidden="true">
             <img src={moriImage(done)} width={180} height={180} alt="" />
             <b>?</b>
@@ -95,7 +95,7 @@ export default function MbtiQuiz() {
               </span>
             ))}
           </p>
-          <p className="mbti-teaser-hint">가려진 두 글자와 내 모리의 정체,<br />성향 비율까지 결과 화면에 있어요.</p>
+          <p className="mbti-teaser-hint">가려진 두 글자와<br />성향 비율까지 결과 화면에 있어요.</p>
           <a className="mbti-teaser-cta" href={RESULT_PATH}>내 결과 확인하기 →</a>
         </div>
       </section>

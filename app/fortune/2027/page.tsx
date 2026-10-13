@@ -6,7 +6,8 @@ import SiteFooter from "../../../components/SiteFooter";
 import { breadcrumbJsonLd, faqJsonLd, articleJsonLd, graph } from "../../../lib/fortune-catalog";
 import { zodiacFortunes, birthYears, zodiacIndex, samjaeSlugs, zodiacName } from "../../../lib/fortune-zodiac";
 import styles from "../../../lib/fortune.module.css";
-
+
+import { pageOgImage } from "../../../lib/page-og";
 export const metadata: Metadata = {
   title: "2027 신년운세 | 정미년 띠별 운세·삼재 총정리",
   description:
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
     url: "/fortune/2027/",
     type: "article",
   
-    images: [{ url: "/images/og/mbti-mori-og.jpg", width: 1200, height: 630 }],
+    images: [{ url: pageOgImage("/fortune/2027/"), width: 1200, height: 630 }],
   },
 };
 

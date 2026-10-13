@@ -6,6 +6,7 @@ import CoupleFortuneTool from "../../../components/CoupleFortuneTool";
 import { breadcrumbJsonLd, faqJsonLd, articleJsonLd, graph } from "../../../lib/fortune-catalog";
 import styles from "../../../lib/fortune.module.css";
 
+import { pageOgImage } from "../../../lib/page-og";
 export const metadata: Metadata = {
   title: "무료 사주 궁합 | 두 사람 생년월일로 보는 궁합",
   description:
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
     description: "일간 오행 관계와 띠 궁합을 바로 계산합니다.",
     url: "/fortune/gunghap/",
     type: "website",
-    images: [{ url: "/images/og/mbti-mori-og.jpg", width: 1200, height: 630 }],
+    images: [{ url: pageOgImage("/fortune/gunghap/"), width: 1200, height: 630 }],
   },
 };
 

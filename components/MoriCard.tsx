@@ -18,9 +18,9 @@ export function MoriPortrait({ code, name }: { code: string; name: string }) {
   return (
     <figure className="mori-portrait" style={{ "--mori": mori.color } as React.CSSProperties}>
       {MORI_WORLD[code] && <p className="mori-portrait-says">“{MORI_WORLD[code].says}”</p>}
-      <img src={moriImage(code)} width={720} height={720} alt={`${code} ${name} 모리 캐릭터`} />
+      <img src={moriImage(code)} width={720} height={720} alt={`${code} ${name} 캐릭터`} />
       {/* 「당신의 MBTI는」 대신 세계관 말투로 (모리 세계관 기획서, 2026-10-04) */}
-      <figcaption>당신 마음숲에 사는 모리는 <b>{code} 모리</b>{MORI_WORLD[code] && <> · {VILLAGES[villageOf(code)].name}</>}</figcaption>
+      <figcaption>당신 마음숲에 사는 유형은 <b>{code}</b>{MORI_WORLD[code] && <> · {VILLAGES[villageOf(code)].name}</>}</figcaption>
     </figure>
   );
 }
@@ -55,7 +55,7 @@ async function drawStoryCard(code: string, name: string, tagline: string, percen
 
   ctx.fillStyle = mix(mori.color, 0, 0.4);
   ctx.font = font(900, 150);
-  ctx.fillText(`${code} 모리`, 540, 1215);
+  ctx.fillText(`${code}`, 540, 1215);
   ctx.fillStyle = "#1c2034";
   ctx.font = font(800, 56);
   ctx.fillText(name, 540, 1300);
@@ -91,10 +91,10 @@ async function drawStoryCard(code: string, name: string, tagline: string, percen
 
   ctx.fillStyle = "#1c2034";
   ctx.font = font(700, 40);
-  ctx.fillText(`찰떡궁합은 ${best} 모리`, 540, 1790);
+  ctx.fillText(`찰떡궁합은 ${best}`, 540, 1790);
   ctx.fillStyle = "#4b5266";
   ctx.font = font(700, 34);
-  ctx.fillText(`너는 어떤 모리? · ${SITE_DOMAIN}`, 540, 1860);
+  ctx.fillText(`너는 어떤 유형? · ${SITE_DOMAIN}`, 540, 1860);
 
   return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
 }
@@ -108,9 +108,9 @@ export function MoriShare({ code, name, tagline, percents, best }: { code: strin
       fileName={`mori-${code.toLowerCase()}.png`}
       url={`${location.origin}${moriSharePath(code)}`}
       text={shareText(code, name)}
-      linkTitle={`나는 ${code} 모리`}
-      lead="내 모리를 친구에게 보여 주고, 친구는 어떤 모리인지 물어보세요."
-      previewAlt={`${code} 모리 공유 카드 미리보기`}
+      linkTitle={`나는 ${code}`}
+      lead="내 결과를 친구에게 보여 주고, 친구는 어떤 유형인지 물어보세요."
+      previewAlt={`${code} 공유 카드 미리보기`}
       channels={{ image: "mori-image", link: "mori-link", threads: "mori-threads", copy: "mori-copy" }}
     />
   );

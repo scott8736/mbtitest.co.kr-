@@ -98,7 +98,7 @@ export default function PartnersPage() {
         <h2>이 사이트에서 직접 운영 중인 테스트</h2>
         <p>
           제작은 이 사이트에서 매일 쓰이는 검사 화면·결과 화면·공유 기능 그대로 만듭니다.{" "}
-          <Link href="/tests/mbti/">MBTI 성격유형 검사</Link>, <Link href="/mori/">16모리 마음숲</Link>, <Link href="/tests/">심리테스트 모음</Link>에서
+          <Link href="/tests/mbti/">MBTI 성격유형 검사</Link>, <Link href="/mori/">16유형 마음숲</Link>, <Link href="/tests/">심리테스트 모음</Link>에서
           직접 해 보실 수 있습니다.
         </p>
 

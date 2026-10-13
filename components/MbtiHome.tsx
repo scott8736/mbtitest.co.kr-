@@ -17,7 +17,7 @@ export default function MbtiHome() {
           {/* 2026-10-05 어두운 추상 그림 → 모리 마음숲 파스텔. 시작 버튼·제목 문구는 그대로(시작률·검색어). */}
           <section className="hero wellness-hero mori-hero">
             <div className="hero-copy">
-              <span className="eyebrow">🌿 16모리 마음숲 · 무료 성격검사</span>
+              <span className="eyebrow">🌿 16유형 마음숲 · 무료 성격검사</span>
               <h1>무료 MBTI 검사<br /><em>나는 어떤 모리일까?</em></h1>
               <p>40개의 일상적인 질문에 답하면 16가지 모리 중 나와 닮은 캐릭터와 성격 유형을 알려 드려요.</p>
               <a className="primary-button" href="/tests/mbti/">무료 MBTI 검사 시작 <span>→</span></a>

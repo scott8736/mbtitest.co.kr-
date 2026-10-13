@@ -10,8 +10,8 @@ export function MoriChatEntry({ code, placement = "mbti-chat" }: { code?: string
     <a className="forest-entry is-chat" href={code ? `/mori/chat/?mori=${code}` : "/mori/chat/"} onClick={() => recordResultClick(placement)}>
       <img src={moriImage(code ?? "INFP")} width={64} height={64} alt="" loading="lazy" />
       <span>
-        <b>{code ? `내 ${code} 모리랑 이야기하기` : "16모리 중 하나랑 이야기하기"}</b>
-        <small>깨어난 모리와 AI 대화 · 하루 5번 무료 · 가입 없음</small>
+        <b>{code ? `내 ${code}랑 이야기하기` : "16가지 유형 중 하나랑 이야기하기"}</b>
+        <small>내 유형 캐릭터와 AI 대화 · 하루 5번 무료 · 가입 없음</small>
       </span>
       <i aria-hidden="true">💬</i>
     </a>
@@ -34,13 +34,13 @@ export function MoriChatBubble({ code, says }: { code: string; says?: string }) 
 }
 
 /** 모리 게임 「마음숲 산책」으로 들어가는 버튼(2026-10-07). MBTI 결과 · 홈 · 세계관 페이지에 둡니다. */
-export default function ForestEntry({ code, placement, title = "내 모리랑 숲 산책하기" }: { code?: string; placement?: ResultClickPlacement; title?: string }) {
+export default function ForestEntry({ code, placement, title = "내 유형이랑 숲 산책하기" }: { code?: string; placement?: ResultClickPlacement; title?: string }) {
   return (
     <a className="forest-entry" href="/mori/forest/" onClick={placement ? () => recordResultClick(placement) : undefined}>
       <img src={moriImage(code ?? "ENFP")} width={64} height={64} alt="" loading="lazy" />
       <span>
         <b>{title}</b>
-        <small>네 마을 · 친구 모리 16명의 부탁 · 무료 게임</small>
+        <small>네 마을 · 친구 16명의 부탁 · 무료 게임</small>
       </span>
       <i aria-hidden="true">🌳</i>
     </a>

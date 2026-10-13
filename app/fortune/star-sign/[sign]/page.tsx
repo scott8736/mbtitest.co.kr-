@@ -9,7 +9,8 @@ import { breadcrumbJsonLd, faqJsonLd, articleJsonLd, graph } from "../../../../l
 import { starSigns, getStarSign, starSignName, starSignElementNotes } from "../../../../lib/fortune-star-signs";
 import { starSignSlugs } from "../../../../lib/fortune-engine";
 import styles from "../../../../lib/fortune.module.css";
-
+
+import { pageOgImage } from "../../../../lib/page-og";
 export const dynamicParams = false;
 
 export function generateStaticParams() {
@@ -35,7 +36,7 @@ export async function generateMetadata({
       url: `/fortune/star-sign/${starSign.slug}/`,
       type: "article",
     
-      images: [{ url: "/images/og/mbti-mori-og.jpg", width: 1200, height: 630 }],
+      images: [{ url: pageOgImage(`/fortune/star-sign/${starSign.slug}/`), width: 1200, height: 630 }],
     },
   };
 }

@@ -5,7 +5,8 @@ import SiteFooter from "../../../components/SiteFooter";
 import FortuneTool from "../../../components/FortuneTool";
 import { breadcrumbJsonLd, faqJsonLd, articleJsonLd, graph } from "../../../lib/fortune-catalog";
 import styles from "../../../lib/fortune.module.css";
-
+
+import { pageOgImage } from "../../../lib/page-og";
 export const metadata: Metadata = {
   title: "사주 MBTI | 사주로 본 기질과 내 MBTI 비교",
   description:
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
     url: "/fortune/saju-mbti/",
     type: "website",
   
-    images: [{ url: "/images/og/mbti-mori-og.jpg", width: 1200, height: 630 }],
+    images: [{ url: pageOgImage("/fortune/saju-mbti/"), width: 1200, height: 630 }],
   },
 };
 

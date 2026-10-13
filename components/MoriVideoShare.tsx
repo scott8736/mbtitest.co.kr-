@@ -83,7 +83,7 @@ export default function MoriVideoShare({ code, channel, label }: { code: string;
     <div className="mori-video-share" ref={box}>
       <video src={preview || undefined} poster={`/characters/mori-${code.toLowerCase()}.webp`} muted loop playsInline autoPlay width={720} height={1280} aria-hidden="true" />
       <div>
-        <strong>{label ?? `나는 ${code} 모리 영상`}</strong>
+        <strong>{label ?? `나는 ${code} 영상`}</strong>
         <p>15초 릴스·스토리용 영상이에요. 슬롯이 돌다가 {code}에서 멈춰요.</p>
         <button type="button" className="mori-video-share-btn" onClick={share}>🎬 영상 저장·공유</button>
         <p className="mori-video-share-note" role="status">{note}</p>

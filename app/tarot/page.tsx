@@ -5,7 +5,8 @@ import SiteFooter from "../../components/SiteFooter";
 import SiteHeader from "../../components/SiteHeader";
 import AdUnit from "../../components/AdUnit";
 import { tarotFortunes, tarotTypeLabels } from "../../lib/tarot";
-import "./tarot.css";
+import "./tarot.css";
+import { pageOgImage } from "../../lib/page-og";
 
 export const metadata: Metadata = {
   title: "오늘의 타로 운세 — 종합·연애·금전·건강 무료",
@@ -20,6 +21,7 @@ export const metadata: Metadata = {
     "타로 금전운",
   ],
   alternates: { canonical: "/tarot/" },
+  openGraph: { type: "website", url: "/tarot/", title: "오늘의 타로 운세 — 종합·연애·금전·건강 무료", description: "종합·연애·금전·건강·직장·학업운까지 여섯 가지 오늘의 타로를 무료로 봅니다. 하루 한 번, 자정에 새 카드가 열립니다.", images: [{ url: pageOgImage("/tarot/"), width: 1200, height: 630 }] },
 };
 
 export default function TarotHubPage() {

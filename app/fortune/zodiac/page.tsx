@@ -6,7 +6,8 @@ import SiteFooter from "../../../components/SiteFooter";
 import { breadcrumbJsonLd, faqJsonLd, articleJsonLd, graph } from "../../../lib/fortune-catalog";
 import { zodiacFortunes, birthYears, samjaeSlugs, zodiacBranch } from "../../../lib/fortune-zodiac";
 import styles from "../../../lib/fortune.module.css";
-
+
+import { pageOgImage } from "../../../lib/page-og";
 export const metadata: Metadata = {
   title: "띠별 운세 | 12띠 성격·2027 정미년 운세·띠 궁합",
   description:
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
   keywords: ["띠별 운세", "12띠 운세", "2027 띠별운세", "띠 궁합", "내 띠 찾기"],
   alternates: { canonical: "/fortune/zodiac/" },
   openGraph: { title: "띠별 운세 | 12띠 성격과 2027 정미년 흐름", url: "/fortune/zodiac/", type: "website", 
-    images: [{ url: "/images/og/mbti-mori-og.jpg", width: 1200, height: 630 }],
+    images: [{ url: pageOgImage("/fortune/zodiac/"), width: 1200, height: 630 }],
   },
 };
 

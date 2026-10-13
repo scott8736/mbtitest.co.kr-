@@ -8,7 +8,8 @@ import { zodiacFortunes } from "../../lib/fortune-zodiac";
 import { starSigns } from "../../lib/fortune-star-signs";
 import { dreamEntries } from "../../lib/fortune-dreams";
 import styles from "../../lib/fortune.module.css";
-
+
+import { pageOgImage } from "../../lib/page-og";
 export const metadata: Metadata = {
   title: "무료 운세 | 오늘의 운세·사주·띠별·별자리·꿈해몽",
   description:
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
     url: "/fortune/",
     type: "website",
   
-    images: [{ url: "/images/og/mbti-mori-og.jpg", width: 1200, height: 630 }],
+    images: [{ url: pageOgImage("/fortune/"), width: 1200, height: 630 }],
   },
 };
 

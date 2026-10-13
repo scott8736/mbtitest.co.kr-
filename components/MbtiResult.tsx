@@ -10,6 +10,7 @@ import { ForestInviteReturn } from "./OurForest";
 import { GuessMePanel } from "./GuessMe";
 import MbtiResultPick from "./MbtiResultPick";
 import ReportTeaser from "./ReportTeaser";
+import ReportSampleCta from "./ReportSampleCta";
 import SajuLabBanner from "./SajuLabBanner";
 import { questions, typeData, typeDetails, type Axis } from "../lib/mbti-data";
 import { onResultLinkClick, recordCompletionOnce, recordTestEvent } from "../lib/test-events";
@@ -74,7 +75,7 @@ export default function MbtiResult() {
 
   return (
     <section className="result-shell" style={{ "--result-color": resultInfo.color } as React.CSSProperties}>
-      <span className="result-kicker">잠들어 있던 내 모리가 깨어났어요</span>
+      <span className="result-kicker">내 MBTI 유형 결과</span>
       {/* 결과 화면 첫 그림은 유형별 모리 캐릭터입니다(2026-10-04). 예전 1200x630 결과 카드는
           글자뿐이라 공유할 맛이 없었습니다. 공유 카드는 아래 MoriShare 가 9:16 으로 그립니다. */}
       <MoriPortrait code={result} name={resultInfo.name} />
@@ -92,10 +93,11 @@ export default function MbtiResult() {
       {/* 유료 리포트 카드(2026-10-08 위로 옮김): 지표·상세 설명 아래에 있을 때 완주자의 49.3%만 카드까지 내려왔습니다.
           공유 두 칸(핵심 목표)은 그대로 위에 두고 그 바로 아래. 효과는 관리자 깔때기 「카드 노출 ÷ 완주」로 봅니다. */}
       <ReportTeaser code={result} scores={stored?.scores} />
+      {/* 104쪽 전체 샘플(2026-10-14): 미리보기 6쪽보다 실물 전체를 넘겨 볼 때 결제 마음이 커집니다. 새 창으로 엽니다. */}
+      <ReportSampleCta code={result} />
       {/* 모리 게임(2026-10-07). 방금 깨어난 내 모리를 데리고 다른 검사로 가게 하는 길입니다. */}
       <MoriChatEntry code={result} />
       <ForestEntry code={result} placement="mbti-forest" />
-      <MoriVideoShare code={result} channel="mori-video" />
       <MoriForestCard code={result} />
       <div className="result-grid">
         <article className="axis-card">
@@ -142,6 +144,8 @@ export default function MbtiResult() {
           <a href="/fortune/saju-mbti/"><span>사주 × MBTI</span><strong>{result} 사주 궁합</strong><small>사주와 성격유형을 함께</small><i>{result} 사주 보기 →</i></a>
         </div>
       </div>
+      {/* 영상 저장·공유는 거의 안 써서 맨 아래로 내렸습니다(2026-10-14 사용자 요청). */}
+      <MoriVideoShare code={result} channel="mori-video" />
       <AdUnit key={`result-bottom-${result}`} position="resultBottom" label="MBTI 결과 하단 광고" />
     </section>
   );

@@ -6,7 +6,8 @@ import SiteFooter from "../../../components/SiteFooter";
 import { breadcrumbJsonLd, faqJsonLd, articleJsonLd, graph } from "../../../lib/fortune-catalog";
 import { starSigns, starSignElementNotes } from "../../../lib/fortune-star-signs";
 import styles from "../../../lib/fortune.module.css";
-
+
+import { pageOgImage } from "../../../lib/page-og";
 export const metadata: Metadata = {
   title: "별자리 운세 | 12별자리 성격·궁합·날짜 기준",
   description:
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
   keywords: ["별자리 운세", "별자리 성격", "별자리 궁합", "별자리 날짜", "12별자리"],
   alternates: { canonical: "/fortune/star-sign/" },
   openGraph: { title: "별자리 운세 | 12별자리 성격과 궁합", url: "/fortune/star-sign/", type: "website", 
-    images: [{ url: "/images/og/mbti-mori-og.jpg", width: 1200, height: 630 }],
+    images: [{ url: pageOgImage("/fortune/star-sign/"), width: 1200, height: 630 }],
   },
 };
 

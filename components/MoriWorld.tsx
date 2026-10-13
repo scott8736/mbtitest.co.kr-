@@ -24,7 +24,7 @@ export function MoriForestCard({ code }: { code: string }) {
   const v = VILLAGES[villageOf(c)];
   const friends = pairsFor(c);
   return (
-    <section className="forest-card" style={{ "--village": v.color, "--mori": mori.color } as React.CSSProperties} aria-label={`${c} 모리의 마음숲 프로필`}>
+    <section className="forest-card" style={{ "--village": v.color, "--mori": mori.color } as React.CSSProperties} aria-label={`${c}의 마음숲 프로필`}>
       <div className="forest-card-head">
         <span>마음숲 프로필</span>
         <VillageBadge code={c} />
@@ -52,7 +52,7 @@ export function MoriForestCard({ code }: { code: string }) {
           })}
         </div>
       )}
-      <a className="forest-more" href="/mori/">16모리가 사는 마음숲 둘러보기 →</a>
+      <a className="forest-more" href="/mori/">16가지 유형이 사는 마음숲 둘러보기 →</a>
     </section>
   );
 }

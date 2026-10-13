@@ -6,6 +6,7 @@ import LunarConverter from "../../../components/LunarConverter";
 import { breadcrumbJsonLd, faqJsonLd, articleJsonLd, graph } from "../../../lib/fortune-catalog";
 import styles from "../../../lib/fortune.module.css";
 
+import { pageOgImage } from "../../../lib/page-og";
 export const metadata: Metadata = {
   title: "토정비결 보는 법 | 괘 구하는 방법과 음력 변환기",
   description:
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
     description: "상괘·중괘·하괘를 구하는 방식과 음력 변환기를 함께 정리했습니다.",
     url: "/fortune/tojeong/",
     type: "website",
-    images: [{ url: "/images/og/mbti-mori-og.jpg", width: 1200, height: 630 }],
+    images: [{ url: pageOgImage("/fortune/tojeong/"), width: 1200, height: 630 }],
   },
 };
 

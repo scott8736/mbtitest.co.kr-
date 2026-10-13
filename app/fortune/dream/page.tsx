@@ -6,7 +6,8 @@ import SiteFooter from "../../../components/SiteFooter";
 import { breadcrumbJsonLd, faqJsonLd, articleJsonLd, graph } from "../../../lib/fortune-catalog";
 import { dreamEntries, dreamCategories } from "../../../lib/fortune-dreams";
 import styles from "../../../lib/fortune.module.css";
-
+
+import { pageOgImage } from "../../../lib/page-og";
 export const metadata: Metadata = {
   title: "꿈해몽 사전 | 돼지꿈·뱀꿈·이빨 빠지는 꿈 해석",
   description:
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
   keywords: ["꿈해몽", "꿈 해몽 사전", "돼지꿈 해몽", "뱀꿈 해몽", "이빨 빠지는 꿈"],
   alternates: { canonical: "/fortune/dream/" },
   openGraph: { title: "꿈해몽 사전 | 전통 해몽과 심리 해석", url: "/fortune/dream/", type: "website", 
-    images: [{ url: "/images/og/mbti-mori-og.jpg", width: 1200, height: 630 }],
+    images: [{ url: pageOgImage("/fortune/dream/"), width: 1200, height: 630 }],
   },
 };
 

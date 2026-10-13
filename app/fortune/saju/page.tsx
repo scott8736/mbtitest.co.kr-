@@ -7,7 +7,8 @@ import { breadcrumbJsonLd, faqJsonLd, articleJsonLd, graph } from "../../../lib/
 import { elementLabels, elementSymbols } from "../../../lib/fortune-engine";
 import { elementBalanceNotes } from "../../../lib/fortune-readings";
 import styles from "../../../lib/fortune.module.css";
-
+
+import { pageOgImage } from "../../../lib/page-og";
 export const metadata: Metadata = {
   title: "무료 사주 풀이 | 사주팔자 네 기둥·오행 분포 계산",
   description:
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
     url: "/fortune/saju/",
     type: "website",
   
-    images: [{ url: "/images/og/mbti-mori-og.jpg", width: 1200, height: 630 }],
+    images: [{ url: pageOgImage("/fortune/saju/"), width: 1200, height: 630 }],
   },
 };
 

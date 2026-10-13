@@ -7,7 +7,8 @@ import FortuneTool from "../../../components/FortuneTool";
 import { breadcrumbJsonLd, faqJsonLd, articleJsonLd, graph } from "../../../lib/fortune-catalog";
 import { zodiacFortunes } from "../../../lib/fortune-zodiac";
 import styles from "../../../lib/fortune.module.css";
-
+
+import { pageOgImage } from "../../../lib/page-og";
 export const metadata: Metadata = {
   title: "오늘의 운세 무료 | 생년월일로 보는 총운·연애·재물",
   description:
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
     url: "/fortune/today/",
     type: "website",
   
-    images: [{ url: "/images/og/mbti-mori-og.jpg", width: 1200, height: 630 }],
+    images: [{ url: pageOgImage("/fortune/today/"), width: 1200, height: 630 }],
   },
 };
 

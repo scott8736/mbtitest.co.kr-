@@ -5,6 +5,7 @@ import SiteFooter from "../../components/SiteFooter";
 import SiteHeader from "../../components/SiteHeader";
 import { testCatalog } from "../../lib/test-catalog";
 
+import { pageOgImage } from "../../lib/page-og";
 /**
  * 이 페이지는 "성향테스트" 라는 일반 검색어를 받는 자리입니다.
  *
@@ -32,7 +33,7 @@ export const metadata: Metadata = {
     description: "회원가입 없이 바로 하는 무료 성향·성격·연애·마음건강 테스트 모음",
     url: "/tests/",
 
-    images: [{ url: "/images/og/mbti-mori-og.jpg", width: 1200, height: 630 }],
+    images: [{ url: pageOgImage("/tests/"), width: 1200, height: 630 }],
   },
 };
 

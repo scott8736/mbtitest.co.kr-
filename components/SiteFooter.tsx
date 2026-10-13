@@ -30,7 +30,7 @@ export default function SiteFooter({
           <a href="/report/?from=footer">104쪽 리포트</a>
           <a href="/tests/">심리테스트</a>
           <a href="/types/">16가지 유형</a>
-          <a href="/mori/">16모리 마음숲</a>
+          <a href="/mori/">16유형 마음숲</a>
           <a href="/compatibility/">MBTI 궁합</a>
           <a href="/fortune/">무료 운세</a>
           <a href="/fortune/today/">오늘의 운세</a>

@@ -1,21 +1,20 @@
 "use client";
 
 /**
- * 「친구가 본 내 모리」 + 초대 할인권 화면 (2026-10-08, 사용자 결정 "우리의 핵심은 많이 공유, 바이럴").
+ * 「친구가 본 내 MBTI」 화면 (2026-10-08, 사용자 결정 "우리의 핵심은 많이 공유, 바이럴").
  *
- *   GuessMePanel   내 링크 만들기·공유·친구 참여 수·할인권·친구들이 본 나 (MBTI 결과, 초대 페이지 끝, 게임 안 우리 숲)
- *   GuessStep      초대 페이지: 「○○님은 어떤 모리 같아?」 고르기 → 정답 공개
- *   CouponTicket   받은 할인권(코드·금액·기한·조건)
+ *   GuessMePanel   내 링크 만들기·공유·친구 참여 수·친구들이 본 나 (MBTI 결과, 초대 페이지 끝, 게임 안 우리 숲)
+ *   GuessStep      초대 페이지: 「○○님은 어떤 유형 같아?」 고르기 → 정답 공개
  *
- * 퍼지는 고리: 내 링크 → 친구가 맞히기(10초) → 정답·할인권 → 친구도 자기 링크 만들기.
- * 서버는 worker/forest.ts·worker/coupon.ts, 규칙은 lib/invite-coupon.ts.
+ * 퍼지는 고리: 내 링크 → 친구가 맞히기(10초) → 정답 → 친구도 자기 링크 만들기.
+ * 2026-10-14 사용자 결정: 할인 기능은 효과가 없어 화면에서 뺐습니다(서버 worker/coupon.ts 는 그대로 두되 화면은 안 보여 줌).
+ * 같은 날 「모리」라는 말도 화면에서 뺐습니다(대중적이지 않음) — 유형·MBTI 로 씁니다.
  */
 import { useCallback, useEffect, useState } from "react";
 import { MORI, moriImage } from "../lib/mori";
 import { MORI_WORLD } from "../lib/mori-world";
-import {
-  COUPON_TERMS, FRIEND_WORDS, INVITE_GOAL, OWNER_COUPON, FRIEND_COUPON, saveCoupon, untilText, won, type Coupon,
-} from "../lib/invite-coupon";
+import { FRIEND_WORDS, type Coupon } from "../lib/invite-coupon";
+import { randomNick } from "../lib/random-nick";
 import { api, deviceId, forestName, guessTally, inviteUrl, myForestId, setMyForestId, type ForestMine, type ForestView } from "../lib/our-forest";
 import { recordResultClick, recordShare } from "../lib/test-events";
 import type { ResultClickPlacement } from "../lib/result-clicks";
@@ -43,10 +42,7 @@ export function useMyForest() {
         api<ForestMine>(`/api/forest/${fid}/mine`, { method: "POST", body: JSON.stringify({ device: deviceId() }) }).catch(() => null),
       ]);
       setView(v);
-      if (m) {
-        setMine(m);
-        if (m.coupon) saveCoupon(m.coupon);
-      }
+      if (m) setMine(m);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "잠시 뒤 다시 시도해 주세요.");
     }
@@ -80,7 +76,7 @@ export function useMyForest() {
 export function ShareRow({ view }: { view: ForestView }) {
   const [copied, setCopied] = useState(false);
   const url = inviteUrl(view.id);
-  const text = `나는 어떤 모리 같아? 16모리 중에 골라 줘 🤔 맞히면 정답이 바로 나와!`;
+  const text = `나는 어떤 MBTI 같아? 16가지 유형 중에 골라 줘 🤔 맞히면 정답이 바로 나와!`;
   const share = async (how: "invite" | "threads" | "copy") => {
     if (how === "threads") {
       recordShare("forest-threads");
@@ -90,7 +86,7 @@ export function ShareRow({ view }: { view: ForestView }) {
     if (how === "invite" && navigator.share) {
       recordShare("forest-invite");
       try {
-        await navigator.share({ title: `${forestName(view)} — 나는 어떤 모리 같아?`, text, url });
+        await navigator.share({ title: `${forestName(view)} — 나는 어떤 MBTI 같아?`, text, url });
       } catch {
         // 공유창을 닫은 것
       }
@@ -112,42 +108,6 @@ export function ShareRow({ view }: { view: ForestView }) {
         <button className="gm-btn" onClick={() => share("threads")}>스레드에 올리기</button>
         <button className="gm-btn" onClick={() => share("copy")}>{copied ? "복사했어요!" : "링크 복사"}</button>
       </div>
-    </div>
-  );
-}
-
-/* ---------- 할인권 ---------- */
-
-export function CouponTicket({ coupon, note }: { coupon: Coupon; note?: string }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="gm-ticket">
-      <div className="gm-ticket-main">
-        <span>🎁 리포트 할인권</span>
-        <b>{won(coupon.amount)}</b>
-        <small>{untilText(coupon.expiresAt)} · 번호 {coupon.code}</small>
-      </div>
-      {note && <p>{note}</p>}
-      <a className="gm-btn is-main" href="/report/?from=coupon" onClick={() => recordResultClick("report-coupon")}>리포트에서 바로 쓰기 →</a>
-      <button className="gm-terms-btn" onClick={() => setOpen(!open)}>{open ? "조건 닫기" : "사용 조건 보기"}</button>
-      {open && <ul className="gm-terms">{COUPON_TERMS.map((t) => <li key={t}>{t}</li>)}</ul>}
-    </div>
-  );
-}
-
-function CouponProgress({ mine }: { mine: ForestMine | null }) {
-  if (!mine) return null;
-  if (mine.coupon) return <CouponTicket coupon={mine.coupon} note={mine.coupon.used ? "이미 사용한 할인권이에요." : `친구 ${mine.friends}명이 참여해서 받았어요. 고마워요!`} />;
-  const left = Math.max(0, mine.goal - mine.friends);
-  return (
-    <div className="gm-progress">
-      <div className="gm-dots" aria-label={`친구 ${mine.friends}/${mine.goal}명 참여`}>
-        {Array.from({ length: mine.goal }, (_, i) => <i key={i} className={i < mine.friends ? "on" : ""}>{i < mine.friends ? "🙋" : ""}</i>)}
-      </div>
-      <p>
-        친구 <b>{mine.friends}/{mine.goal}</b>명 참여 ·{" "}
-        {left === 1 ? <b className="gm-hot">1명만 더 오면 리포트 {won(OWNER_COUPON)} 할인권!</b> : <>친구 {mine.goal}명이 맞혀 주면 리포트 <b>{won(OWNER_COUPON)}</b> 할인권</>}
-      </p>
     </div>
   );
 }
@@ -216,7 +176,7 @@ async function shareCard(view: ForestView): Promise<void> {
   });
   g.drawImage(img, 240, 190, 600, 600);
   g.font = "bold 96px sans-serif";
-  g.fillText(`${top} 모리`, 540, 900);
+  g.fillText(`${top}`, 540, 900);
   g.font = "bold 46px sans-serif";
   g.fillStyle = "#3a3f55";
   g.fillText(t.types.slice(0, 3).map(([code, n]) => `${code} ${n}표`).join(" · "), 540, 980);
@@ -228,7 +188,7 @@ async function shareCard(view: ForestView): Promise<void> {
   const blob = await new Promise<Blob | null>((ok) => c.toBlob(ok, "image/png"));
   if (!blob) return;
   const file = new File([blob], `friends-mori-${view.id}.png`, { type: "image/png" });
-  const text = `친구들이 본 나는 ${top} 모리래 ㅋㅋ 너도 맞혀 봐!\n${inviteUrl(view.id)}`;
+  const text = `친구들이 본 나는 ${top}래 ㅋㅋ 너도 맞혀 봐!\n${inviteUrl(view.id)}`;
   if (navigator.canShare?.({ files: [file] })) {
     await navigator.share({ files: [file], text });
     return;
@@ -244,13 +204,12 @@ async function shareCard(view: ForestView): Promise<void> {
 
 export type MyForest = ReturnType<typeof useMyForest>;
 
-/** 공유 · 할인권 진행 · 친구들이 본 나. 게임 안 「우리 숲」(OurForestPanel)도 이것을 씁니다. */
+/** 공유 · 친구들이 본 나. 게임 안 「우리 숲」(OurForestPanel)도 이것을 씁니다. */
 export function GuessMeBody({ f }: { f: MyForest }) {
   if (!f.view) return null;
   return (
     <>
       <ShareRow view={f.view} />
-      <CouponProgress mine={f.mine} />
       <FriendsSaw view={f.view} />
       <button className="gm-terms-btn" onClick={() => f.id && f.load(f.id)}>새로고침</button>
     </>
@@ -260,14 +219,16 @@ export function GuessMeBody({ f }: { f: MyForest }) {
 export function GuessMePanel({ me, placement, title }: { me: string; placement?: ResultClickPlacement; title?: string }) {
   const f = useMyForest();
   const [nick, setNick] = useState("");
+  // 별명은 입력이 귀찮으니 랜덤으로 미리 채웁니다(2026-10-14). 마음에 안 들면 고치면 됩니다.
+  useEffect(() => setNick(randomNick(8)), []);
   if (!f.id) {
     return (
       <section className="gm-panel">
-        <span className="gm-eyebrow">친구가 본 내 모리</span>
-        <h2>{title ?? "친구들은 나를 어떤 모리로 볼까?"}</h2>
-        <p>링크를 보내면 친구들이 16모리 중에서 나를 골라요. 진짜 나({me})와 같을까요?<br />친구 {INVITE_GOAL}명이 맞혀 주면 <b>리포트 {won(OWNER_COUPON)} 할인권</b>, 참여한 친구도 <b>{won(FRIEND_COUPON)}</b> 할인권을 받아요.</p>
+        <span className="gm-eyebrow">친구가 본 내 MBTI</span>
+        <h2>{title ?? "친구들은 나를 어떤 유형으로 볼까?"}</h2>
+        <p>링크를 보내면 친구들이 16가지 유형 중에서 나를 골라요. 진짜 나({me})와 같을까요?<br />친구들이 어떻게 보는지 바로 확인해 보세요.</p>
         <label className="gm-nick">
-          <span>친구에게 보일 별명 (선택 · 8자, 실명 말고)</span>
+          <span>친구에게 보일 별명 (바꿔도 돼요 · 8자, 실명 말고)</span>
           <input value={nick} maxLength={8} onChange={(e) => setNick(e.target.value)} placeholder="예: 달빛" />
         </label>
         <button
@@ -286,8 +247,8 @@ export function GuessMePanel({ me, placement, title }: { me: string; placement?:
   }
   return (
     <section className="gm-panel">
-      <span className="gm-eyebrow">친구가 본 내 모리</span>
-      <h2>{f.view?.owner.nickname ? `${f.view.owner.nickname}님은 어떤 모리 같아?` : "나는 어떤 모리 같아?"}</h2>
+      <span className="gm-eyebrow">친구가 본 내 MBTI</span>
+      <h2>{f.view?.owner.nickname ? `${f.view.owner.nickname}님은 어떤 유형 같아?` : "나는 어떤 유형 같아?"}</h2>
       {f.err && <p className="gm-err">{f.err} <button className="gm-terms-btn" onClick={() => f.id && f.load(f.id)}>다시 불러오기</button></p>}
       <GuessMeBody f={f} />
       {!f.view && !f.err && <p className="gm-empty">불러오는 중…</p>}
@@ -314,7 +275,6 @@ export function GuessStep({ view, names, onDone, onSkip }: { view: ForestView; n
         method: "POST",
         body: JSON.stringify({ guess: pick, word, device: deviceId() }),
       });
-      if (r.friendCoupon) saveCoupon(r.friendCoupon);
       onDone({ guess: r.guess ?? pick, answer: r.answer ?? view.owner.type, right: Boolean(r.right), friendCoupon: r.friendCoupon, view: r });
     } catch (e) {
       setErr(e instanceof Error ? e.message : "잠시 뒤 다시 시도해 주세요.");
@@ -323,8 +283,8 @@ export function GuessStep({ view, names, onDone, onSkip }: { view: ForestView; n
   };
   return (
     <div className="gm-guess">
-      <h2>{whoTopic(view)} 어떤 모리 같아?</h2>
-      <p>16모리 중 하나를 골라 줘. 고르면 정답이 바로 나와요.</p>
+      <h2>{whoTopic(view)} 어떤 유형 같아?</h2>
+      <p>16가지 유형 중 하나를 골라 줘. 고르면 정답이 바로 나와요.</p>
       <div className="gm-grid">
         {CODES.map((c) => (
           <button key={c} className={pick === c ? "is-on" : ""} onClick={() => setPick(c)} style={{ "--mori": MORI[c].color } as React.CSSProperties} aria-pressed={pick === c}>
@@ -343,8 +303,8 @@ export function GuessStep({ view, names, onDone, onSkip }: { view: ForestView; n
         </div>
       </div>
       {err && <p className="gm-err">{err}</p>}
-      <button className="gm-btn is-main" onClick={submit} disabled={!pick || busy}>{busy ? "정답 확인 중…" : pick ? `${pick} 모리로 맞혀 보기` : "모리를 골라 주세요"}</button>
-      <button className="gm-terms-btn" onClick={onSkip}>맞히기 건너뛰고 내 모리만 심기</button>
+      <button className="gm-btn is-main" onClick={submit} disabled={!pick || busy}>{busy ? "정답 확인 중…" : pick ? `${pick}로 맞혀 보기` : "유형을 골라 주세요"}</button>
+      <button className="gm-terms-btn" onClick={onSkip}>맞히기 건너뛰고 내 유형만 심기</button>
     </div>
   );
 }
@@ -353,11 +313,10 @@ export function GuessReveal({ r }: { r: GuessResult }) {
   const t = guessTally(r.view);
   return (
     <div className={`gm-reveal${r.right ? " is-right" : ""}`}>
-      <img src={moriImage(r.answer)} width={96} height={96} alt={`${r.answer} 모리`} />
+      <img src={moriImage(r.answer)} width={96} height={96} alt={r.answer} />
       <b>{r.right ? "정답이에요! 🎉" : "아쉬워요!"}</b>
-      <span>{whoTopic(r.view)} <strong>{r.answer}</strong> 모리예요{r.right ? "" : ` (내 선택: ${r.guess})`}</span>
+      <span>{whoTopic(r.view)} <strong>{r.answer}</strong>예요{r.right ? "" : ` (내 선택: ${r.guess})`}</span>
       <small>지금까지 친구 {t.total}명 중 {t.right}명이 맞혔어요</small>
-      {r.friendCoupon && !r.friendCoupon.used && <CouponTicket coupon={r.friendCoupon} note="참여해 줘서 고마워요! 이 기기에 저장해 뒀어요." />}
     </div>
   );
 }

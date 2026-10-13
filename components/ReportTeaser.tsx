@@ -134,11 +134,11 @@ export default function ReportTeaser({ code, slug = "mbti", scores }: { code: st
       <div className="report-teaser-hero">
         <div className="report-teaser-mori">
           {/* eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기(output: export)라 next/image 최적화를 쓰지 않습니다 */}
-          <img src={moriImage(code)} alt={`${code} 모리`} width={160} height={160} loading="lazy" />
+          <img src={moriImage(code)} alt={code} width={160} height={160} loading="lazy" />
           {says ? <span>“{says}”</span> : null}
         </div>
         <div>
-          <span className="report-teaser-eyebrow">MORI REPORT · 104쪽</span>
+          <span className="report-teaser-eyebrow">MBTI REPORT · 104쪽</span>
           <h2 id="report-teaser-title">
             내 점수로 만든
             <br />
@@ -146,7 +146,7 @@ export default function ReportTeaser({ code, slug = "mbti", scores }: { code: st
           </h2>
           <p className="report-teaser-lead">
             결과 화면이 한 장이라면, 이건 한 권이에요. 방금 푼 40문항 점수로 같은 {code} 안에서도 내 성향의 농도에 맞는 글만 골라
-            {" "}{code} 모리가 한 권으로 엮어 드려요.
+            {" "}한 권으로 엮어 드려요.
           </p>
         </div>
       </div>

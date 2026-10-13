@@ -1,0 +1,737 @@
+[
+ {
+  "path": "/tests/",
+  "label": "성향 테스트",
+  "title": "무료 심리테스트·성향 테스트 50가지 모음"
+ },
+ {
+  "path": "/tests/egen-teto/",
+  "label": "성향 테스트",
+  "title": "에겐테토 테스트 20문항"
+ },
+ {
+  "path": "/tests/adult-attachment/",
+  "label": "성향 테스트",
+  "title": "애착유형 테스트"
+ },
+ {
+  "path": "/tests/mental-age/",
+  "label": "성향 테스트",
+  "title": "정신연령 테스트·정신나이 테스트"
+ },
+ {
+  "path": "/tests/love-language/",
+  "label": "성향 테스트",
+  "title": "사랑의 언어 테스트"
+ },
+ {
+  "path": "/tests/self-esteem/",
+  "label": "성향 테스트",
+  "title": "자존감 테스트"
+ },
+ {
+  "path": "/tests/burnout/",
+  "label": "성향 테스트",
+  "title": "번아웃 테스트"
+ },
+ {
+  "path": "/tests/work-style/",
+  "label": "성향 테스트",
+  "title": "직장 성향 테스트"
+ },
+ {
+  "path": "/tests/iq/",
+  "label": "성향 테스트",
+  "title": "IQ 테스트"
+ },
+ {
+  "path": "/tests/love-tendency/",
+  "label": "성향 테스트",
+  "title": "연애 성향 테스트"
+ },
+ {
+  "path": "/tests/spending-style/",
+  "label": "성향 테스트",
+  "title": "소비 성향 테스트"
+ },
+ {
+  "path": "/tests/lazy-mbti/",
+  "label": "성향 테스트",
+  "title": "게으름 MBTI 테스트"
+ },
+ {
+  "path": "/tests/dating-style/",
+  "label": "성향 테스트",
+  "title": "연애 스타일 테스트"
+ },
+ {
+  "path": "/tests/mbti-love-compatibility/",
+  "label": "성향 테스트",
+  "title": "MBTI 연애 궁합 테스트"
+ },
+ {
+  "path": "/tests/vegetable-village-character/",
+  "label": "성향 테스트",
+  "title": "채소마을 캐릭터 테스트"
+ },
+ {
+  "path": "/tests/friendship-symbol/",
+  "label": "성향 테스트",
+  "title": "우리의 우정 징표 테스트"
+ },
+ {
+  "path": "/tests/dont-get-hurt/",
+  "label": "성향 테스트",
+  "title": "상처받지 마 테스트"
+ },
+ {
+  "path": "/tests/animal-keeper/",
+  "label": "성향 테스트",
+  "title": "동물 사육사 테스트"
+ },
+ {
+  "path": "/tests/family-letter-personality/",
+  "label": "성향 테스트",
+  "title": "가정통신문 성격 테스트"
+ },
+ {
+  "path": "/tests/christmas-cookie-personality/",
+  "label": "성향 테스트",
+  "title": "크리스마스 쿠키 성격 테스트"
+ },
+ {
+  "path": "/tests/personality-guide/",
+  "label": "성향 테스트",
+  "title": "남녀 성격 풀이법 테스트"
+ },
+ {
+  "path": "/tests/couple-character/",
+  "label": "성향 테스트",
+  "title": "커플 캐릭터 테스트"
+ },
+ {
+  "path": "/tests/f-flirting-simulation/",
+  "label": "성향 테스트",
+  "title": "F썸녀·F썸남 꼬시기 시뮬레이션"
+ },
+ {
+  "path": "/tests/healing-sprite/",
+  "label": "성향 테스트",
+  "title": "힐링 요정 성격 테스트"
+ },
+ {
+  "path": "/tests/self-reflection/",
+  "label": "성향 테스트",
+  "title": "자아 성찰 성격 테스트"
+ },
+ {
+  "path": "/tests/first-impression/",
+  "label": "성향 테스트",
+  "title": "첫인상 테스트"
+ },
+ {
+  "path": "/tests/future-person/",
+  "label": "성향 테스트",
+  "title": "미래인 테스트"
+ },
+ {
+  "path": "/tests/love-ability/",
+  "label": "성향 테스트",
+  "title": "연애 능력 테스트"
+ },
+ {
+  "path": "/tests/neujoh/",
+  "label": "성향 테스트",
+  "title": "느좋 테스트"
+ },
+ {
+  "path": "/tests/hyeonta/",
+  "label": "성향 테스트",
+  "title": "현타 지수 테스트"
+ },
+ {
+  "path": "/tests/dopamine-addiction/",
+  "label": "성향 테스트",
+  "title": "도파민 중독 테스트"
+ },
+ {
+  "path": "/tests/autumn-bti/",
+  "label": "성향 테스트",
+  "title": "가을BTI 테스트"
+ },
+ {
+  "path": "/tests/chuseok-food/",
+  "label": "성향 테스트",
+  "title": "추석 음식 테스트"
+ },
+ {
+  "path": "/tests/holiday-stress/",
+  "label": "성향 테스트",
+  "title": "명절 스트레스 테스트"
+ },
+ {
+  "path": "/tests/aura/",
+  "label": "성향 테스트",
+  "title": "나의 아우라 찾기"
+ },
+ {
+  "path": "/tests/my-color/",
+  "label": "성향 테스트",
+  "title": "나만의 컬러 찾기"
+ },
+ {
+  "path": "/tests/destiny-animal/",
+  "label": "성향 테스트",
+  "title": "운명의 동물 테스트"
+ },
+ {
+  "path": "/tests/four-cut/",
+  "label": "성향 테스트",
+  "title": "성격 네컷 테스트"
+ },
+ {
+  "path": "/tests/halloween/",
+  "label": "성향 테스트",
+  "title": "핼러윈 캐릭터 테스트"
+ },
+ {
+  "path": "/tests/suneung-mental/",
+  "label": "성향 테스트",
+  "title": "수능 D-day 멘탈 테스트"
+ },
+ {
+  "path": "/tests/pepero/",
+  "label": "성향 테스트",
+  "title": "빼빼로데이 테스트"
+ },
+ {
+  "path": "/tests/first-snow/",
+  "label": "성향 테스트",
+  "title": "첫눈 연애 테스트"
+ },
+ {
+  "path": "/tests/christmas-santa/",
+  "label": "성향 테스트",
+  "title": "크리스마스 산타 유형 테스트"
+ },
+ {
+  "path": "/tests/christmas-love/",
+  "label": "성향 테스트",
+  "title": "크리스마스 연애 테스트"
+ },
+ {
+  "path": "/tests/year-end-party/",
+  "label": "성향 테스트",
+  "title": "연말 송년회 캐릭터 테스트"
+ },
+ {
+  "path": "/tests/new-year-resolution/",
+  "label": "성향 테스트",
+  "title": "새해 다짐 유형 테스트"
+ },
+ {
+  "path": "/tests/bungeoppang/",
+  "label": "성향 테스트",
+  "title": "붕어빵 테스트"
+ },
+ {
+  "path": "/tests/godsaeng/",
+  "label": "성향 테스트",
+  "title": "갓생력 테스트"
+ },
+ {
+  "path": "/tests/jjinchin/",
+  "label": "성향 테스트",
+  "title": "찐친 테스트"
+ },
+ {
+  "path": "/tests/gwanjong/",
+  "label": "성향 테스트",
+  "title": "관종 지수 테스트"
+ },
+ {
+  "path": "/tests/sonjeol/",
+  "label": "성향 테스트",
+  "title": "손절각 테스트"
+ },
+ {
+  "path": "/tests/hsp/",
+  "label": "성향 테스트",
+  "title": "HSP 테스트"
+ },
+ {
+  "path": "/tests/egen-teto-male/",
+  "label": "성향 테스트",
+  "title": "에겐남·테토남 테스트"
+ },
+ {
+  "path": "/tests/enneagram/",
+  "label": "성향 테스트",
+  "title": "에니어그램 테스트"
+ },
+ {
+  "path": "/tests/career/",
+  "label": "성향 테스트",
+  "title": "직업적성 테스트"
+ },
+ {
+  "path": "/check/",
+  "label": "마음 자가진단",
+  "title": "무료 심리 자가진단 모음 — 우울·불안·ADHD·불면"
+ },
+ {
+  "path": "/check/depression/",
+  "label": "마음 자가진단",
+  "title": "우울증 자가진단 테스트"
+ },
+ {
+  "path": "/check/anxiety/",
+  "label": "마음 자가진단",
+  "title": "불안장애 자가진단"
+ },
+ {
+  "path": "/check/adult-adhd/",
+  "label": "마음 자가진단",
+  "title": "성인 ADHD 자가진단"
+ },
+ {
+  "path": "/check/panic/",
+  "label": "마음 자가진단",
+  "title": "공황장애 자가진단"
+ },
+ {
+  "path": "/check/insomnia/",
+  "label": "마음 자가진단",
+  "title": "불면증 자가진단"
+ },
+ {
+  "path": "/check/stress/",
+  "label": "마음 자가진단",
+  "title": "스트레스 지수 테스트"
+ },
+ {
+  "path": "/check/smartphone/",
+  "label": "마음 자가진단",
+  "title": "스마트폰 중독 자가진단"
+ },
+ {
+  "path": "/check/social-anxiety/",
+  "label": "마음 자가진단",
+  "title": "사회불안 자가진단"
+ },
+ {
+  "path": "/check/seasonal-depression/",
+  "label": "마음 자가진단",
+  "title": "계절성 우울 자가진단"
+ },
+ {
+  "path": "/check/gaslighting/",
+  "label": "마음 자가진단",
+  "title": "가스라이팅 자가진단"
+ },
+ {
+  "path": "/check/narcissist/",
+  "label": "마음 자가진단",
+  "title": "나르시시스트 테스트"
+ },
+ {
+  "path": "/check/dementia/",
+  "label": "마음 자가진단",
+  "title": "치매 자가진단"
+ },
+ {
+  "path": "/check/menopause/",
+  "label": "마음 자가진단",
+  "title": "갱년기 자가진단"
+ },
+ {
+  "path": "/tarot/",
+  "label": "타로",
+  "title": "오늘의 타로 운세 — 종합·연애·금전·건강"
+ },
+ {
+  "path": "/tarot/today-total/",
+  "label": "타로",
+  "title": "오늘의 타로 운세 — 종합운"
+ },
+ {
+  "path": "/tarot/today-love/",
+  "label": "타로",
+  "title": "오늘의 타로 운세 — 연애운"
+ },
+ {
+  "path": "/tarot/today-money/",
+  "label": "타로",
+  "title": "오늘의 타로 운세 — 금전운"
+ },
+ {
+  "path": "/tarot/today-health/",
+  "label": "타로",
+  "title": "오늘의 타로 운세 — 건강운"
+ },
+ {
+  "path": "/tarot/today-work/",
+  "label": "타로",
+  "title": "오늘의 타로 운세 — 직장운"
+ },
+ {
+  "path": "/tarot/today-study/",
+  "label": "타로",
+  "title": "오늘의 타로 운세 — 학업운"
+ },
+ {
+  "path": "/fortune/",
+  "label": "운세",
+  "title": "무료 운세"
+ },
+ {
+  "path": "/fortune/today/",
+  "label": "오늘의 운세",
+  "title": "오늘의 운세"
+ },
+ {
+  "path": "/fortune/saju/",
+  "label": "운세",
+  "title": "무료 사주 풀이"
+ },
+ {
+  "path": "/fortune/saju-mbti/",
+  "label": "운세",
+  "title": "사주 MBTI"
+ },
+ {
+  "path": "/fortune/gunghap/",
+  "label": "운세",
+  "title": "무료 사주 궁합"
+ },
+ {
+  "path": "/fortune/tojeong/",
+  "label": "운세",
+  "title": "토정비결 보는 법"
+ },
+ {
+  "path": "/fortune/2027/",
+  "label": "운세",
+  "title": "2027 신년운세"
+ },
+ {
+  "path": "/fortune/zodiac/",
+  "label": "띠 운세",
+  "title": "띠별 운세"
+ },
+ {
+  "path": "/fortune/star-sign/",
+  "label": "별자리 운세",
+  "title": "별자리 운세"
+ },
+ {
+  "path": "/fortune/dream/",
+  "label": "꿈 해몽",
+  "title": "꿈해몽 사전"
+ },
+ {
+  "path": "/fortune/zodiac/rat/",
+  "label": "띠 운세",
+  "title": "쥐띠 운세 총정리"
+ },
+ {
+  "path": "/fortune/zodiac/ox/",
+  "label": "띠 운세",
+  "title": "소띠 운세 총정리"
+ },
+ {
+  "path": "/fortune/zodiac/tiger/",
+  "label": "띠 운세",
+  "title": "호랑이띠 운세 총정리"
+ },
+ {
+  "path": "/fortune/zodiac/rabbit/",
+  "label": "띠 운세",
+  "title": "토끼띠 운세 총정리"
+ },
+ {
+  "path": "/fortune/zodiac/dragon/",
+  "label": "띠 운세",
+  "title": "용띠 운세 총정리"
+ },
+ {
+  "path": "/fortune/zodiac/snake/",
+  "label": "띠 운세",
+  "title": "뱀띠 운세 총정리"
+ },
+ {
+  "path": "/fortune/zodiac/horse/",
+  "label": "띠 운세",
+  "title": "말띠 운세 총정리"
+ },
+ {
+  "path": "/fortune/zodiac/goat/",
+  "label": "띠 운세",
+  "title": "양띠 운세 총정리"
+ },
+ {
+  "path": "/fortune/zodiac/monkey/",
+  "label": "띠 운세",
+  "title": "원숭이띠 운세 총정리"
+ },
+ {
+  "path": "/fortune/zodiac/rooster/",
+  "label": "띠 운세",
+  "title": "닭띠 운세 총정리"
+ },
+ {
+  "path": "/fortune/zodiac/dog/",
+  "label": "띠 운세",
+  "title": "개띠 운세 총정리"
+ },
+ {
+  "path": "/fortune/zodiac/pig/",
+  "label": "띠 운세",
+  "title": "돼지띠 운세 총정리"
+ },
+ {
+  "path": "/fortune/star-sign/aries/",
+  "label": "별자리 운세",
+  "title": "양자리 성격과 운세"
+ },
+ {
+  "path": "/fortune/star-sign/taurus/",
+  "label": "별자리 운세",
+  "title": "황소자리 성격과 운세"
+ },
+ {
+  "path": "/fortune/star-sign/gemini/",
+  "label": "별자리 운세",
+  "title": "쌍둥이자리 성격과 운세"
+ },
+ {
+  "path": "/fortune/star-sign/cancer/",
+  "label": "별자리 운세",
+  "title": "게자리 성격과 운세"
+ },
+ {
+  "path": "/fortune/star-sign/leo/",
+  "label": "별자리 운세",
+  "title": "사자자리 성격과 운세"
+ },
+ {
+  "path": "/fortune/star-sign/virgo/",
+  "label": "별자리 운세",
+  "title": "처녀자리 성격과 운세"
+ },
+ {
+  "path": "/fortune/star-sign/libra/",
+  "label": "별자리 운세",
+  "title": "천칭자리 성격과 운세"
+ },
+ {
+  "path": "/fortune/star-sign/scorpio/",
+  "label": "별자리 운세",
+  "title": "전갈자리 성격과 운세"
+ },
+ {
+  "path": "/fortune/star-sign/sagittarius/",
+  "label": "별자리 운세",
+  "title": "사수자리 성격과 운세"
+ },
+ {
+  "path": "/fortune/star-sign/capricorn/",
+  "label": "별자리 운세",
+  "title": "염소자리 성격과 운세"
+ },
+ {
+  "path": "/fortune/star-sign/aquarius/",
+  "label": "별자리 운세",
+  "title": "물병자리 성격과 운세"
+ },
+ {
+  "path": "/fortune/star-sign/pisces/",
+  "label": "별자리 운세",
+  "title": "물고기자리 성격과 운세"
+ },
+ {
+  "path": "/fortune/dream/pig/",
+  "label": "꿈 해몽",
+  "title": "돼지꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/snake/",
+  "label": "꿈 해몽",
+  "title": "뱀꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/tooth-falling/",
+  "label": "꿈 해몽",
+  "title": "이빨 빠지는 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/water/",
+  "label": "꿈 해몽",
+  "title": "물꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/fire/",
+  "label": "꿈 해몽",
+  "title": "불꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/poop/",
+  "label": "꿈 해몽",
+  "title": "똥꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/money-pickup/",
+  "label": "꿈 해몽",
+  "title": "돈 줍는 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/lottery/",
+  "label": "꿈 해몽",
+  "title": "로또 당첨되는 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/chased/",
+  "label": "꿈 해몽",
+  "title": "쫓기는 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/falling/",
+  "label": "꿈 해몽",
+  "title": "떨어지는 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/death/",
+  "label": "꿈 해몽",
+  "title": "죽는 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/ancestor/",
+  "label": "꿈 해몽",
+  "title": "조상꿈·돌아가신 분 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/pregnancy/",
+  "label": "꿈 해몽",
+  "title": "임신하는 꿈·태몽 해몽"
+ },
+ {
+  "path": "/fortune/dream/baby/",
+  "label": "꿈 해몽",
+  "title": "아기 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/exam/",
+  "label": "꿈 해몽",
+  "title": "시험 보는 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/late/",
+  "label": "꿈 해몽",
+  "title": "지각하는 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/ex-partner/",
+  "label": "꿈 해몽",
+  "title": "전 애인 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/wedding/",
+  "label": "꿈 해몽",
+  "title": "결혼하는 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/house/",
+  "label": "꿈 해몽",
+  "title": "집 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/car-accident/",
+  "label": "꿈 해몽",
+  "title": "교통사고 나는 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/dragon/",
+  "label": "꿈 해몽",
+  "title": "용꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/flying/",
+  "label": "꿈 해몽",
+  "title": "하늘을 나는 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/naked/",
+  "label": "꿈 해몽",
+  "title": "벌거벗은 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/hair-cut/",
+  "label": "꿈 해몽",
+  "title": "머리카락 자르는 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/cat/",
+  "label": "꿈 해몽",
+  "title": "고양이 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/dog/",
+  "label": "꿈 해몽",
+  "title": "개 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/fish/",
+  "label": "꿈 해몽",
+  "title": "물고기 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/blood/",
+  "label": "꿈 해몽",
+  "title": "피 나는 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/bug/",
+  "label": "꿈 해몽",
+  "title": "벌레 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/tiger/",
+  "label": "꿈 해몽",
+  "title": "호랑이꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/fight/",
+  "label": "꿈 해몽",
+  "title": "싸우는 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/shoes/",
+  "label": "꿈 해몽",
+  "title": "신발 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/celebrity/",
+  "label": "꿈 해몽",
+  "title": "연예인 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/spider/",
+  "label": "꿈 해몽",
+  "title": "거미 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/rat/",
+  "label": "꿈 해몽",
+  "title": "쥐 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/earthworm/",
+  "label": "꿈 해몽",
+  "title": "지렁이 꿈 해몽"
+ },
+ {
+  "path": "/fortune/dream/cow/",
+  "label": "꿈 해몽",
+  "title": "소 꿈 해몽"
+ }
+]

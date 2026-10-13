@@ -7,7 +7,8 @@ import SiteFooter from "../../../../components/SiteFooter";
 import { breadcrumbJsonLd, faqJsonLd, articleJsonLd, graph } from "../../../../lib/fortune-catalog";
 import { dreamEntries, dreamSlugs, getDream } from "../../../../lib/fortune-dreams";
 import styles from "../../../../lib/fortune.module.css";
-
+
+import { pageOgImage } from "../../../../lib/page-og";
 export const dynamicParams = false;
 
 export function generateStaticParams() {
@@ -33,7 +34,7 @@ export async function generateMetadata({
       url: `/fortune/dream/${dream.slug}/`,
       type: "article",
     
-      images: [{ url: "/images/og/mbti-mori-og.jpg", width: 1200, height: 630 }],
+      images: [{ url: pageOgImage(`/fortune/dream/${dream.slug}/`), width: 1200, height: 630 }],
     },
   };
 }

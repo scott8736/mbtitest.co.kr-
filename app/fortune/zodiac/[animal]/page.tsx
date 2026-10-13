@@ -17,7 +17,8 @@ import {
 } from "../../../../lib/fortune-zodiac";
 import { zodiacSlugs } from "../../../../lib/fortune-engine";
 import styles from "../../../../lib/fortune.module.css";
-
+
+import { pageOgImage } from "../../../../lib/page-og";
 export const dynamicParams = false;
 
 export function generateStaticParams() {
@@ -43,7 +44,7 @@ export async function generateMetadata({
       url: `/fortune/zodiac/${zodiac.slug}/`,
       type: "article",
     
-      images: [{ url: "/images/og/mbti-mori-og.jpg", width: 1200, height: 630 }],
+      images: [{ url: pageOgImage(`/fortune/zodiac/${zodiac.slug}/`), width: 1200, height: 630 }],
     },
   };
 }

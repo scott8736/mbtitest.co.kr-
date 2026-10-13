@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import GenericTestRunner from "../../../components/GenericTestRunner";
 import { genericTests } from "../../../lib/generic-tests";
 import { SITE_ORIGIN } from "../../../lib/site-config";
-
+
+import { pageOgImage } from "../../../lib/page-og";
 export const metadata: Metadata = {
   title: "사랑의 언어 테스트",
   description: "인정하는 말·함께하는 시간·선물·봉사·스킨십 중 나의 사랑의 언어를 확인하는 무료 연애 심리테스트입니다.",
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
     url: `${SITE_ORIGIN}/tests/love-language/`,
     title: "사랑의 언어 테스트 | MBTI 검사",
     description: "인정하는 말·함께하는 시간·선물·봉사·스킨십 중 나의 사랑의 언어를 확인하는 무료 연애 심리테스트입니다.",
-    images: [{ url: "/images/og/mbti-mori-og.jpg", width: 1200, height: 630, alt: "사랑의 언어 테스트" }],
+    images: [{ url: pageOgImage("/tests/love-language/"), width: 1200, height: 630, alt: "사랑의 언어 테스트" }],
   },
 };
 

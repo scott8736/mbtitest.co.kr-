@@ -35,6 +35,8 @@ export const RESULT_CLICK_PLACEMENTS = {
   "forest-guess": "우리 숲 초대 · 친구 모리 맞히기 제출",
   "forest-guess-mine": "우리 숲 초대 → 나도 친구들한테 물어보기",
   "report-coupon": "할인권 → 리포트 쓰러 가기",
+  // 2026-10-14: 관리자가 발행한 104쪽 전체 샘플 열기(새 창)
+  "report-sample": "리포트 104쪽 전체 샘플 열기(새 창)",
 } as const;
 
 export type ResultClickPlacement = keyof typeof RESULT_CLICK_PLACEMENTS;

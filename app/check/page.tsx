@@ -5,6 +5,7 @@ import SiteHeader from "../../components/SiteHeader";
 import AdUnit from "../../components/AdUnit";
 import { HELPLINES, screeners } from "../../lib/screeners";
 import "./screener.css";
+import { pageOgImage } from "../../lib/page-og";
 
 export const metadata: Metadata = {
   title: "무료 심리 자가진단 모음 — 우울·불안·ADHD·불면",
@@ -18,6 +19,7 @@ export const metadata: Metadata = {
     "무료 심리검사",
   ],
   alternates: { canonical: "/check/" },
+  openGraph: { type: "website", url: "/check/", title: "무료 심리 자가진단 모음 — 우울·불안·ADHD·불면", description: "우울증, 불안, 성인 ADHD, 공황, 불면증, 치매, 갱년기까지 12가지 심리 자가진단을 회원가입 없이 무료로 확인하세요.", images: [{ url: pageOgImage("/check/"), width: 1200, height: 630 }] },
 };
 
 // 첫 문단의 개수는 데이터에서 읽습니다. 손으로 "8가지"라고 적어 둔 사이 12가지로 늘었습니다(2026-10-02).
