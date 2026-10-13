@@ -52,12 +52,6 @@ export default function ReportPage() {
         <ReportPreview />
         <p className="rp-muted">무료 미리보기 6쪽 · 견본 이름 「하늘」 · 내 유형·점수로 만들어지는 나머지 쪽은 결제 후에 열립니다.</p>
 
-        {/* 2026-10-13 결제 폼 바로 위에서 여기로 옮김(내용 그대로) */}
-        <div className="notice-box">
-          <strong>읽기 전에</strong>
-          <p>이 리포트는 공식 MBTI® 검사 결과가 아니라 자기이해를 돕는 콘텐츠입니다. 의료·심리 진단을 대신하지 않습니다. 사주 장은 전통 해석을 재미로 풀어 쓴 것으로 미래를 단정하지 않습니다.</p>
-        </div>
-
         <h2>들어 있는 것</h2>
         <ol className="rp-chapters">
           {TOPICS.map(([icon, title, desc], i) => (
@@ -80,6 +74,12 @@ export default function ReportPage() {
 
         <h2 id="order">주문하기</h2>
         <ReportBuy />
+
+        {/* 2026-10-14 사용자 요청으로 페이지 맨 아래로 내림(내용 그대로) */}
+        <div className="notice-box">
+          <strong>읽기 전에</strong>
+          <p>이 리포트는 공식 MBTI® 검사 결과가 아니라 자기이해를 돕는 콘텐츠입니다. 의료·심리 진단을 대신하지 않습니다. 사주 장은 전통 해석을 재미로 풀어 쓴 것으로 미래를 단정하지 않습니다.</p>
+        </div>
       </article>
       <SiteFooter ads={false} />
     </main>
