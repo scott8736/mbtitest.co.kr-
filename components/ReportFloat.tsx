@@ -5,11 +5,12 @@
  *
  * - 오른쪽 아래, 애드센스 하단 고정(앵커) 광고 자리 바로 위(bottom 76px)에 둡니다. 2026-10-14 사용자 요청으로 120px 에서 내렸고, 광고를 가리면 애드센스 정책 위반이라 더 내리지 않습니다.
  * - 스크롤을 600px 넘게 내렸을 때만 나타나고, 닫으면 3일 동안 다시 뜨지 않습니다.
- * - 검사 진행 중(/tests/mbti/), 판매·결제·열람(/report…), 마음건강 자가진단(/check), 관리자에는 띄우지 않습니다.
+ * - 검사 진행 중(/tests/mbti/), 판매·결제·열람(/report… — 내부 링크로 들어와도 바로 사라짐), 마음건강 자가진단(/check), 관리자에는 띄우지 않습니다.
  * - 이 기기에 MBTI 결과가 있고 그 유형이 준비됐으면 바로 /report/, 아니면 무료 검사로 보냅니다.
  * - 2026-10-06 사용자 요청: 가격(9,900원)은 빼고(누르기 전에 값부터 보이면 안 누름), 더 크게, 주목 모션.
  *   모션은 몇 초마다 한 번 살짝 튀고 빛 띠가 지나가는 정도이고, 「동작 줄이기」 설정이면 멈춥니다.
  */
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { readLastResult } from "../lib/my-mori";
 import { REPORT_READY_TYPES } from "../report/content/ready";
@@ -21,9 +22,12 @@ const SKIP = [/^\/tests\/mbti\//, /^\/test\//, /^\/report/, /^\/check/, /^\/admi
 export default function ReportFloat() {
   const [show, setShow] = useState(false);
   const [mine, setMine] = useState<string | null>(null);
+  // 레이아웃에 붙어 있어 내부 링크(Link)로 이동해도 사라지지 않습니다 — 경로가 바뀔 때마다 다시 판단합니다(2026-10-14 결제 화면에 남던 문제).
+  const pathname = usePathname() ?? "";
+  const skipped = SKIP.some((re) => re.test(pathname));
 
   useEffect(() => {
-    if (SKIP.some((re) => re.test(location.pathname))) return;
+    if (skipped) return;
     try {
       if (Number(localStorage.getItem(HIDE_KEY) ?? 0) > Date.now()) return;
     } catch {
@@ -39,9 +43,9 @@ export default function ReportFloat() {
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [skipped]);
 
-  if (!show) return null;
+  if (!show || skipped) return null;
   const close = () => {
     setShow(false);
     try {
