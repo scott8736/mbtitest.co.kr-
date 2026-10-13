@@ -9,16 +9,19 @@ export default function SiteFooter({
   /** 공유할 대상을 지정합니다. 넘기지 않으면 현재 페이지를 공유합니다. */
   shareTitle,
   shareUrl,
+  /** 결제 페이지처럼 공유 상자가 군더더기인 화면은 끕니다(2026-10-14 /report/). */
+  share = true,
 }: {
   ads?: boolean;
   shareTitle?: string;
   shareUrl?: string;
+  share?: boolean;
 } = {}) {
   return (
     <>
       <MoriChatResume />
       {/* 광고보다 위에 두고 여백을 크게 잡습니다. 광고와 붙으면 오클릭이 납니다. */}
-      <ShareButtons variant="footer" title={shareTitle} url={shareUrl} />
+      {share ? <ShareButtons variant="footer" title={shareTitle} url={shareUrl} /> : null}
       {ads ? <CoupangPartners /> : null}
       <footer className="site-footer">
         <div>

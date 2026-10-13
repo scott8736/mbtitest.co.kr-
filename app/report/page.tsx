@@ -81,7 +81,7 @@ export default function ReportPage() {
           <p>이 리포트는 공식 MBTI® 검사 결과가 아니라 자기이해를 돕는 콘텐츠입니다. 의료·심리 진단을 대신하지 않습니다. 사주 장은 전통 해석을 재미로 풀어 쓴 것으로 미래를 단정하지 않습니다.</p>
         </div>
       </article>
-      <SiteFooter ads={false} />
+      <SiteFooter ads={false} share={false} />
     </main>
   );
 }

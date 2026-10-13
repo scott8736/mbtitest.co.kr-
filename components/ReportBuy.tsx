@@ -308,7 +308,6 @@ export function ReportTopCta() {
   return (
     <div className="rp-top-cta">
       <ReportPriceBox />
-      <span>💬 결제일부터 7일 동안 내 유형 캐릭터와 하루 50번 AI 대화 포함</span>
       <a className="rp-button" href="#order" onClick={() => step("top_cta")}>결제하러 가기</a>
     </div>
   );
