@@ -45,10 +45,15 @@ const KNOWN_NAMES = new Set([
   "share_click",
   "mbti_type",
   "mbti_tie",
+  "mbti_answers",
+  "mbti_tiebreak",
 ]);
 
 const MBTI_TYPE_SLUGS = new Set(["istj", "isfj", "infj", "intj", "istp", "isfp", "infp", "intp", "estp", "esfp", "enfp", "entp", "estj", "esfj", "enfj", "entj"]);
 const MBTI_TIE_SLUGS = new Set(["ei", "sn", "tf", "jp"]);
+const MBTI_TIEBREAK_SLUGS = new Set(["ei-e", "ei-i", "sn-s", "sn-n", "tf-t", "tf-f", "jp-j", "jp-p"]);
+/** 40문항 답 한 줄. 문항 수가 바뀌면 lib/mbti-data.ts questions 와 같이 고칩니다. */
+const MBTI_ANSWERS_RE = /^[01]{40}$/;
 
 /** 사주랩 배너는 테스트가 아니라 배너 자리로 셉니다. 자리 목록 밖의 값은 버립니다. */
 const SAJULAB_SLUGS = new Set<string>(SAJULAB_PLACEMENT_KEYS);
@@ -70,6 +75,8 @@ export function isKnownEvent(slug: string, name: string): boolean {
   if (name === "report_step") return REPORT_STEP_SLUGS.has(slug);
   if (name === "mbti_type") return MBTI_TYPE_SLUGS.has(slug);
   if (name === "mbti_tie") return MBTI_TIE_SLUGS.has(slug);
+  if (name === "mbti_tiebreak") return MBTI_TIEBREAK_SLUGS.has(slug);
+  if (name === "mbti_answers") return MBTI_ANSWERS_RE.test(slug);
   return KNOWN_SLUGS.has(slug);
 }
 

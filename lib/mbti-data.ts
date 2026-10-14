@@ -19,7 +19,23 @@ export function scoreType(scores: Record<Axis, number>, last?: Partial<Record<Ax
   return pick("EI", "E", "I") + pick("SN", "S", "N") + pick("TF", "T", "F") + pick("JP", "J", "P");
 }
 
-export type TypeInfo = { name: string; tagline: string; description: string; strengths: string[]; watch: string[]; color: string };
+/**
+ * 동점 추가 문항(2026-10-15). 10-06~15 운영에서 축마다 12~15%가 5:5 동점이었고, 약 44%가 적어도 한 축을
+ * 「그 축 마지막 답」 하나로 정했습니다. 다시 하면 유형이 바뀌기 쉬워 동점 축만 이 문항을 하나 더 묻습니다.
+ * 점수는 0(반반) 그대로 두고 이 답은 동점 판정(scoreType 의 last)에만 씁니다 — 결과 %·리포트 단계 규칙은 그대로.
+ * 문장은 어느 쪽도 더 바람직해 보이지 않게(일상 장면 + 같은 길이) 씁니다. flipped 는 E·S·T·J 문장을 B 자리에.
+ */
+export const TIEBREAKERS: Record<Axis, { a: string; b: string; flipped: boolean }> = {
+  EI: { a: "긴 하루 끝에 친구가 부르면 나가서 기운을 얻는다", b: "긴 하루 끝에는 혼자 쉬어야 기운이 돌아온다", flipped: false },
+  SN: { a: "이야기를 들으면 실제로 무슨 일이 있었는지가 궁금하다", b: "이야기를 들으면 그 일이 무슨 의미인지가 궁금하다", flipped: true },
+  TF: { a: "친구가 고민을 털어놓으면 해결 방법부터 같이 찾는다", b: "친구가 고민을 털어놓으면 마음부터 먼저 들어 준다", flipped: false },
+  JP: { a: "할 일은 목록으로 적어 두고 하나씩 지운다", b: "할 일은 그때그때 떠오르는 대로 처리한다", flipped: true },
+};
+
+/** 문항별 응답 기록용(2026-10-15): 40문항 답을 "1"(E·S·T·J 쪽)/"0"(I·N·F·P 쪽) 40글자로. 누가 답했는지는 남기지 않습니다. */
+export const encodeAnswers = (values: Answer[]) => values.map((v) => (v > 0 ? "1" : "0")).join("");
+
+export type TypeInfo ={ name: string; tagline: string; description: string; strengths: string[]; watch: string[]; color: string };
 export type TypeDetail = { love: string; work: string; stress: string; growth: string[] };
 
 export const questions: { axis: Axis; a: string; b: string }[] = [

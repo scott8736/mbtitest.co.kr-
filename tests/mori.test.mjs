@@ -105,6 +105,12 @@ test("다른 테스트 결과 전용 모리: 적힌 결과는 실제 결과이�
   assert.ok(mod.isKnownEvent("ei", "mbti_tie"));
   assert.equal(mod.isKnownEvent("xxxx", "mbti_type"), false);
   assert.equal(mod.isKnownEvent("infp", "mbti_tie"), false);
+  // 동점 추가 문항 답·문항별 응답 한 줄 (2026-10-15)
+  assert.ok(mod.isKnownEvent("sn-n", "mbti_tiebreak"));
+  assert.equal(mod.isKnownEvent("sn-e", "mbti_tiebreak"), false);
+  assert.ok(mod.isKnownEvent("1".repeat(20) + "0".repeat(20), "mbti_answers"));
+  assert.equal(mod.isKnownEvent("1".repeat(39), "mbti_answers"), false);
+  assert.equal(mod.isKnownEvent("1".repeat(39) + "x", "mbti_answers"), false);
   // 운세·타로 공유는 따로 셉니다 (2026-10-04)
   for (const key of ["fortune-image", "fortune-link", "fortune-threads", "fortune-copy", "tarot-image", "tarot-link", "tarot-threads", "tarot-copy"])
     assert.ok(mod.isKnownEvent(key, "share_click"), key);

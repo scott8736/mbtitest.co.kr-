@@ -53,7 +53,11 @@ export type TestEventName =
   | "share_click"
   // MBTI 결과 유형 분포(2026-10-04~): slug 자리에 유형(소문자), 동점 축은 mbti_tie 에 축 이름(ei·sn·tf·jp)
   | "mbti_type"
-  | "mbti_tie";
+  | "mbti_tie"
+  // 문항별 응답(2026-10-15~): slug 자리에 40문항 답 "1"(E·S·T·J)/"0"(I·N·F·P) 40글자. 하루 집계(rollup)에는 넣지 않습니다.
+  | "mbti_answers"
+  // 동점 추가 문항 답(2026-10-15~): slug 자리에 「축-고른 글자」(ei-e·ei-i·sn-s…)
+  | "mbti_tiebreak";
 
 /**
  * 2단계 도착. 완주와 같은 방식입니다 — 2단계 화면 조회수를 쓰면 새로고침과

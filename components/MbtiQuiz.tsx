@@ -4,7 +4,7 @@ import ReportQuizStrip from "./ReportQuizStrip";
 import { Fragment, useEffect, useState } from "react";
 import AdUnit from "./AdUnit";
 import Mascot, { moodForQuestion } from "./Mascot";
-import { isFlipped, questions, scoreType, type Answer, type Axis } from "../lib/mbti-data";
+import { encodeAnswers, isFlipped, questions, scoreType, TIEBREAKERS, type Answer, type Axis } from "../lib/mbti-data";
 import { moriImage } from "../lib/mori";
 import { markStep2Reached, markTestCompleted, recordAnswered, recordStep2Once, recordTestEvent, recordVisitOnce, remainingMinutes } from "../lib/test-events";
 
@@ -32,6 +32,10 @@ export default function MbtiQuiz() {
   const [scores, setScores] = useState<Record<Axis, number>>(emptyScores);
   const [last, setLast] = useState<Partial<Record<Axis, Answer>>>({});
   const [done, setDone] = useState<string | null>(null);
+  const [picks, setPicks] = useState<Answer[]>([]);
+  /** 40문항 뒤 아직 묻지 않은 동점 축(앞에서부터 하나씩) */
+  const [tieQueue, setTieQueue] = useState<Axis[]>([]);
+  const [tieTotal, setTieTotal] = useState(0);
 
   useEffect(() => {
     // 언제나 처음부터 시작합니다.
@@ -42,6 +46,16 @@ export default function MbtiQuiz() {
 
   const progressPercent = ((index + 1) / questions.length) * 100;
 
+  const finish = (finalScores: Record<Axis, number>, finalLast: Partial<Record<Axis, Answer>>) => {
+    const type = scoreType(finalScores, finalLast);
+    sessionStorage.setItem(RESULT_KEY, JSON.stringify({ result: type, scores: finalScores }));
+    markTestCompleted("mbti");
+    // 문항을 다 푼 사람. 결과 화면의 「완주」 ÷ 이것 = 결과 버튼을 누른 비율입니다.
+    recordTestEvent("mbti", "teaser");
+    setDone(type);
+    window.scrollTo({ top: 0 });
+  };
+
   const answer = (value: Answer) => {
     // 첫 문항에 답한 순간을 한 번만 남깁니다. 열 때마다 처음부터 시작하므로
     // 여기가 곧 "검사를 실제로 시작했다"는 뜻입니다.
@@ -50,8 +64,10 @@ export default function MbtiQuiz() {
     const axis = questions[index].axis;
     const next = { ...scores, [axis]: scores[axis] + value };
     const nextLast = { ...last, [axis]: value };
+    const nextPicks = [...picks, value];
     setScores(next);
     setLast(nextLast);
+    setPicks(nextPicks);
 
     if (index < questions.length - 1) {
       if (index + 1 === HALF_POINT) {
@@ -63,13 +79,30 @@ export default function MbtiQuiz() {
       return;
     }
 
-    const type = scoreType(next, nextLast);
-    sessionStorage.setItem(RESULT_KEY, JSON.stringify({ result: type, scores: next }));
-    markTestCompleted("mbti");
-    // 문항을 다 푼 사람. 결과 화면의 「완주」 ÷ 이것 = 결과 버튼을 누른 비율입니다.
-    recordTestEvent("mbti", "teaser");
-    setDone(type);
-    window.scrollTo({ top: 0 });
+    // 문항별 쏠림을 보려고 40개 답을 한 줄로 남깁니다(S 77% 쏠림의 원인 문항 찾기, 2026-10-15).
+    if (nextPicks.length === questions.length) recordTestEvent(encodeAnswers(nextPicks), "mbti_answers");
+    // 5:5 동점 축이 있으면 그 축만 한 문항씩 더 묻고 끝냅니다.
+    const tied = (Object.keys(next) as Axis[]).filter((ax) => next[ax] === 0);
+    if (tied.length) {
+      setTieQueue(tied);
+      setTieTotal(tied.length);
+      window.scrollTo({ top: 0 });
+      return;
+    }
+    finish(next, nextLast);
+  };
+
+  const answerTie = (value: Answer) => {
+    const [axis, ...rest] = tieQueue;
+    recordTestEvent(`${axis.toLowerCase()}-${value > 0 ? axis[0].toLowerCase() : axis[1].toLowerCase()}`, "mbti_tiebreak");
+    const nextLast = { ...last, [axis]: value };
+    setLast(nextLast);
+    setTieQueue(rest);
+    if (rest.length) {
+      window.scrollTo({ top: 0 });
+      return;
+    }
+    finish(scores, nextLast);
   };
 
   const leave = () => {
@@ -98,6 +131,31 @@ export default function MbtiQuiz() {
           <p className="mbti-teaser-hint">가려진 두 글자와<br />성향 비율까지 결과 화면에 있어요.</p>
           <a className="mbti-teaser-cta" href={RESULT_PATH}>내 결과 확인하기 →</a>
         </div>
+      </section>
+    );
+  }
+
+  if (tieQueue.length) {
+    const axis = tieQueue[0];
+    const q = TIEBREAKERS[axis];
+    const step = tieTotal - tieQueue.length + 1;
+    return (
+      <section className="test-shell mbti-quiz">
+        <div className="progress"><i style={{ width: "100%" }} /></div>
+        <div className="question-card mbti-tiebreak">
+          <span className="question-kicker">{axis[0]}·{axis[1]} 정확히 반반! 한 문항만 더{tieTotal > 1 ? ` (${step}/${tieTotal})` : ""}</span>
+          <Mascot className="question-mascot" mood={moodForQuestion(questions.length + step)} size={112} />
+          <h2>둘 중 조금이라도 더<br />나다운 쪽을 골라 주세요.</h2>
+          <div className="answers">
+            {(q.flipped ? [-1, 1] as const : [1, -1] as const).map((value, i) => (
+              <Fragment key={value}>
+                {i === 1 && <em>또는</em>}
+                <button onClick={() => answerTie(value)}><span>{i === 0 ? "A" : "B"}</span><strong>{value === 1 ? q.a : q.b}</strong><small>이 문장에 더 가까워요</small></button>
+              </Fragment>
+            ))}
+          </div>
+        </div>
+        <p className="test-tip">성향 비율은 반반(50%) 그대로 보여 드리고, 이 답으로 유형 글자만 정해요.</p>
       </section>
     );
   }

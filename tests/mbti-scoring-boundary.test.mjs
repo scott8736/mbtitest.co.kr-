@@ -17,7 +17,7 @@ const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const { outputFiles } = await build({
   stdin: {
     contents: `
-      export { questions, typeData, typeDetails, scoreType, isFlipped } from "./lib/mbti-data";
+      export { questions, typeData, typeDetails, scoreType, isFlipped, TIEBREAKERS, encodeAnswers } from "./lib/mbti-data";
       export { profiles, mbtiCodes } from "./lib/mbti-content";
       export { mbtiPicks } from "./lib/mbti-picks";
     `,
@@ -29,7 +29,7 @@ const { outputFiles } = await build({
   platform: "neutral",
   write: false,
 });
-const { questions, typeData, typeDetails, scoreType, isFlipped, profiles, mbtiCodes, mbtiPicks } = await import(
+const { questions, typeData, typeDetails, scoreType, isFlipped, TIEBREAKERS, encodeAnswers, profiles, mbtiCodes, mbtiPicks } = await import(
   `data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString("base64")}`
 );
 
@@ -117,4 +117,27 @@ test("채점: 동점은 그 축 마지막 응답 쪽, 기록 없으면 예전처
   assert.equal(scoreType({ EI: 0, SN: 0, TF: 0, JP: 0 }), "ESTJ");
   // 동점이 아니면 마지막 응답은 상관없다.
   assert.equal(scoreType({ EI: -2, SN: 2, TF: -2, JP: 2 }, { EI: 1, SN: -1, TF: 1, JP: -1 }), "ISFJ");
+});
+
+test("동점 추가 문항(2026-10-15): 네 축 모두 있고, 본 문항과 겹치지 않고, 보기 위치도 섞인다", () => {
+  assert.deepEqual(Object.keys(TIEBREAKERS).sort(), ["EI", "JP", "SN", "TF"]);
+  const used = new Set(questions.flatMap((q) => [q.a, q.b]));
+  for (const [axis, q] of Object.entries(TIEBREAKERS)) {
+    assert.ok(q.a && q.b && q.a !== q.b, axis);
+    assert.ok(!used.has(q.a) && !used.has(q.b), `${axis} 추가 문항이 본 문항과 같다`);
+    // 한쪽만 길면 그쪽이 더 성의 있어 보여 고르게 된다
+    assert.ok(Math.abs(q.a.length - q.b.length) <= 6, `${axis} 두 보기 길이 차이 ${q.a.length}/${q.b.length}`);
+  }
+  const flipped = Object.values(TIEBREAKERS).filter((q) => q.flipped).length;
+  assert.ok(flipped > 0 && flipped < 4, "추가 문항도 E·S·T·J 문장이 늘 A 자리에 있지 않다");
+  // 추가 문항 답은 점수(반반)를 바꾸지 않고 글자만 정한다
+  assert.equal(scoreType({ EI: 0, SN: 4, TF: 0, JP: -2 }, { EI: -1, TF: 1 }), "ISTP");
+});
+
+test("문항별 응답 기록: 40문항 → 0/1 40글자, 서버 형식과 같다", () => {
+  const s = encodeAnswers(questions.map((_, i) => (i % 3 === 0 ? 1 : -1)));
+  assert.equal(s.length, questions.length);
+  assert.match(s, /^[01]{40}$/);
+  assert.equal(s[0], "1");
+  assert.equal(s[1], "0");
 });

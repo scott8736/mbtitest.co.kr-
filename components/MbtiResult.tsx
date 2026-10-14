@@ -75,6 +75,7 @@ export default function MbtiResult() {
 
   const resultInfo = typeData[result];
   const reportReady = REPORT_READY_TYPES.includes(result);
+  const tiedAxes = stored ? (["EI", "SN", "TF", "JP"] as const).filter((a) => stored.scores[a] === 0) : [];
 
   const start = () => {
     sessionStorage.removeItem("mbti-test-result");
@@ -103,6 +104,8 @@ export default function MbtiResult() {
         <article className="axis-card">
           <h2>나의 성향 지표</h2>
           {percentages.map((p) => <div className="axis-row" key={p.axis}><div><b>{p.left}</b><span>{p.axis === "EI" ? "에너지" : p.axis === "SN" ? "인식" : p.axis === "TF" ? "판단" : "생활"}</span><b>{p.right}</b></div><div className="axis-bar"><i style={{ left: `${p.value}%` }} /></div></div>)}
+          {/* 5:5 동점 축은 추가 문항 한 개로 글자만 정했다고 솔직하게 알립니다(2026-10-15). */}
+          {tiedAxes.length ? <p className="axis-tie-note">정확히 반반(5:5)인 축 · {tiedAxes.map((a) => `${a[0]}·${a[1]}`).join(", ")}<br />추가 문항 한 개로 글자를 정했어요. 두 쪽 성향을 다 가진 편이에요.</p> : null}
         </article>
         <article className="trait-card"><h2>빛나는 강점</h2>{resultInfo.strengths.map((x) => <p key={x}>✦ {x}</p>)}</article>
         <article className="trait-card watch"><h2>기억하면 좋은 점</h2>{resultInfo.watch.map((x) => <p key={x}>○ {x}</p>)}</article>

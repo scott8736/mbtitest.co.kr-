@@ -229,7 +229,8 @@ export function buildRollup(day: string, pages: PageRow[], events: EventRow[]): 
   }
   r.visitors = visitors.size;
 
-  for (const e of events) bump(r.events, `${e.name}|${e.slug}`, e.count);
+  // mbti_answers 는 사람마다 다른 40글자라 하루 집계에 넣으면 칸만 수백 개 늘어납니다. 원본 표에서 바로 셉니다.
+  for (const e of events) if (e.name !== "mbti_answers") bump(r.events, `${e.name}|${e.slug}`, e.count);
 
   r.paths = top(r.paths, KEEP_PATHS);
   r.referrers = top(r.referrers, KEEP_REFERRERS);
