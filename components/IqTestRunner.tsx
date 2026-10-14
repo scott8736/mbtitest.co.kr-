@@ -8,7 +8,6 @@ import CrossPromo from "./CrossPromo";
 import ResultShareCard from "./ResultShareCard";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
-import TestResultPick from "./TestResultPick";
 import SajuLabBanner from "./SajuLabBanner";
 import ReportCrossSell from "./ReportCrossSell";
 import { markTestCompleted, recordCompletionOnce, recordTestEvent } from "../lib/test-events";
@@ -303,7 +302,6 @@ export default function IqTestRunner({ resultOnly = false }: { resultOnly?: bool
 
           <ReportCrossSell from="iq" />
           <SajuLabBanner placement="iq" />
-          <TestResultPick slug={IQ_SLUG} resultKey={String(band.min)} />
 
           <ResultShareCard
             id={`iq-${correct}`}

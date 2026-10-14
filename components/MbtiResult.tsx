@@ -8,7 +8,6 @@ import { MoriForestCard } from "./MoriWorld";
 import ForestEntry, { MoriChatEntry } from "./ForestEntry";
 import { ForestInviteReturn } from "./OurForest";
 import { GuessMePanel } from "./GuessMe";
-import MbtiResultPick from "./MbtiResultPick";
 import ReportTeaser from "./ReportTeaser";
 import ReportSampleCta from "./ReportSampleCta";
 import SajuLabBanner from "./SajuLabBanner";
@@ -139,7 +138,6 @@ export default function MbtiResult() {
           <a href="/tests/mental-age/"><span>재미</span><strong>정신연령 테스트</strong><small>15문항 · 약 2분</small><i>내 마음 나이 확인하기 →</i></a>
         </div>
       </div>
-      <MbtiResultPick code={result} />
       <div className="result-actions"><button className="secondary-button" onClick={start}>다시 검사하기</button></div>
       <p className="disclaimer">본 테스트는 자기이해를 위한 간이 성격 테스트이며, 전문적인 심리 진단을 대신하지 않습니다.</p>
       <div className="related-results result-deep-link" onClick={onResultLinkClick("mbti-type")}>

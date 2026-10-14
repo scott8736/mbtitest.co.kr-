@@ -1,4 +1,3 @@
-import CoupangPartners from "./CoupangPartners";
 import MoriChatResume from "./MoriChatResume";
 import SellerInfo from "./SellerInfo";
 import ShareButtons from "./ShareButtons";
@@ -22,7 +21,6 @@ export default function SiteFooter({
       <MoriChatResume />
       {/* 광고보다 위에 두고 여백을 크게 잡습니다. 광고와 붙으면 오클릭이 납니다. */}
       {share ? <ShareButtons variant="footer" title={shareTitle} url={shareUrl} /> : null}
-      {ads ? <CoupangPartners /> : null}
       <footer className="site-footer">
         <div>
           <strong>MBTI 검사</strong>
@@ -53,9 +51,6 @@ export default function SiteFooter({
         </p>
         {/* 판매자 표시(2026-10-04, 유료 리포트) — 전자상거래법 제10조 */}
         <SellerInfo />
-        <p className="partners-disclosure">
-          파트너스 활동의 일환으로, 수수료 제공받음
-        </p>
       </footer>
     </>
   );

@@ -10,24 +10,20 @@ const repoRoot = fileURLToPath(new URL("..", import.meta.url));
  * 검사 결과 화면의 "다음 행동" 계약.
  *
  * 결과를 본 사람이 할 수 있는 일이 뒤로가기뿐이면 사이트를 떠납니다. 결과 화면마다
- *   1) 그 결과에 맞춘 쿠팡 추천 카드 (링크가 없으면 카드가 조용히 숨겨짐)
- *   2) 다음 테스트 추천 3개 이상 (자기 자신 제외, 실제로 열리는 테스트)
- * 이 있어야 합니다. 둘 다 데이터가 비면 화면은 멀쩡한 채로 빠지므로 여기서 셉니다.
+ * 다음 테스트 추천 3개 이상 (자기 자신 제외, 실제로 열리는 테스트)이 있어야 합니다.
+ * 자가진단(/check/)은 관련 자가진단 추천을 요구합니다.
  *
- * 자가진단(/check/)에는 쿠팡 카드를 달지 않습니다. 우울·불안 결과 옆에 상품을
- * 파는 것은 맞지 않다고 봤습니다 — 대신 관련 자가진단 추천만 요구합니다.
+ * 2026-10-15 사용자 결정: 사이트 광고는 애드센스만 — 쿠팡 추천 카드·푸터 쿠팡·파트너스 고지를 모두 뺐습니다.
+ * lib/test-picks.ts·mbti-picks.ts·pick-fallback.ts 의 상품 데이터는 되살릴 때를 위해 남겨 두지만 화면에서는 쓰지 않습니다.
  */
 const { outputFiles } = await build({
   stdin: {
     contents: `
       export { genericTests } from "./lib/generic-tests";
-      export { testPicks } from "./lib/test-picks";
-      export { mbtiPicks } from "./lib/mbti-picks";
       export { typeData } from "./lib/mbti-data";
       export { testCatalog } from "./lib/test-catalog";
       export { screeners } from "./lib/screeners";
       export { iqBands, IQ_SLUG } from "./lib/iq-test";
-      export { resolveTestPick, CATEGORY_FALLBACK } from "./lib/pick-fallback";
     `,
     resolveDir: repoRoot,
     loader: "ts",
@@ -37,51 +33,12 @@ const { outputFiles } = await build({
   platform: "neutral",
   write: false,
 });
-const { genericTests, testPicks, mbtiPicks, typeData, testCatalog, screeners, iqBands, IQ_SLUG, resolveTestPick, CATEGORY_FALLBACK } = await import(
+const { genericTests, typeData, testCatalog, screeners, iqBands, IQ_SLUG } = await import(
   `data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString("base64")}`
 );
 
-const COUPANG = /^https:\/\/link\.coupang\.com\/a\/[A-Za-z0-9]+$/;
 const published = new Map(testCatalog.filter((t) => t.status === "published").map((t) => [t.slug, t]));
 const MIN_NEXT = 3;
-
-test("성향 테스트·IQ 의 모든 결과 화면에 쿠팡 추천 카드가 나온다 (결과별 또는 분야별 기본)", () => {
-  const missing = [];
-  for (const [slug, t] of Object.entries(genericTests)) {
-    for (const key of Object.keys(t.results)) {
-      const pick = resolveTestPick(slug, key);
-      if (!pick || !COUPANG.test(pick.coupangUrl)) missing.push(`${slug}/${key}`);
-    }
-  }
-  for (const band of iqBands) {
-    if (!resolveTestPick(IQ_SLUG, String(band.min))) missing.push(`iq/${band.min}`);
-  }
-  assert.deepEqual(missing, [], `쿠팡 추천이 안 나오는 결과 ${missing.length}개: ${missing.join(", ")}`);
-});
-
-test("분야별 기본 추천이 카탈로그의 모든 분야를 덮고, 링크가 올바르다", () => {
-  const categories = new Set(testCatalog.map((t) => t.category));
-  for (const c of categories) {
-    assert.ok(COUPANG.test(CATEGORY_FALLBACK[c]?.coupangUrl ?? ""), `${c} 분야 기본 추천 없음`);
-  }
-});
-
-test("참고: 결과별 전용 추천 비율 (실패하지 않음)", () => {
-  let total = 0;
-  let own = 0;
-  for (const [slug, t] of Object.entries(genericTests)) {
-    for (const key of Object.keys(t.results)) {
-      total++;
-      if (COUPANG.test(testPicks[slug]?.[key]?.coupangUrl ?? "")) own++;
-    }
-  }
-  console.log(`  결과별 전용 쿠팡 추천 ${own}/${total} — 나머지는 분야별 기본 추천`);
-});
-
-test("MBTI 16유형 결과에 모두 쿠팡 추천 링크가 있다", () => {
-  const missing = Object.keys(typeData).filter((code) => !COUPANG.test(mbtiPicks[code]?.coupangUrl ?? ""));
-  assert.deepEqual(missing, []);
-});
 
 test(`성향 테스트 결과마다 다음 테스트 추천이 ${MIN_NEXT}개 이상이고 모두 열린다`, () => {
   const problems = [];
@@ -104,9 +61,7 @@ test("자가진단 결과마다 관련 자가진단 추천이 2개 이상이고 
   assert.deepEqual(problems, []);
 });
 
-test("쿠팡 파트너스 고지문구는 푸터(SiteFooter) 한 곳에만 있다 — 사용자 규칙", async () => {
-  // 2026-10-01 사용자 지시: "쿠팡 파트너스 활동 문구 빼라. 맨 밑에 있다."
-  // 추천 카드마다 고지문구를 붙였다가 두 번 지적받았다. 푸터 말고는 넣지 않는다.
+test("사이트 화면 코드에 쿠팡 광고·파트너스 고지가 없다 — 광고는 애드센스만(2026-10-15 사용자 결정)", async () => {
   const { readdirSync, readFileSync, statSync } = await import("node:fs");
   const { join, relative } = await import("node:path");
   const walk = (dir) =>
@@ -116,10 +71,10 @@ test("쿠팡 파트너스 고지문구는 푸터(SiteFooter) 한 곳에만 있�
     });
   const offenders = ["components", "app"]
     .flatMap((dir) => walk(join(repoRoot, dir)))
-    .filter((file) => /\.(tsx|ts)$/.test(file) && !file.endsWith("SiteFooter.tsx"))
-    .filter((file) => /AFFILIATE_DISCLOSURE|파트너스 활동/.test(readFileSync(file, "utf8")))
+    .filter((file) => /\.(tsx|ts)$/.test(file) && !/[\\/]admin[\\/]/.test(file))
+    .filter((file) => /link\.coupang\.com|coupangcdn|CoupangPartners|ResultPick|파트너스 활동|AFFILIATE_DISCLOSURE/.test(readFileSync(file, "utf8")))
     .map((file) => relative(repoRoot, file));
-  assert.deepEqual(offenders, [], `푸터 밖에 파트너스 고지문구가 있습니다: ${offenders.join(", ")}`);
+  assert.deepEqual(offenders, [], `화면 코드에 쿠팡 흔적: ${offenders.join(", ")}`);
 });
 
 test("사주랩 배너가 결과 화면 9자리 모두에 붙어 있고, 자가진단에는 없다", async () => {
