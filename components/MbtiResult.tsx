@@ -5,7 +5,7 @@ import AdUnit from "./AdUnit";
 import { MoriPortrait, MoriShare } from "./MoriCard";
 import MoriVideoShare from "./MoriVideoShare";
 import { MoriForestCard } from "./MoriWorld";
-import ForestEntry, { MoriChatBubble, MoriChatEntry } from "./ForestEntry";
+import ForestEntry, { MoriChatEntry } from "./ForestEntry";
 import { ForestInviteReturn } from "./OurForest";
 import { GuessMePanel } from "./GuessMe";
 import MbtiResultPick from "./MbtiResultPick";
@@ -13,12 +13,20 @@ import ReportTeaser from "./ReportTeaser";
 import ReportSampleCta from "./ReportSampleCta";
 import SajuLabBanner from "./SajuLabBanner";
 import { questions, typeData, typeDetails, type Axis } from "../lib/mbti-data";
-import { onResultLinkClick, recordCompletionOnce, recordTestEvent } from "../lib/test-events";
+import { onResultLinkClick, recordCompletionOnce, recordResultClick, recordTestEvent } from "../lib/test-events";
 import { MORI_BEST } from "../lib/mori";
 import { saveLastResult } from "../lib/my-mori";
+import { REPORT_READY_TYPES } from "../report/content/ready";
 
 const TEST_PATH = "/tests/mbti/";
 const STORAGE_KEY = "mbti-test-result";
+
+/** 무료 상세 세 칸 + 이어지는 리포트 장(이름은 app/report/page.tsx TOPICS 그대로) + 주문 표 ?from= 값 */
+const DEEP = [
+  ["LOVE", "연애와 가까운 관계", "love", "연애할 때의 나", "result-love"],
+  ["WORK", "일과 협업 스타일", "work", "일하는 방식", "result-work"],
+  ["RECOVERY", "스트레스 신호와 회복", "stress", "방전과 충전", "result-rest"],
+] as const;
 
 type StoredResult = { result: string; scores: Record<Axis, number> };
 
@@ -67,6 +75,7 @@ export default function MbtiResult() {
   if (!result) return <section className="result-shell result-loading" aria-busy="true"><p>결과를 불러오는 중입니다…</p></section>;
 
   const resultInfo = typeData[result];
+  const reportReady = REPORT_READY_TYPES.includes(result);
 
   const start = () => {
     sessionStorage.removeItem("mbti-test-result");
@@ -79,26 +88,18 @@ export default function MbtiResult() {
       {/* 결과 화면 첫 그림은 유형별 모리 캐릭터입니다(2026-10-04). 예전 1200x630 결과 카드는
           글자뿐이라 공유할 맛이 없었습니다. 공유 카드는 아래 MoriShare 가 9:16 으로 그립니다. */}
       <MoriPortrait code={result} name={resultInfo.name} />
-      {/* 모리가 먼저 말을 거는 말풍선(2026-10-09). 클릭은 관리자 결과 화면 표 mbti-chat-bubble. */}
-      {/* 말버릇은 그림 위에 이미 있어 말풍선에는 넣지 않습니다(10-09 운영에서 두 번 보임). */}
-      <MoriChatBubble code={result} />
+      {/* 2026-10-15 순서 개편(사용자 「위에서부터 광고만 보인다 — 정보 먼저, 더 궁금할 때 결제로」):
+          완주자의 47%가 2.4화면(리포트 카드)까지도 내려오지 않는데, 그 위가 공유·친구 맞히기라 진짜 결과(지표·강점)는
+          5.2화면 아래에 있었습니다. 순서 = 결과 → 공유 버튼(작게) → 지표·강점·주의 → 리포트 카드 → 연애·일·회복(장마다 리포트 한 줄)
+          → 성장 → 친구 맞히기·대화·숲. 대화 말풍선은 첫 화면에서 뺐습니다(대화 입구는 아래 MoriChatEntry).
+          리포트 카드는 지표 바로 뒤라 위치(약 2.2화면)가 전과 비슷합니다. 판정: 10-13~15 대비 카드 노출 ÷ 완주 50%↑ 유지,
+          공유 클릭 20%↑ 유지, 카드 클릭 ÷ 완주 4.4%보다 높게. tests/result-exits.test.mjs 가 순서를 지킵니다. */}
       {/* 친구 「우리 숲」 초대에서 「검사로 알아보기」로 온 사람만 보입니다(2026-10-07). */}
       <ForestInviteReturn code={result} />
       <h1>{resultInfo.name}</h1>
       <p className="result-tagline">{resultInfo.tagline}</p>
       <p className="result-description">{resultInfo.description}</p>
-      <MoriShare code={result} name={resultInfo.name} tagline={resultInfo.tagline} percents={percentages} best={MORI_BEST[result]} />
-      {/* 「친구가 본 내 모리」(2026-10-08, 핵심 목표 = 공유·바이럴). 공유 카드 바로 아래 — 결과를 보고 가장 자랑하고 싶은 순간. */}
-      <GuessMePanel me={result} placement="mbti-guessme" />
-      {/* 유료 리포트 카드(2026-10-08 위로 옮김): 지표·상세 설명 아래에 있을 때 완주자의 49.3%만 카드까지 내려왔습니다.
-          공유 두 칸(핵심 목표)은 그대로 위에 두고 그 바로 아래. 효과는 관리자 깔때기 「카드 노출 ÷ 완주」로 봅니다. */}
-      <ReportTeaser code={result} scores={stored?.scores} />
-      {/* 104쪽 전체 샘플(2026-10-14): 미리보기 6쪽보다 실물 전체를 넘겨 볼 때 결제 마음이 커집니다. 새 창으로 엽니다. */}
-      <ReportSampleCta code={result} />
-      {/* 모리 게임(2026-10-07). 방금 깨어난 내 모리를 데리고 다른 검사로 가게 하는 길입니다. */}
-      <MoriChatEntry code={result} />
-      <ForestEntry code={result} placement="mbti-forest" />
-      <MoriForestCard code={result} />
+      <MoriShare code={result} name={resultInfo.name} tagline={resultInfo.tagline} percents={percentages} best={MORI_BEST[result]} compact />
       <div className="result-grid">
         <article className="axis-card">
           <h2>나의 성향 지표</h2>
@@ -107,13 +108,27 @@ export default function MbtiResult() {
         <article className="trait-card"><h2>빛나는 강점</h2>{resultInfo.strengths.map((x) => <p key={x}>✦ {x}</p>)}</article>
         <article className="trait-card watch"><h2>기억하면 좋은 점</h2>{resultInfo.watch.map((x) => <p key={x}>○ {x}</p>)}</article>
       </div>
+      {/* 유료 리포트 카드: 무료 결과(지표·강점·주의)를 다 읽은 바로 뒤. 10-03~07 아래에 있을 때 노출 44%·결제 3건,
+          10-08 2.4화면으로 올린 뒤 노출 52%·결제 0건 — 위에 둘수록 팔린다는 근거는 없었습니다. */}
+      <ReportTeaser code={result} scores={stored?.scores} showMori={false} />
+      {/* 104쪽 전체 샘플(2026-10-14): 미리보기 6쪽보다 실물 전체를 넘겨 볼 때 결제 마음이 커집니다. 새 창으로 엽니다. */}
+      <ReportSampleCta code={result} />
       <div className="mbti-deep-result">
-        <article><span>LOVE</span><h2>연애와 가까운 관계</h2><p>{typeDetails[result].love}</p></article>
-        <article><span>WORK</span><h2>일과 협업 스타일</h2><p>{typeDetails[result].work}</p></article>
-        <article><span>RECOVERY</span><h2>스트레스 신호와 회복</h2><p>{typeDetails[result].stress}</p></article>
+        {DEEP.map(([tag, title, key, chapter, from]) => (
+          <article key={tag}>
+            <span>{tag}</span><h2>{title}</h2><p>{typeDetails[result][key]}</p>
+            {/* 장마다 「더 궁금하면」 한 줄. 장 이름은 /report/ 목차(app/report/page.tsx TOPICS)에 실제로 있는 것만 씁니다. */}
+            {reportReady ? <a className="deep-more" href={`/report/?from=${from}`} onClick={() => recordResultClick("mbti-report-bridge")}>더 깊게: 유료 리포트 「{chapter}」 장 →</a> : null}
+          </article>
+        ))}
       </div>
       <AdUnit key={`result-middle-${result}`} position="resultMiddle" label="MBTI 결과 본문 광고" />
       <div className="growth-plan mbti-growth"><span>GROWTH POINT</span><h2>나를 더 편안하게 만드는 실천</h2>{typeDetails[result].growth.map((x, i) => <p key={x}><b>{String(i + 1).padStart(2, "0")}</b>{x}</p>)}</div>
+      {/* 「친구가 본 내 모리」(2026-10-08 바이럴)·AI 대화·숲 게임은 결과를 다 읽은 뒤로 내렸습니다(2026-10-15). */}
+      <GuessMePanel me={result} placement="mbti-guessme" />
+      <MoriChatEntry code={result} />
+      <ForestEntry code={result} placement="mbti-forest" />
+      <MoriForestCard code={result} />
       <SajuLabBanner placement="mbti" />
       {/* 다음 검사를 쿠팡 카드 위로 올렸습니다(2026-10-04). 맨 아래 광고 밑에 있을 때 MBTI → 다른 검사 전환이 5.2%였습니다. */}
       <div className="related-results mbti-related" onClick={onResultLinkClick("mbti-next")}>

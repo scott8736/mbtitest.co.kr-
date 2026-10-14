@@ -100,7 +100,7 @@ async function drawStoryCard(code: string, name: string, tagline: string, percen
 }
 
 /** 결과 설명 바로 아래 카드 미리보기와 공유 버튼. */
-export function MoriShare({ code, name, tagline, percents, best }: { code: string; name: string; tagline: string; percents: Percent[]; best: string }) {
+export function MoriShare({ code, name, tagline, percents, best, compact = false }: { code: string; name: string; tagline: string; percents: Percent[]; best: string; compact?: boolean }) {
   return (
     <SharePanel
       draw={() => drawStoryCard(code, name, tagline, percents, best)}
@@ -112,6 +112,7 @@ export function MoriShare({ code, name, tagline, percents, best }: { code: strin
       lead="내 결과를 친구에게 보여 주고, 친구는 어떤 유형인지 물어보세요."
       previewAlt={`${code} 공유 카드 미리보기`}
       channels={{ image: "mori-image", link: "mori-link", threads: "mori-threads", copy: "mori-copy" }}
+      compact={compact}
     />
   );
 }

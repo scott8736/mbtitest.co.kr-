@@ -37,6 +37,8 @@ export const RESULT_CLICK_PLACEMENTS = {
   "report-coupon": "할인권 → 리포트 쓰러 가기",
   // 2026-10-14: 관리자가 발행한 104쪽 전체 샘플 열기(새 창)
   "report-sample": "리포트 104쪽 전체 샘플 열기(새 창)",
+  // 2026-10-15: MBTI 결과 연애·일·회복 칸 아래 「더 깊게: 유료 리포트 ○○ 장」 한 줄(어느 칸인지는 주문의 ?from=result-love/work/rest)
+  "mbti-report-bridge": "MBTI 결과 · 상세 칸 아래 리포트 장 링크",
 } as const;
 
 export type ResultClickPlacement = keyof typeof RESULT_CLICK_PLACEMENTS;

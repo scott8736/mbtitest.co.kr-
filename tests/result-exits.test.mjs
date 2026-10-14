@@ -159,3 +159,26 @@ test("사주 배너는 사주를 보러 온 화면에만 보인다(10-13, MBTI �
   const banner = await readFile(new URL("../components/SajuLabBanner.tsx", import.meta.url), "utf8");
   assert.ok(banner.includes("SAJULAB_HIDDEN.has(placement)) return null"));
 });
+
+test("MBTI 결과는 정보 먼저, 결제·홍보는 그 뒤(2026-10-15 순서 개편)", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const src = await readFile(new URL("../components/MbtiResult.tsx", import.meta.url), "utf8");
+  const body = src.slice(src.search(/return \(\s*<section className="result-shell"/));
+  const at = (needle) => {
+    const i = body.indexOf(needle);
+    assert.ok(i >= 0, `${needle} 이 결과 화면에 있어야 한다`);
+    return i;
+  };
+  const order = ["<MoriPortrait", "<h1>", "<MoriShare", 'className="result-grid"', "<ReportTeaser", "<ReportSampleCta", 'className="mbti-deep-result"', "<GuessMePanel", "<MoriChatEntry", "<ForestEntry", "<MoriForestCard"];
+  const pos = order.map(at);
+  for (let i = 1; i < pos.length; i++) assert.ok(pos[i - 1] < pos[i], `${order[i - 1]} 가 ${order[i]} 보다 위여야 한다`);
+  assert.ok(/<MoriShare[^>]*\bcompact\b/.test(body), "첫 화면 아래 공유판은 작은 판(compact)이다");
+  assert.ok(!body.includes("<MoriChatBubble"), "대화 말풍선은 첫 화면에 다시 넣지 않는다");
+  // 상세 칸 아래 리포트 장 이름은 판매 페이지 목차에 실제로 있는 것만
+  const page = await readFile(new URL("../app/report/page.tsx", import.meta.url), "utf8");
+  for (const [, chapter] of src.matchAll(/\["[A-Z]+", "[^"]+", "\w+", "([^"]+)", "result-\w+"\]/g)) {
+    assert.ok(page.includes(`"${chapter}"`), `리포트 목차에 「${chapter}」 장이 있어야 한다`);
+  }
+  const admin = await readFile(new URL("../worker/report-admin.ts", import.meta.url), "utf8");
+  for (const from of ["result-love", "result-work", "result-rest"]) assert.ok(admin.includes(`"${from}"`), `주문 표에 ${from} 이름이 있어야 한다`);
+});

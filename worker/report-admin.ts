@@ -45,7 +45,7 @@ export function kst(value: string): string {
  * 유입 경로 칸: 어디서 왔는지(스레드·네이버 검색…) + 리퍼러 주소 + utm + 처음 연 페이지 + 어느 버튼으로 주문 화면에 왔는지.
  * 페이스북·스레드 앱은 리퍼러를 안 보내는 일이 많아 「직접 유입」으로 잡힙니다 — 링크에 utm 을 붙이면 메뉴·게시물까지 갈립니다.
  */
-const ENTRY_KO: Record<string, string> = { "result-card": "결과 화면 카드", "report-cta": "글·검사 안내 링크" };
+const ENTRY_KO: Record<string, string> = { "result-card": "결과 화면 카드", "report-cta": "글·검사 안내 링크", "result-love": "결과 화면 · 연애 칸 아래", "result-work": "결과 화면 · 일 칸 아래", "result-rest": "결과 화면 · 회복 칸 아래" };
 function sourceCell(o: OrderRow, esc: (v: unknown) => string): string {
   if (!o.src && !o.entry) return `<small class="muted">기록 전 주문</small>`;
   const parts = [

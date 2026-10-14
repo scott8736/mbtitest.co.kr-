@@ -23,6 +23,7 @@ export default function SharePanel({
   lead,
   previewAlt,
   channels,
+  compact = false,
   children,
 }: {
   draw: () => Promise<Blob | null>;
@@ -35,6 +36,8 @@ export default function SharePanel({
   lead: string;
   previewAlt: string;
   channels: ShareChannels;
+  /** 큰 미리보기 대신 「카드 미리 보기」 글자 버튼만(MBTI 결과 첫 화면 바로 아래, 2026-10-15). 버튼·공유 동작은 같습니다. */
+  compact?: boolean;
   children?: ReactNode;
 }) {
   const [note, setNote] = useState("");
@@ -128,12 +131,14 @@ export default function SharePanel({
   ];
 
   return (
-    <div className="mori-share">
+    <div className={compact ? "mori-share is-compact" : "mori-share"}>
       <p className="mori-share-lead">{lead}</p>
-      <button type="button" className="mori-share-preview" onClick={() => card && setZoom(true)} aria-label="공유 카드 크게 보기" disabled={!card}>
-        {card ? <img src={card.url} width={1080} height={1920} alt={previewAlt} /> : <span>카드 만드는 중…</span>}
-        <small>{card ? "이 카드가 저장·공유돼요 · 눌러서 크게 보기" : ""}</small>
-      </button>
+      {compact ? null : (
+        <button type="button" className="mori-share-preview" onClick={() => card && setZoom(true)} aria-label="공유 카드 크게 보기" disabled={!card}>
+          {card ? <img src={card.url} width={1080} height={1920} alt={previewAlt} /> : <span>카드 만드는 중…</span>}
+          <small>{card ? "이 카드가 저장·공유돼요 · 눌러서 크게 보기" : ""}</small>
+        </button>
+      )}
       {zoom && card ? (
         <div className="mori-share-zoom" role="dialog" aria-label="공유 카드" onClick={() => setZoom(false)}>
           <img src={card.url} alt={previewAlt} />
@@ -145,6 +150,11 @@ export default function SharePanel({
           <button key={key} type="button" onClick={onClick}>{label}</button>
         ))}
       </div>
+      {compact ? (
+        <button type="button" className="mori-share-peek" onClick={() => card && setZoom(true)} disabled={!card}>
+          {card ? "공유될 카드 미리 보기 →" : "카드 만드는 중…"}
+        </button>
+      ) : null}
       <p className="mori-share-note" role="status">{note}</p>
       {children}
     </div>

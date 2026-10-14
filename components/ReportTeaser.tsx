@@ -64,7 +64,8 @@ function MyScoresPage({ code, scores }: { code: string; scores: Record<Axis, num
   );
 }
 
-export default function ReportTeaser({ code, slug = "mbti", scores }: { code: string; slug?: string; scores?: Record<Axis, number> }) {
+/** showMori=false: 결과 화면 맨 위에 이미 큰 모리 그림이 있어 카드 안 그림·말버릇을 뺍니다(2026-10-15, 같은 그림·말이 다섯 번 나왔음). */
+export default function ReportTeaser({ code, slug = "mbti", scores, showMori = true }: { code: string; slug?: string; scores?: Record<Axis, number>; showMori?: boolean }) {
   const ref = useRef<HTMLElement>(null);
   const strip = useRef<HTMLDivElement>(null);
   const [at, setAt] = useState(0);
@@ -128,12 +129,14 @@ export default function ReportTeaser({ code, slug = "mbti", scores }: { code: st
 
   return (
     <section ref={ref} className="report-teaser" aria-labelledby="report-teaser-title">
-      <div className="report-teaser-hero">
-        <div className="report-teaser-mori">
-          {/* eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기(output: export)라 next/image 최적화를 쓰지 않습니다 */}
-          <img src={moriImage(code)} alt={code} width={160} height={160} loading="lazy" />
-          {says ? <span>“{says}”</span> : null}
-        </div>
+      <div className={showMori ? "report-teaser-hero" : "report-teaser-hero no-mori"}>
+        {showMori ? (
+          <div className="report-teaser-mori">
+            {/* eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기(output: export)라 next/image 최적화를 쓰지 않습니다 */}
+            <img src={moriImage(code)} alt={code} width={160} height={160} loading="lazy" />
+            {says ? <span>“{says}”</span> : null}
+          </div>
+        ) : null}
         <div>
           <span className="report-teaser-eyebrow">MBTI REPORT · 104쪽</span>
           <h2 id="report-teaser-title">
