@@ -290,7 +290,7 @@ chapter("소장 페이지", "휴대폰 배경화면 3종 · 포스터 쪽", SCEN
 page("", `<div class="inner">
   ${kick("POSTER")}<h2 class="t">포스터 쪽</h2>
   <div class="poster-mini"><div class="img"><img loading="lazy" decoding="async" src="${SCENE("profile")}"></div><b>${CODE} 모리</b><span>${esc(T.name)}</span></div>
-  <div class="frame-tip">🖼️ <b>액자 팁</b> — PDF로 저장한 뒤 이 쪽만 인쇄하면 A5 크기 포스터가 돼요. <b>A5 액자</b>에 넣거나, 여백을 두고 싶으면 <b>A4 액자 + 매트</b>에 넣으면 갤러리 느낌이 나요.</div>
+  <div class="frame-tip">🖼️ <b>액자 팁</b> — PDF로 저장한 뒤 이 쪽만 인쇄하면 A4 크기 포스터가 돼요. <b>A4 액자</b>에 넣거나, 여백을 두고 싶으면 <b>A3 액자 + 매트</b>에 넣으면 갤러리 느낌이 나요.</div>
 </div>`, "POSTER");
 
 // ── 마무리 편지 + 뒤표지 ──

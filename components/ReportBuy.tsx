@@ -138,7 +138,7 @@ export default function ReportBuy() {
         내 결과 <b>{stored.result}</b> · {AXES.map((axis, i) => `${axis[percents[i] >= 50 ? 0 : 1]} ${Math.max(percents[i], 100 - percents[i])}%`).join(" · ")}
       </p>
       <p className="rp-sum">
-        <b>{priced ? won(price) : "9,900원"}</b> · A5 104쪽 PDF · 내 유형 캐릭터와 AI 대화 7일 포함
+        <b>{priced ? won(price) : "9,900원"}</b> · A4 104쪽 PDF · 내 유형 캐릭터와 AI 대화 7일 포함
       </p>
       {!opened ? (
         <button

@@ -8,7 +8,8 @@
 <!--
   정밀 리포트 디자인 틀 (2026-10-04). 유형과 상관없는 「틀」을 먼저 확정하려는 견본입니다.
   report.html?type=INFP&name=하늘&ei=38&sn=27&tf=31&jp=64  (축 값은 왼쪽 글자 E/S/T/J 쪽 %)
-  인쇄(PDF)는 A5 세로 한 쪽 = .page 하나. render.py 가 PDF·쪽 그림·배경화면·포스터를 뽑습니다.
+  인쇄(PDF)는 A4 세로 한 쪽 = .page 하나(2026-10-14 A5→A4: 조판은 A5 mm 그대로 두고 인쇄 때만 1.4142배(297mm 를 넘으면 빈 쪽이 생겨 살짝 작게) 키웁니다. A5→A4 는 같은 비율).
+  화면 보기는 그대로 A5 크기입니다. render.py 가 PDF·쪽 그림·배경화면·포스터를 뽑습니다.
   본문 문장은 아직 사이트 유형 설명(profiles)을 그대로 끌어다 채운 자리표시입니다 — 원고는 따로 씁니다.
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,7 +18,7 @@
 <script src="data.js"></script>
 <script src="saju_calc.js"></script>
 <style>
-@page { size: 148mm 210mm; margin: 0; }
+@page { size: A4; margin: 0; }
 :root {
   --c: #b9a3e3; --cd: #5b4a8c; --cl: #f3eefc; --cx: #ece4fa;
   --v: #2f8f7c; --ink: #22223a; --sub: #5d6075; --paper: #fffaf3; --line: #ece5d8;
@@ -282,7 +283,7 @@ p.body.center { text-align: center; font-size: 8.2pt; }
 .vhelp { max-width: 760px; margin: 0 auto; padding: 0 16px 10px; font-size: 12px; color: #6b6c80; }
 .vmsg { max-width: 560px; margin: 40px auto; padding: 0 16px; text-align: center; font: 15px/1.7 "Noto Sans KR", sans-serif; color: #45465a; }
 .vmsg:empty { display: none; }
-@media print { .vbar, .vmsg { display: none !important; } body { zoom: 1 !important; } }
+@media print { .vbar, .vmsg { display: none !important; } body { zoom: 1 !important; } #book { zoom: 1 !important; } .page { zoom: 1.4142; } }
 </style>
 </head>
 <body>
