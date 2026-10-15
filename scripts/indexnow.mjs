@@ -21,9 +21,12 @@ import { fileURLToPath } from "node:url";
 const HOST = JSON.parse(readFileSync(new URL("../site.config.json", import.meta.url), "utf8")).brand.domain;
 const repo = fileURLToPath(new URL("..", import.meta.url));
 // 보낸 기록은 검색엔진마다 따로 둡니다. 한쪽이 실패해도 다른 쪽에 중복으로 가지 않습니다.
+// 네이버는 홈 주소만 담아 보내면 422 Invalid urls 를 줍니다(2026-10-15 실측, 섞어 보내면 200).
+// 홈은 사이트맵·수집으로 충분히 다시 읽으니 네이버에는 빼고 보냅니다.
+const isHome = (url) => new URL(url).pathname === "/";
 const ENDPOINTS = [
-  { name: "bing", url: "https://api.indexnow.org/indexnow" },
-  { name: "naver", url: "https://searchadvisor.naver.com/indexnow" },
+  { name: "bing", url: "https://api.indexnow.org/indexnow", accept: () => true },
+  { name: "naver", url: "https://searchadvisor.naver.com/indexnow", accept: (url) => !isHome(url) },
 ];
 const sentFile = (name) => fileURLToPath(new URL(`../../indexnow-sent-${name}.txt`, import.meta.url));
 const readSent = (name) => new Set(existsSync(sentFile(name)) ? readFileSync(sentFile(name), "utf8").split(/\r?\n/).filter(Boolean) : []);
@@ -50,7 +53,7 @@ if (!dry) {
 
 for (const endpoint of ENDPOINTS) {
   const sent = readSent(endpoint.name);
-  const urls = explicit.length ? explicit : all.filter((url) => !sent.has(url));
+  const urls = (explicit.length ? explicit : all.filter((url) => !sent.has(url))).filter(endpoint.accept);
   console.log(`[${endpoint.name}] 보낼 주소 ${urls.length}개 (이미 보낸 것 ${sent.size}개)`);
   if (dry || !urls.length) continue;
   let ok = true;
