@@ -1980,13 +1980,6 @@ main.tarot .generic-intro { min-height:auto; padding-bottom:64px; }
 .rp-sum b { font-size:19px; }
 
 /* 2026-10-14 리포트 104쪽 전체 샘플 카드(새 창) */
-.report-sample-cta { position:relative; display:grid; gap:6px; margin:14px 0; padding:18px 20px; border-radius:20px; text-decoration:none; color:#fff; background:linear-gradient(135deg,#3a2a7a,#5b3fb5 60%,#8a5fe0); box-shadow:0 12px 30px rgba(75,47,143,.32); overflow:hidden; }
-.report-sample-cta::after { content:""; position:absolute; top:0; bottom:0; width:70px; left:-100px; background:linear-gradient(100deg,transparent,rgba(255,255,255,.32),transparent); transform:skewX(-20deg); animation:report-float-shine 4.5s ease-in-out 1s infinite; pointer-events:none; }
-.report-sample-cta .rsc-badge { justify-self:start; padding:3px 10px; border-radius:99px; background:rgba(255,255,255,.18); color:#f1e9ff; font-size:12px; font-weight:800; }
-.report-sample-cta b { font-size:19px; line-height:1.35; letter-spacing:-.02em; }
-.report-sample-cta small { color:#e7dcff; font-size:13px; line-height:1.5; }
-.report-sample-cta i { justify-self:start; margin-top:4px; padding:11px 16px; border-radius:12px; background:#fff; color:#3a2a7a; font-style:normal; font-weight:900; font-size:15px; }
-@media (prefers-reduced-motion:reduce) { .report-sample-cta::after { animation:none; } }
 
 /* 2026-10-14 약관 동의: 미리 체크 + 눌러서 내용 보기 */
 .rp-form .rp-terms { display:grid; gap:8px; }

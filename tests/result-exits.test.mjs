@@ -124,7 +124,7 @@ test("MBTI 결과는 정보 먼저, 결제·홍보는 그 뒤(2026-10-15 순서 
     assert.ok(i >= 0, `${needle} 이 결과 화면에 있어야 한다`);
     return i;
   };
-  const order = ["<MoriPortrait", "<h1>", "<MoriShare", 'className="result-grid"', "<ReportTeaser", "<ReportSampleCta", 'className="mbti-deep-result"', "<GuessMePanel", "<MoriChatEntry", "<ForestEntry", "<MoriForestCard"];
+  const order = ["<MoriPortrait", "<h1>", "<MoriShare", 'className="result-grid"', "<ReportTeaser", 'className="mbti-deep-result"', "<GuessMePanel", "<MoriChatEntry", "<ForestEntry", "<MoriForestCard"];
   const pos = order.map(at);
   for (let i = 1; i < pos.length; i++) assert.ok(pos[i - 1] < pos[i], `${order[i - 1]} 가 ${order[i]} 보다 위여야 한다`);
   assert.ok(/<MoriShare[^>]*\bcompact\b/.test(body), "첫 화면 아래 공유판은 작은 판(compact)이다");

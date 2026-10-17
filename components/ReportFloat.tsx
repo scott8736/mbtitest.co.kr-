@@ -58,7 +58,7 @@ export default function ReportFloat() {
     <div className="report-float" role="complementary" aria-label="유료 리포트 안내">
       <a href={mine ? "/report/?from=float" : "/tests/mbti/"}>
         <b>📖 {mine ? `내 ${mine} 104쪽 리포트` : "무료 검사 → 유료 리포트"}</b>
-        <span>{mine ? "미리보기 6쪽 무료로 보기 →" : "내 점수로 만든 104쪽 안내서 →"}</span>
+        <span>{mine ? "미리보기 22쪽 무료로 보기 →" : "내 점수로 만든 104쪽 안내서 →"}</span>
       </a>
       <button type="button" onClick={close} aria-label="리포트 안내 닫기">×</button>
     </div>

@@ -33,7 +33,7 @@ export default function ReportCrossSell({ from, pageType }: { from: string; page
       ? `${pageType}라도 다 같지 않아요 — 내 점수로 만든 104쪽 안내서`
       : "결과 한 장 말고, 내 점수로 만든 104쪽 안내서";
   const sub = ready
-    ? "내 검사 점수 그대로 · 연애·일·돈·관계 11가지 주제 · 미리보기 6쪽 무료"
+    ? "내 검사 점수 그대로 · 연애·일·돈·관계 11가지 주제 · 미리보기 22쪽 무료"
     : "40문항 검사는 무료 · 검사를 마치면 내 성향 농도에 맞춘 유료 리포트를 미리 볼 수 있어요(일부 유형은 준비 중)";
 
   return (
@@ -46,7 +46,7 @@ export default function ReportCrossSell({ from, pageType }: { from: string; page
         <small>{sub}</small>
       </div>
       <Link className="report-xsell-button" href={href}>
-        {ready ? "미리보기 6쪽 보기" : "무료 검사부터 하기"} →
+        {ready ? "미리보기 22쪽 보기" : "무료 검사부터 하기"} →
       </Link>
     </aside>
   );

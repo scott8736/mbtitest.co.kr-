@@ -9,7 +9,6 @@ import ForestEntry, { MoriChatEntry } from "./ForestEntry";
 import { ForestInviteReturn } from "./OurForest";
 import { GuessMePanel } from "./GuessMe";
 import ReportTeaser from "./ReportTeaser";
-import ReportSampleCta from "./ReportSampleCta";
 import SajuLabBanner from "./SajuLabBanner";
 import { questions, typeData, typeDetails, type Axis } from "../lib/mbti-data";
 import { onResultLinkClick, recordCompletionOnce, recordResultClick, recordTestEvent } from "../lib/test-events";
@@ -113,8 +112,7 @@ export default function MbtiResult() {
       {/* 유료 리포트 카드: 무료 결과(지표·강점·주의)를 다 읽은 바로 뒤. 10-03~07 아래에 있을 때 노출 44%·결제 3건,
           10-08 2.4화면으로 올린 뒤 노출 52%·결제 0건 — 위에 둘수록 팔린다는 근거는 없었습니다. */}
       <ReportTeaser code={result} scores={stored?.scores} showMori={false} />
-      {/* 104쪽 전체 샘플(2026-10-14): 미리보기 6쪽보다 실물 전체를 넘겨 볼 때 결제 마음이 커집니다. 새 창으로 엽니다. */}
-      <ReportSampleCta code={result} />
+      {/* 104쪽 전체 샘플 링크는 2026-10-18 뺐습니다(사용자: 흐린 미리보기가 있는데 전부 보여 주면 의미가 없다). */}
       <div className="mbti-deep-result">
         {DEEP.map(([tag, title, key, chapter, from]) => (
           <article key={tag}>

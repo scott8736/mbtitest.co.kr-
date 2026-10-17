@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import ReportBuy, { ReportPreview } from "../../components/ReportBuy";
 import SiteFooter from "../../components/SiteFooter";
-import ReportSampleCta from "../../components/ReportSampleCta";
 import { REPORT_PRODUCT } from "../../lib/report-config";
 
 export const metadata: Metadata = {
@@ -44,12 +43,11 @@ export default function ReportPage() {
         </p>
 
         {/* 맨 위 가격·결제 박스는 2026-10-14 사용자 요청으로 뺐습니다. 가격은 주문 폼 버튼에 보입니다. */}
-        {/* 104쪽 전체 샘플(2026-10-14): 미리보기 6쪽 위에서 먼저 실물 전체를 보여 줍니다. 새 창으로 엽니다. */}
-        <ReportSampleCta />
+        {/* 104쪽 전체 샘플 링크는 2026-10-18 뺐습니다(흐린 미리보기와 겹침). */}
 
         {/* 무료 미리보기 6쪽을 맨 위에(2026-10-04 사용자 요청). 아래 주문까지 내려가기 전에 실물을 먼저 보여 줍니다. */}
         <ReportPreview />
-        <p className="rp-muted">무료 미리보기 6쪽 · 견본 이름 「하늘」 · 내 유형·점수로 만들어지는 나머지 쪽은 결제 후에 열립니다.</p>
+        <p className="rp-muted">무료 미리보기 22쪽(10쪽 전체 · 12쪽 일부) · 견본 이름 「하늘」 · 내 유형·점수로 만들어지는 나머지 쪽은 결제 후에 열립니다.</p>
 
         <h2>들어 있는 것</h2>
         <ol className="rp-chapters">
