@@ -7,6 +7,7 @@
  * 2026-10-14: 표지 이름은 랜덤으로 미리 채우고, 약관 동의는 미리 체크해 두고 눌러서 내용을 봅니다.
  * 판매 페이지 안 단계 기록(2026-10-08): 결과 있음/없음 → 폼 봄 → 입력 시작 → 결제 버튼 → 오류. 관리자 깔때기 표 아래 줄에 나옵니다.
  */
+import { teaserSlides, type TeaserMeta } from "../lib/report-teaser";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { questions, typeData, type Axis } from "../lib/mbti-data";
@@ -230,20 +231,19 @@ export function ReportPreview() {
   const [open, setOpen] = useState<number | null>(null);
   const strip = useRef<HTMLDivElement>(null);
   // 2026-10-18 흐린 미리보기(결과 화면 카드와 같은 21쪽: 선명 9 + 군데군데 가린 12, 표지 제외). 쪽 정보를 못 받으면 예전 6쪽.
-  const [teaser, setTeaser] = useState<{ type: string; clear: number[]; half: number[] } | null>(null);
+  const [teaser, setTeaser] = useState<{ type: string; meta: TeaserMeta } | null>(null);
   useEffect(() => {
     let alive = true;
     fetch(`/report-app/teaser/${type}.json`)
       .then((r) => (r.ok ? r.json() : null))
-      .then((j) => { if (alive && j && Array.isArray(j.clear) && Array.isArray(j.half)) setTeaser({ type, clear: j.clear, half: j.half }); })
+      .then((j) => { if (alive && j && Array.isArray(j.clear) && Array.isArray(j.half)) setTeaser({ type, meta: j as TeaserMeta }); })
       .catch(() => {});
     return () => { alive = false; };
   }, [type]);
-  const items: { n: number; src: string; half: boolean }[] = teaser && teaser.type === type
-    ? [...teaser.clear.map((n) => ({ n, half: false })), ...teaser.half.map((n) => ({ n, half: true }))]
-        .sort((a, b) => a.n - b.n)
-        .map(({ n, half }) => ({ n, half, src: `/report-app/teaser/${type}/${half ? "h" : "c"}${n}.webp` }))
-    : PREVIEW_PAGES.map((n) => ({ n, half: false, src: `/report-app/preview/${type}-${n}.jpg` }));
+  // 장마다 샘플(목차별, 사주 견본 포함) — 결과 화면 카드와 같은 목록(lib/report-teaser.ts)
+  const items: { n: number; src: string; half: boolean; label: string }[] = teaser && teaser.type === type
+    ? teaserSlides(type, teaser.meta).map((x) => ({ n: x.n, src: x.src, half: x.kind !== "clear", label: x.label }))
+    : PREVIEW_PAGES.map((n) => ({ n, half: false, label: "", src: `/report-app/preview/${type}-${n}.jpg` }));
   useEffect(() => {
     const id = setTimeout(() => {
       const parsed = readStored();
@@ -288,10 +288,11 @@ export function ReportPreview() {
       <div className="rp-preview-box">
         <div className="rp-preview" ref={strip} onScroll={onScroll}>
           {items.map((it, i) => (
-            <button type="button" key={it.src} onClick={() => setOpen(i)} aria-label={`미리보기 ${it.n}쪽 크게 보기`} className={it.half ? "is-half" : undefined}>
+            <button type="button" key={it.src} onClick={() => setOpen(i)} aria-label={`미리보기 ${it.label || `${it.n}쪽`} 크게 보기`} className={it.label ? "is-half" : undefined}>
               {/* eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기(output: export)라 next/image 최적화를 쓰지 않습니다 */}
               <img src={it.src} alt={`${type} 리포트 미리보기 ${it.n}쪽${it.half ? "(일부 가림)" : ""}`} loading="lazy" onError={fallback} />
-              {it.half ? <span className="rp-lock">🔒 나머지는 결제 후</span> : null}
+              {it.label ? <span className="rp-chap">{it.label}</span> : null}
+              {it.half ? <span className="rp-lock">🔒 여기서부터가 진짜예요</span> : null}
             </button>
           ))}
         </div>

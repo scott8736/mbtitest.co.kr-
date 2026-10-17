@@ -7,6 +7,7 @@ import { recordTestEventOnce } from "../lib/test-events";
 import { moriImage } from "../lib/mori";
 import { MORI_WORLD } from "../lib/mori-world";
 import { REPORT_READY_TYPES } from "../report/content/ready";
+import { SAJU_CHAPTER, SAJU_LABEL, chapterLabel, teaserSlides, type TeaserMeta } from "../lib/report-teaser";
 
 /**
  * 유료 리포트 「MBTI 유형 마음숲 안내서」 안내 카드.
@@ -45,11 +46,8 @@ const band = (pct: number) => (pct <= 60 ? "거의 반반" : pct <= 79 ? "분명
 /** 리포트 미리보기 쪽 그림. 3쪽은 견본 점수 쪽이라 빼고, 맨 앞에 내 점수 쪽을 그립니다. */
 const PAGES = [1, 2, 5, 4, 6];
 
-/** render_teaser.py 가 만든 쪽 정보(본문 없음). */
-type TeaserMeta = { total: number; cols: number; clear: number[]; half: number[]; scores?: number; chapters: { n: number; no: string; title: string }[] };
-
 /** 104쪽 흐린 격자. 장마다 한 줄, 쪽은 rest.webp 한 장에서 잘라 씁니다(요청 1번). */
-function BlurGrid({ code, meta, slug }: { code: string; meta: TeaserMeta; slug: string }) {
+function BlurGrid({ code, meta, slug, onJump }: { code: string; meta: TeaserMeta; slug: string; onJump: (chapter: number) => void }) {
   const ref = useRef<HTMLAnchorElement>(null);
   const [show, setShow] = useState(false);
   useEffect(() => {
@@ -86,8 +84,10 @@ function BlurGrid({ code, meta, slug }: { code: string; meta: TeaserMeta; slug: 
   });
 
   // 휴대폰 한 화면 안에 들어가게: 104칸을 촘촘한 한 덩어리로, 장 이름은 아래 칩으로(2026-10-18 장별 줄은 2,500px 라 접음).
+  // 목차 칩을 누르면 위 띠가 그 장의 샘플로 넘어갑니다(2026-10-18 목차별 샘플). 칩은 링크 밖에 둡니다.
   return (
-    <Link ref={ref} href="/report/?from=result-blur-grid" className="rt-grid" onClick={() => recordTestEventOnce(slug, "report_blur_tap")}>
+    <div className="rt-grid">
+    <Link ref={ref} href="/report/?from=result-blur-grid" className="rt-grid-link" onClick={() => recordTestEventOnce(slug, "report_blur_tap")}>
       <div className="rt-grid-head">
         <b>전체 {meta.total}쪽 한눈에</b>
         <span>테두리 {seen.size}쪽은 위에서 미리 봤고, 흐린 {locked}쪽은 결제하면 내 이름·점수로 열려요</span>
@@ -97,16 +97,24 @@ function BlurGrid({ code, meta, slug }: { code: string; meta: TeaserMeta; slug: 
           <span key={p} className={seen.has(p) ? "is-seen" : undefined} style={show ? tile(p) : undefined} />
         ))}
       </div>
+    </Link>
+      <p className="rt-grid-hint">👇 장을 누르면 그 장 샘플을 위에서 보여 드려요</p>
       <ul className="rt-grid-chapters">
         {rows.filter((r) => r.no).map((r) => (
           <li key={r.n}>
-            <i>{r.no}</i>
-            {r.title}
-            {r.locked ? <small>🔒{r.locked}</small> : null}
+            <button type="button" onClick={() => onJump(r.n)}>
+              {chapterLabel(r)}
+              {r.locked ? <small>🔒{r.locked}</small> : null}
+            </button>
           </li>
         ))}
+        {meta.saju ? (
+          <li>
+            <button type="button" onClick={() => onJump(SAJU_CHAPTER)}>{SAJU_LABEL}</button>
+          </li>
+        ) : null}
       </ul>
-    </Link>
+    </div>
   );
 }
 
@@ -155,9 +163,19 @@ export default function ReportTeaser({ code, slug = "mbti", scores, showMori = t
 
   // 띠에 들어갈 쪽(책 순서). 내 점수가 있으면 견본 점수 쪽(MY SCORES) 자리에 내 점수 쪽을 그립니다.
   const scoresPage = meta?.scores ?? meta?.clear[3];
-  const slides = meta
-    ? [...meta.clear.map((n) => ({ n, half: false })), ...meta.half.map((n) => ({ n, half: true }))].sort((a, b) => a.n - b.n)
-    : [];
+  const slides = meta ? teaserSlides(code, meta) : [];
+  const lockedCount = meta ? meta.total - meta.clear.length - meta.half.length : 0;
+  // 목차 칩 → 띠를 그 장 첫 샘플로 넘기고, 띠가 화면에 보이게 올립니다.
+  const jump = (chapter: number) => {
+    const el = strip.current;
+    const i = slides.findIndex((x) => x.chapter === chapter);
+    const card = el?.children[i] as HTMLElement | undefined;
+    if (!el || !card) return;
+    el.scrollTo({ left: card.offsetLeft - el.offsetLeft, behavior: "smooth" });
+    // 상단 고정 메뉴(약 64px)에 가리지 않게 여백을 두고 올립니다.
+    const top = (el.parentElement ?? el).getBoundingClientRect().top + window.scrollY - 76;
+    window.scrollTo({ top, behavior: "smooth" });
+  };
   const says = MORI_WORLD[code]?.says ?? "";
 
   // 카드가 화면에 절반 이상 들어왔을 때 한 번 셉니다. 클릭이 적을 때
@@ -248,23 +266,27 @@ export default function ReportTeaser({ code, slug = "mbti", scores, showMori = t
       {ready ? (
         <div className="rt-strip-wrap">
           <div className="rt-strip-bar">
-            <span>{meta ? `👉 넘겨 보세요 · ${slides.length}쪽 미리보기` : "👉 옆으로 넘겨 보세요 · 내 점수로 만든 쪽부터"}</span>
+            <span>{meta ? `👉 넘겨 보세요 · 장마다 샘플 ${slides.length}쪽` : "👉 옆으로 넘겨 보세요 · 내 점수로 만든 쪽부터"}</span>
             <b>{at + 1} / {total}</b>
           </div>
           {meta ? (
             <div className="rt-strip" ref={strip} onScroll={onScroll}>
-              {slides.map(({ n, half }) =>
-                n === scoresPage && scores ? (
-                  <MyScoresPage key={n} code={code} scores={scores} />
-                ) : half ? (
-                  <Link key={n} href="/report/?from=result-blur-page" className="rt-half" onClick={() => recordTestEventOnce(slug, "report_blur_tap")}>
+              {slides.map((x) =>
+                x.n === scoresPage && scores ? (
+                  <MyScoresPage key={x.key} code={code} scores={scores} />
+                ) : x.kind === "clear" ? (
+                  <div key={x.key} className="rt-page">
                     {/* eslint-disable-next-line @next/next/no-img-element -- 위와 같음 */}
-                    <img src={`/report-app/teaser/${code}/h${n}.webp`} alt={`${code} 리포트 ${n}쪽 일부 미리보기`} loading="lazy" decoding="async" />
-                    <span className="rt-lock">🔒 나머지는 리포트에서</span>
-                  </Link>
+                    <img src={x.src} alt={`${code} 리포트 ${x.n}쪽 미리보기`} loading="lazy" decoding="async" />
+                    <span className="rt-chap">{x.label}</span>
+                  </div>
                 ) : (
-                  // eslint-disable-next-line @next/next/no-img-element -- 위와 같음
-                  <img key={n} src={`/report-app/teaser/${code}/c${n}.webp`} alt={`${code} 리포트 ${n}쪽 미리보기`} loading="lazy" decoding="async" />
+                  <Link key={x.key} href="/report/?from=result-blur-page" className="rt-page rt-half" onClick={() => recordTestEventOnce(slug, "report_blur_tap")}>
+                    {/* eslint-disable-next-line @next/next/no-img-element -- 위와 같음 */}
+                    <img src={x.src} alt={x.kind === "saju" ? `${code} 리포트 사주 장 견본 일부` : `${code} 리포트 ${x.n}쪽 일부 미리보기`} loading="lazy" decoding="async" />
+                    <span className="rt-chap">{x.label}</span>
+                    <span className="rt-lock">🔒 여기서부터가 진짜예요</span>
+                  </Link>
                 ),
               )}
             </div>
@@ -278,13 +300,13 @@ export default function ReportTeaser({ code, slug = "mbti", scores, showMori = t
             </div>
           )}
           {meta ? <p className="rt-sample-note">미리보기는 견본(이름 「하늘」)이에요. 실제 리포트는 내 이름과 방금 나온 점수로 만들어져요.</p> : null}
-          {meta ? <BlurGrid code={code} meta={meta} slug={slug} /> : null}
+          {meta ? <BlurGrid code={code} meta={meta} slug={slug} onJump={jump} /> : null}
         </div>
       ) : null}
       <div className="report-teaser-buy">
         {ready ? (
           <Link href="/report/?from=result-card" className="primary-button" onClick={() => recordTestEventOnce(slug, "report_click")}>
-            {meta ? `가려진 ${meta.total - slides.length}쪽까지 열어 보기` : "내 104쪽 리포트 미리보기"} <span>→</span>
+            {meta ? `가려진 ${lockedCount}쪽까지 열어 보기` : "내 104쪽 리포트 미리보기"} <span>→</span>
           </Link>
         ) : (
           <p className="report-teaser-soon" role="status">

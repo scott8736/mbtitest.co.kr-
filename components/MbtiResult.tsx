@@ -118,7 +118,7 @@ export default function MbtiResult() {
           <article key={tag}>
             <span>{tag}</span><h2>{title}</h2><p>{typeDetails[result][key]}</p>
             {/* 장마다 「더 궁금하면」 한 줄. 장 이름은 /report/ 목차(app/report/page.tsx TOPICS)에 실제로 있는 것만 씁니다. */}
-            {reportReady ? <a className="deep-more" href={`/report/?from=${from}`} onClick={() => recordResultClick("mbti-report-bridge")}>더 깊게: 유료 리포트 「{chapter}」 장 →</a> : null}
+            {reportReady ? <a className="deep-more" href={`/report/?from=${from}`} onClick={() => recordResultClick("mbti-report-bridge")}>더 깊게: 「{chapter}」 장 →</a> : null}
           </article>
         ))}
       </div>
