@@ -37,6 +37,8 @@ const KNOWN_NAMES = new Set([
   "report_seen",
   "report_click",
   "report_peek",
+  "report_blur_seen",
+  "report_blur_tap",
   "report_follow",
   "report_step",
   "saju_seen",

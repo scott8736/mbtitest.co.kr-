@@ -22,6 +22,10 @@ import { REPORT_READY_TYPES } from "../report/content/ready";
  * 정지 그림 3장을 옆으로 넘기는 6쪽 띠로 바꾸고, 맨 앞 쪽은 방금 검사한 사람의 실제 점수로 그린 「나의 네 가지 성향」
  * (리포트 MY SCORES 쪽과 같은 단계 규칙: 60 이하 거의 반반 · 61~79 분명한 편 · 80 이상 아주 뚜렷)입니다.
  * 둘째 쪽 이상 넘겨 본 사람을 report_peek 으로 셉니다.
+ *
+ * 2026-10-18 흐린 미리보기: 띠를 22쪽(선명 10 + 군데군데 가린 12)으로 늘리고, 아래에 104쪽 전체를 장별 흐린 격자로 보여 줍니다.
+ * 그림은 public/report-app/teaser/ (리포트_디자인/render_teaser.py 가 운영 열람 화면을 찍어 픽셀에서 흐림 — 가린 글은 글자로 실리지 않음).
+ * 격자가 보이면 report_blur_seen, 가린 쪽·격자를 누르면 report_blur_tap 을 셉니다.
  */
 
 const HOOKS = [
@@ -40,6 +44,71 @@ const AXES: [Axis, string, string, string, string, string][] = [
 const band = (pct: number) => (pct <= 60 ? "거의 반반" : pct <= 79 ? "분명한 편" : "아주 뚜렷");
 /** 리포트 미리보기 쪽 그림. 3쪽은 견본 점수 쪽이라 빼고, 맨 앞에 내 점수 쪽을 그립니다. */
 const PAGES = [1, 2, 5, 4, 6];
+
+/** render_teaser.py 가 만든 쪽 정보(본문 없음). */
+type TeaserMeta = { total: number; cols: number; clear: number[]; half: number[]; chapters: { n: number; no: string; title: string }[] };
+
+/** 104쪽 흐린 격자. 장마다 한 줄, 쪽은 rest.webp 한 장에서 잘라 씁니다(요청 1번). */
+function BlurGrid({ code, meta, slug }: { code: string; meta: TeaserMeta; slug: string }) {
+  const ref = useRef<HTMLAnchorElement>(null);
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node || typeof IntersectionObserver === "undefined") return setShow(true);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        setShow(true);
+        recordTestEventOnce(slug, "report_blur_seen");
+        observer.disconnect();
+      },
+      { rootMargin: "300px 0px", threshold: 0 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [slug]);
+
+  const seen = new Set([...meta.clear, ...meta.half]);
+  const starts = [{ n: 1, no: "", title: "표지 · 차례" }, ...meta.chapters];
+  const rows = starts.map((c, i) => {
+    const end = (starts[i + 1]?.n ?? meta.total + 1) - 1;
+    const pages = Array.from({ length: end - c.n + 1 }, (_, k) => c.n + k);
+    return { ...c, pages, locked: pages.filter((p) => !seen.has(p)).length };
+  });
+  const locked = meta.total - seen.size;
+  const sheet = `/report-app/teaser/${code}/rest.webp`;
+
+  const sheetRows = Math.ceil(meta.total / meta.cols);
+  const tile = (p: number) => ({
+    backgroundImage: `url(${sheet})`,
+    backgroundSize: `${meta.cols * 100}% ${sheetRows * 100}%`,
+    backgroundPosition: `${(((p - 1) % meta.cols) / (meta.cols - 1)) * 100}% ${(Math.floor((p - 1) / meta.cols) / Math.max(1, sheetRows - 1)) * 100}%`,
+  });
+
+  // 휴대폰 한 화면 안에 들어가게: 104칸을 촘촘한 한 덩어리로, 장 이름은 아래 칩으로(2026-10-18 장별 줄은 2,500px 라 접음).
+  return (
+    <Link ref={ref} href="/report/?from=result-blur-grid" className="rt-grid" onClick={() => recordTestEventOnce(slug, "report_blur_tap")}>
+      <div className="rt-grid-head">
+        <b>전체 {meta.total}쪽 한눈에</b>
+        <span>테두리 {seen.size}쪽은 위에서 미리 봤고, 흐린 {locked}쪽은 결제하면 내 이름·점수로 열려요</span>
+      </div>
+      <div className="rt-grid-wall" aria-hidden="true">
+        {Array.from({ length: meta.total }, (_, k) => k + 1).map((p) => (
+          <span key={p} className={seen.has(p) ? "is-seen" : undefined} style={show ? tile(p) : undefined} />
+        ))}
+      </div>
+      <ul className="rt-grid-chapters">
+        {rows.filter((r) => r.no).map((r) => (
+          <li key={r.n}>
+            <i>{r.no}</i>
+            {r.title}
+            {r.locked ? <small>🔒{r.locked}</small> : null}
+          </li>
+        ))}
+      </ul>
+    </Link>
+  );
+}
 
 function MyScoresPage({ code, scores }: { code: string; scores: Record<Axis, number> }) {
   return (
@@ -71,6 +140,24 @@ export default function ReportTeaser({ code, slug = "mbti", scores, showMori = t
   const [at, setAt] = useState(0);
   const peeked = useRef(false);
   const ready = REPORT_READY_TYPES.includes(code);
+  const [meta, setMeta] = useState<TeaserMeta | null>(null);
+
+  // 흐린 미리보기 쪽 정보. 못 받으면 예전 6쪽 띠를 그대로 씁니다.
+  useEffect(() => {
+    if (!ready) return;
+    let alive = true;
+    fetch(`/report-app/teaser/${code}.json`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j: TeaserMeta | null) => { if (alive && j && Array.isArray(j.clear) && Array.isArray(j.half)) setMeta(j); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [code, ready]);
+
+  // 띠에 들어갈 쪽(책 순서). 내 점수가 있으면 견본 점수 쪽(MY SCORES) 자리에 내 점수 쪽을 그립니다.
+  const scoresPage = meta?.clear[3];
+  const slides = meta
+    ? [...meta.clear.map((n) => ({ n, half: false })), ...meta.half.map((n) => ({ n, half: true }))].sort((a, b) => a.n - b.n)
+    : [];
   const says = MORI_WORLD[code]?.says ?? "";
 
   // 카드가 화면에 절반 이상 들어왔을 때 한 번 셉니다. 클릭이 적을 때
@@ -114,7 +201,7 @@ export default function ReportTeaser({ code, slug = "mbti", scores, showMori = t
     return () => observer.disconnect();
   }, []);
 
-  const total = PAGES.length + (scores ? 1 : 0);
+  const total = meta ? slides.length : PAGES.length + (scores ? 1 : 0);
   const onScroll = () => {
     const el = strip.current;
     const first = el?.children[0] as HTMLElement | undefined;
@@ -161,22 +248,43 @@ export default function ReportTeaser({ code, slug = "mbti", scores, showMori = t
       {ready ? (
         <div className="rt-strip-wrap">
           <div className="rt-strip-bar">
-            <span>👉 옆으로 넘겨 보세요 · 내 점수로 만든 쪽부터</span>
+            <span>{meta ? `👉 넘겨 보세요 · ${slides.length}쪽 미리보기` : "👉 옆으로 넘겨 보세요 · 내 점수로 만든 쪽부터"}</span>
             <b>{at + 1} / {total}</b>
           </div>
-          <div className="rt-strip" ref={strip} onScroll={onScroll}>
-            {scores ? <MyScoresPage code={code} scores={scores} /> : null}
-            {PAGES.map((n) => (
-              // eslint-disable-next-line @next/next/no-img-element -- 위와 같음
-              <img key={n} src={`/report-app/preview/${code}-${n}.jpg`} alt={`${code} 리포트 미리보기`} loading="lazy" />
-            ))}
-          </div>
+          {meta ? (
+            <div className="rt-strip" ref={strip} onScroll={onScroll}>
+              {slides.map(({ n, half }) =>
+                n === scoresPage && scores ? (
+                  <MyScoresPage key={n} code={code} scores={scores} />
+                ) : half ? (
+                  <Link key={n} href="/report/?from=result-blur-page" className="rt-half" onClick={() => recordTestEventOnce(slug, "report_blur_tap")}>
+                    {/* eslint-disable-next-line @next/next/no-img-element -- 위와 같음 */}
+                    <img src={`/report-app/teaser/${code}/h${n}.webp`} alt={`${code} 리포트 ${n}쪽 일부 미리보기`} loading="lazy" decoding="async" />
+                    <span className="rt-lock">🔒 나머지는 리포트에서</span>
+                  </Link>
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element -- 위와 같음
+                  <img key={n} src={`/report-app/teaser/${code}/c${n}.webp`} alt={`${code} 리포트 ${n}쪽 미리보기`} loading="lazy" decoding="async" />
+                ),
+              )}
+            </div>
+          ) : (
+            <div className="rt-strip" ref={strip} onScroll={onScroll}>
+              {scores ? <MyScoresPage code={code} scores={scores} /> : null}
+              {PAGES.map((n) => (
+                // eslint-disable-next-line @next/next/no-img-element -- 위와 같음
+                <img key={n} src={`/report-app/preview/${code}-${n}.jpg`} alt={`${code} 리포트 미리보기`} loading="lazy" />
+              ))}
+            </div>
+          )}
+          {meta ? <p className="rt-sample-note">미리보기는 견본(이름 「하늘」)이에요. 실제 리포트는 내 이름과 방금 나온 점수로 만들어져요.</p> : null}
+          {meta ? <BlurGrid code={code} meta={meta} slug={slug} /> : null}
         </div>
       ) : null}
       <div className="report-teaser-buy">
         {ready ? (
           <Link href="/report/?from=result-card" className="primary-button" onClick={() => recordTestEventOnce(slug, "report_click")}>
-            내 104쪽 리포트 미리보기 <span>→</span>
+            {meta ? `가려진 ${meta.total - slides.length}쪽까지 열어 보기` : "내 104쪽 리포트 미리보기"} <span>→</span>
           </Link>
         ) : (
           <p className="report-teaser-soon" role="status">

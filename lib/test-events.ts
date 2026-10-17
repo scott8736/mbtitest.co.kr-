@@ -44,6 +44,9 @@ export type TestEventName =
   | "report_click"
   // 결과 카드 미리보기 띠를 둘째 쪽 이상 넘겨 본 사람(2026-10-06~). 클릭 없이 관심을 잽니다.
   | "report_peek"
+  // 흐린 미리보기(2026-10-18~): 104쪽 격자가 보임 / 가린 쪽·격자를 누름
+  | "report_blur_seen"
+  | "report_blur_tap"
   | "report_follow"
   // 판매 페이지 안 단계(2026-10-08~): slug 자리에 REPORT_STEP_KEYS 중 하나
   | "report_step"

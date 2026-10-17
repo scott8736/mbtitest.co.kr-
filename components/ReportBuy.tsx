@@ -224,6 +224,21 @@ export function ReportPreview() {
   const [at, setAt] = useState(0);
   const [open, setOpen] = useState<number | null>(null);
   const strip = useRef<HTMLDivElement>(null);
+  // 2026-10-18 흐린 미리보기(결과 화면 카드와 같은 22쪽: 선명 10 + 군데군데 가린 12). 쪽 정보를 못 받으면 예전 6쪽.
+  const [teaser, setTeaser] = useState<{ type: string; clear: number[]; half: number[] } | null>(null);
+  useEffect(() => {
+    let alive = true;
+    fetch(`/report-app/teaser/${type}.json`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => { if (alive && j && Array.isArray(j.clear) && Array.isArray(j.half)) setTeaser({ type, clear: j.clear, half: j.half }); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [type]);
+  const items: { n: number; src: string; half: boolean }[] = teaser && teaser.type === type
+    ? [...teaser.clear.map((n) => ({ n, half: false })), ...teaser.half.map((n) => ({ n, half: true }))]
+        .sort((a, b) => a.n - b.n)
+        .map(({ n, half }) => ({ n, half, src: `/report-app/teaser/${type}/${half ? "h" : "c"}${n}.webp` }))
+    : PREVIEW_PAGES.map((n) => ({ n, half: false, src: `/report-app/preview/${type}-${n}.jpg` }));
   useEffect(() => {
     const id = setTimeout(() => {
       const parsed = readStored();
@@ -235,17 +250,16 @@ export function ReportPreview() {
     if (open === null) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(null);
-      if (e.key === "ArrowRight") setOpen((n) => (n === null ? n : Math.min(n + 1, PREVIEW_PAGES.length - 1)));
+      if (e.key === "ArrowRight") setOpen((n) => (n === null ? n : Math.min(n + 1, items.length - 1)));
       if (e.key === "ArrowLeft") setOpen((n) => (n === null ? n : Math.max(n - 1, 0)));
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
+  }, [open, items.length]);
 
-  const src = (n: number) => `/report-app/preview/${type}-${n}.jpg`;
-  const fallback = (n: number) => (e: React.SyntheticEvent<HTMLImageElement>) => {
+  const fallback = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
-    if (!img.src.includes("/INFP-")) img.src = `/report-app/preview/INFP-${n}.jpg`;
+    if (!img.src.includes("INFP")) img.src = img.src.replace(`/${type}/`, "/INFP/").replace(`/${type}-`, "/INFP-");
   };
   const go = (i: number) => {
     const el = strip.current;
@@ -256,7 +270,7 @@ export function ReportPreview() {
     const el = strip.current;
     const first = el?.children[0] as HTMLElement | undefined;
     if (!el || !first) return;
-    setAt(Math.min(PREVIEW_PAGES.length - 1, Math.round(el.scrollLeft / (first.offsetWidth + 10))));
+    setAt(Math.min(items.length - 1, Math.round(el.scrollLeft / (first.offsetWidth + 10))));
   };
 
   return (
@@ -264,33 +278,34 @@ export function ReportPreview() {
       <div className="rp-preview-bar">
         <span className="rp-hint-m">👉 옆으로 넘겨 보세요 · 누르면 크게 보여요</span>
         <span className="rp-hint-d">👉 쪽을 누르면 크게 보여요</span>
-        <b>{at + 1} / {PREVIEW_PAGES.length}</b>
+        <b>{at + 1} / {items.length}</b>
       </div>
       <div className="rp-preview-box">
         <div className="rp-preview" ref={strip} onScroll={onScroll}>
-          {PREVIEW_PAGES.map((n, i) => (
-            <button type="button" key={`${type}-${n}`} onClick={() => setOpen(i)} aria-label={`미리보기 ${n}쪽 크게 보기`}>
+          {items.map((it, i) => (
+            <button type="button" key={it.src} onClick={() => setOpen(i)} aria-label={`미리보기 ${it.n}쪽 크게 보기`} className={it.half ? "is-half" : undefined}>
               {/* eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기(output: export)라 next/image 최적화를 쓰지 않습니다 */}
-              <img src={src(n)} alt={`${type} 리포트 미리보기 ${n}쪽`} loading="lazy" onError={fallback(n)} />
+              <img src={it.src} alt={`${type} 리포트 미리보기 ${it.n}쪽${it.half ? "(일부 가림)" : ""}`} loading="lazy" onError={fallback} />
+              {it.half ? <span className="rp-lock">🔒 나머지는 결제 후</span> : null}
             </button>
           ))}
         </div>
         {at > 0 ? <button type="button" className="rp-preview-arrow is-prev" onClick={() => go(at - 1)} aria-label="이전 쪽">‹</button> : null}
-        {at < PREVIEW_PAGES.length - 1 ? <button type="button" className="rp-preview-arrow is-next" onClick={() => go(at + 1)} aria-label="다음 쪽">›</button> : null}
+        {at < items.length - 1 ? <button type="button" className="rp-preview-arrow is-next" onClick={() => go(at + 1)} aria-label="다음 쪽">›</button> : null}
       </div>
       <div className="rp-preview-dots" aria-hidden="true">
-        {PREVIEW_PAGES.map((n, i) => <i key={n} className={i === at ? "on" : ""} />)}
+        {items.length <= 8 ? items.map((it, i) => <i key={it.n} className={i === at ? "on" : ""} />) : null}
       </div>
 
       {open !== null ? (
         <div className="rp-lightbox" role="dialog" aria-modal="true" aria-label="미리보기 크게 보기" onClick={() => setOpen(null)}>
           <div className="rp-lightbox-in" onClick={(e) => e.stopPropagation()}>
             {/* eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기(output: export)라 next/image 최적화를 쓰지 않습니다 */}
-            <img src={src(PREVIEW_PAGES[open])} alt={`${type} 리포트 미리보기 ${PREVIEW_PAGES[open]}쪽`} onError={fallback(PREVIEW_PAGES[open])} />
+            <img src={items[open].src} alt={`${type} 리포트 미리보기 ${items[open].n}쪽`} onError={fallback} />
             <div className="rp-lightbox-nav">
               <button type="button" onClick={() => setOpen(Math.max(open - 1, 0))} disabled={open === 0}>‹ 이전</button>
-              <b>{open + 1} / {PREVIEW_PAGES.length}</b>
-              <button type="button" onClick={() => setOpen(Math.min(open + 1, PREVIEW_PAGES.length - 1))} disabled={open === PREVIEW_PAGES.length - 1}>다음 ›</button>
+              <b>{open + 1} / {items.length}</b>
+              <button type="button" onClick={() => setOpen(Math.min(open + 1, items.length - 1))} disabled={open === items.length - 1}>다음 ›</button>
             </div>
             <button type="button" className="rp-lightbox-close" onClick={() => setOpen(null)} aria-label="닫기">×</button>
           </div>
