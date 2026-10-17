@@ -307,7 +307,11 @@ export function ReportPreview() {
         <div className="rp-lightbox" role="dialog" aria-modal="true" aria-label="미리보기 크게 보기" onClick={() => setOpen(null)}>
           <div className="rp-lightbox-in" onClick={(e) => e.stopPropagation()}>
             {/* eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기(output: export)라 next/image 최적화를 쓰지 않습니다 */}
-            <img src={items[open].src} alt={`${type} 리포트 미리보기 ${items[open].n}쪽`} onError={fallback} />
+            <div className="rp-lightbox-page">
+              <img src={items[open].src} alt={`${type} 리포트 미리보기 ${items[open].n}쪽`} onError={fallback} />
+              {/* 크게 본 쪽 아래 가운데에서 바로 주문 칸으로(2026-10-18 사용자). 누름은 report_blur_tap 으로 셉니다. */}
+              <a className="rp-lightbox-buy" href="#order" onClick={() => { recordTestEventOnce("mbti", "report_blur_tap"); setOpen(null); }}>결제하러 가기 →</a>
+            </div>
             <div className="rp-lightbox-nav">
               <button type="button" onClick={() => setOpen(Math.max(open - 1, 0))} disabled={open === 0}>‹ 이전</button>
               <b>{open + 1} / {items.length}</b>
