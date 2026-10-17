@@ -12,6 +12,7 @@ import { chatRec } from "../lib/mori-chat-recs";
 import { readSetting, writeSetting } from "./naver";
 import { chatOpen, createPassOrder, ensureChatSchema, forgetQaCache, FREE_PAID_FALLBACK_PER_DAY, passSalesOpen, relayConfig } from "./mori-chat";
 import { logEvent, newToken, payappKeys } from "./report";
+import { directSend } from "./pay-alert";
 
 /** 처리한 POST 면 돌아갈 주소, 아니면 null. */
 export async function moriChatAdminPost(path: string, form: FormData, db: D1Database): Promise<string | null> {
@@ -73,7 +74,7 @@ export async function moriChatAdminPost(path: string, form: FormData, db: D1Data
     if (!keys.linkkey || !keys.linkval) return "/admin/report/?err=keys#mori-chat";
     const phone = val("phone").replace(/\D/g, "");
     if (!/^01[016789]\d{7,8}$/.test(phone)) return "/admin/report/?err=test#mori-chat";
-    const made = await createPassOrder(db, { phone, test: true, price: REPORT_TEST_PRICE });
+    const made = await createPassOrder(db, { phone, test: true, price: REPORT_TEST_PRICE, alert: directSend(db) });
     if (!made.ok) return "/admin/report/?err=pay#mori-chat";
     return `/admin/report/?chatpay=${made.token}#mori-chat`;
   }

@@ -22,6 +22,7 @@ import { findTelegramChatId, sendTelegram, telegramConfig, TELEGRAM_TOKEN_RE } f
 import { SOURCE_LABELS } from "../lib/analytics";
 import { moriChatAdminBox, moriChatAdminPost } from "./mori-chat-admin";
 import { createOrder, ensureReportSchema, logEvent, payappKeys, payappPost, salesOpen, type OrderRow } from "./report";
+import { directSend, payAlert } from "./pay-alert";
 
 type Helpers = {
   esc: (v: unknown) => string;
@@ -145,7 +146,7 @@ export async function handleReportAdmin(request: Request, url: URL, path: string
       const left = ["E", "S", "T", "J"];
       // 시험 주문은 유형에 맞는 그럴듯한 점수로 만듭니다(왼쪽 글자면 65, 아니면 35).
       const scores = [0, 1, 2, 3].map((i) => (type[i] === left[i] ? 65 : 35)) as [number, number, number, number];
-      const made = await createOrder(db, { type, scores, name: "시험", birth: "1995-01-20", bt: 7, phone }, { price: REPORT_TEST_PRICE, test: true });
+      const made = await createOrder(db, { type, scores, name: "시험", birth: "1995-01-20", bt: 7, phone }, { price: REPORT_TEST_PRICE, test: true, alert: directSend(db) });
       if (!made.ok) return redirect("/admin/report/?err=pay");
       return redirect(`/admin/report/?test=${encodeURIComponent(made.orderNo)}`);
     }
@@ -194,15 +195,29 @@ export async function handleReportAdmin(request: Request, url: URL, path: string
         return redirect("/admin/report/?saved=1");
       }
       const keys = await payappKeys(db);
-      const res = await payappPost({
-        cmd: "paycancel",
-        userid: PAYAPP_USERID,
-        linkkey: keys.linkkey,
-        mul_no: row.mul_no,
-        cancelmemo: (val("memo") || "고객 요청 취소").slice(0, 100),
-        ...(row.status === "pending" ? { cancelmode: "ready" } : {}),
-      });
+      const what = row.status === "pending" ? "리포트 관리자 결제요청 취소 실패" : "리포트 관리자 환불 실패";
+      const todo = row.status === "pending" ? "결제요청이 안 닫혔어요. 페이앱 관리자에서 직접 취소하세요." : "환불이 안 됐어요. 페이앱 관리자에서 직접 취소(정산 뒤면 취소요청)하세요.";
+      let res: Record<string, string>;
+      try {
+        res = await payappPost({
+          cmd: "paycancel",
+          userid: PAYAPP_USERID,
+          linkkey: keys.linkkey,
+          mul_no: row.mul_no,
+          cancelmemo: (val("memo") || "고객 요청 취소").slice(0, 100),
+          ...(row.status === "pending" ? { cancelmode: "ready" } : {}),
+        });
+      } catch (error) {
+        await payAlert(db, { stage: what, orderNo, mulNo: row.mul_no, price: row.price, test: Boolean(row.test), cause: `페이앱 API 호출 예외 ${String(error)}`, todo }, directSend(db));
+        throw error;
+      }
       await logEvent(db, orderNo, "paycancel", `state=${res.state} ${res.errno ?? ""} ${res.errorMessage ?? ""}`);
+      if (res.state !== "1") {
+        await payAlert(db, {
+          stage: what, orderNo, mulNo: row.mul_no, state: res.state ?? "", price: row.price, test: Boolean(row.test),
+          cause: `state=${res.state ?? "없음"} ${res.errno ?? ""} ${res.errorMessage ?? ""}`, todo,
+        }, directSend(db));
+      }
       if (res.state !== "1") return redirect(`/admin/report/?err=cancelfail&msg=${encodeURIComponent(res.errorMessage ?? "")}`);
       const to = row.status === "pending" ? "cancelled" : "refunded";
       await db.prepare("UPDATE report_orders SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE token = ? AND status = ?").bind(to, row.token, row.status).run();

@@ -15,7 +15,7 @@ const KEY_FILE = "D:/00 cloud/report_content.key";
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const { outputFiles } = await build({
   stdin: {
-    contents: `export * from "./worker/report"; export { validateOrder, REPORT_CONSENT_VERSION, isSellerInfoComplete, reportPrice, REPORT_PRICE } from "./lib/report-config"; export { writeSetting } from "./worker/naver"; export { sendTelegram, findTelegramChatId } from "./worker/telegram";`,
+    contents: `export * from "./worker/report"; export { validateOrder, REPORT_CONSENT_VERSION, isSellerInfoComplete, reportPrice, REPORT_PRICE } from "./lib/report-config"; export { writeSetting } from "./worker/naver"; export { sendTelegram, findTelegramChatId } from "./worker/telegram"; export { payAlert, payAlertText } from "./worker/pay-alert";`,
     resolveDir: repoRoot,
     loader: "ts",
   },
@@ -127,7 +127,11 @@ test("결제 흐름: 위조·금액 불일치 거절 → 결제완료 → 중복
   const alerts = [];
   const notify = (m) => alerts.push(m);
   assert.equal(await R.handleFeedback(db, fb(row(), { price: "100" }), notify), "FAIL");
-  assert.equal(alerts.length, 0, "거절된 통보는 알리지 않는다");
+  // 거절된 통보는 결제 알림이 아니라 결제오류로 알린다(2026-10-18)
+  assert.equal(alerts.length, 1);
+  assert.match(alerts[0].split("\n")[0], /^🧩 MBTI테스트 · 🚨결제오류 · 리포트 결제완료·지급 실패 · 100원$/);
+  assert.match(alerts[0], /금액 불일치/);
+  alerts.length = 0;
   assert.equal(await R.handleFeedback(db, fb(row()), notify), "SUCCESS");
   assert.equal(row().status, "paid");
   assert.equal(alerts.length, 1, "결제 완료를 알린다");
@@ -280,4 +284,112 @@ test("검수용 무료 리포트(01000000000·test=1)는 「다시 찾기」로 
   );
   assert.equal((await find({ phone: "01000000000" })).status, 404, "번호로 찾기");
   assert.equal((await find({ orderNo: made.orderNo, last4: "0000" })).status, 404, "주문번호로 찾기");
+});
+
+// ── 결제 오류 텔레그램 알림 (2026-10-18) ──
+const firstLine = (m) => m.split("\n")[0];
+const alertRows = (db) => db.sql.prepare("SELECT order_no, detail FROM report_events WHERE kind = 'pay_alert' ORDER BY id").all();
+
+test("결제오류 알림: 위조 통보(인증 실패)는 알리고, 30분 안 같은 위조는 기록만 한다", async () => {
+  fetchCalls = [];
+  const db = await setup();
+  const made = await R.createOrder(db, order, { price: 9900, test: false });
+  const row = db.sql.prepare("SELECT * FROM report_orders WHERE token = ?").get(made.token);
+  const sent = [];
+  const notify = (m) => sent.push(m);
+  assert.equal(await R.handleFeedback(db, fb(row, { linkval: "x".repeat(44) }), notify), "FAIL");
+  assert.equal(sent.length, 1);
+  assert.equal(firstLine(sent[0]), "🧩 MBTI테스트 · 🚨결제오류 · 리포트 결제통보 인증 실패");
+  assert.match(sent[0], /원인: 연동 KEY·VALUE 불일치/);
+  assert.match(sent[0], /할 일: /);
+  assert.ok(!sent[0].includes(KEY) && !sent[0].includes(VAL) && !sent[0].includes("x".repeat(44)), "키 값을 싣지 않는다");
+  // 주문번호를 바꿔 보내도(위조자가 마음대로 넣는 값) 같은 원인이면 30분에 한 번
+  assert.equal(await R.handleFeedback(db, fb(row, { linkval: "x".repeat(44), var1: "MR000000-000001" }), notify), "FAIL");
+  assert.equal(sent.length, 1, "억제");
+  assert.equal(alertRows(db).length, 2, "기록은 매번 남긴다");
+  assert.match(alertRows(db)[1].detail, /생략/);
+  assert.equal(db.sql.prepare("SELECT status FROM report_orders WHERE token = ?").get(made.token).status, "pending");
+});
+
+test("결제오류 알림: 30분 창 — 같은 단계+주문은 한 번, 30분 지나면 다시, 다른 주문은 따로", async () => {
+  const db = await setup();
+  const sent = [];
+  const a = { stage: "리포트 결제요청 실패", orderNo: "MR261018-000001", price: 9900, cause: "state=0", todo: "확인" };
+  const t0 = 1_800_000_000_000;
+  assert.equal(await R.payAlert(db, a, (m) => sent.push(m), t0), true);
+  assert.equal(await R.payAlert(db, a, (m) => sent.push(m), t0 + 29 * 60_000), false);
+  assert.equal(await R.payAlert(db, { ...a, orderNo: "MR261018-000002" }, (m) => sent.push(m), t0 + 60_000), true, "다른 주문");
+  assert.equal(await R.payAlert(db, a, (m) => sent.push(m), t0 + 30 * 60_000), true, "30분 지나면 다시");
+  assert.equal(sent.length, 3);
+  assert.equal(firstLine(sent[0]), "🧩 MBTI테스트 · 🚨결제오류 · 리포트 결제요청 실패 · 9,900원");
+  assert.equal(alertRows(db).length, 4);
+  // 보내는 쪽이 터져도 예외 없이 넘어간다
+  assert.equal(await R.payAlert(db, { ...a, orderNo: "MR261018-000003" }, () => { throw new Error("tg down"); }, t0), false);
+});
+
+test("결제오류 알림: 결제완료인데 지급 실패(주문이 닫혀 있음·처리 중 예외)는 「수동 처리 필요」로 알린다", async () => {
+  fetchCalls = [];
+  const db = await setup();
+  const made = await R.createOrder(db, order, { price: 9900, test: false });
+  const row = () => db.sql.prepare("SELECT * FROM report_orders WHERE token = ?").get(made.token);
+  db.sql.prepare("UPDATE report_orders SET status = 'failed' WHERE token = ?").run(made.token);
+  const sent = [];
+  assert.equal(await R.handleFeedback(db, fb(row()), (m) => sent.push(m)), "SUCCESS");
+  assert.equal(sent.length, 1);
+  assert.equal(firstLine(sent[0]), "🧩 MBTI테스트 · 🚨결제오류 · 리포트 결제완료·지급 실패 · 9,900원");
+  assert.match(sent[0], /돈은 받았는데 지급 실패, 수동 처리 필요/);
+  assert.match(sent[0], new RegExp(`주문 ${made.orderNo} · mul_no ${row().mul_no} · state 4`));
+  assert.ok(!sent[0].includes("01012345678"));
+
+  // 처리 중 예외: 알리고 FAIL(페이앱이 다시 보냄)
+  db.sql.prepare("UPDATE report_orders SET status = 'pending' WHERE token = ?").run(made.token);
+  const broken = { ...db, prepare: (q) => (q.startsWith("UPDATE report_orders SET status") ? { bind: () => ({ run: async () => { throw new Error("D1 down"); } }) } : db.prepare(q)) };
+  const sent2 = [];
+  assert.equal(await R.handleFeedback(broken, fb(row()), (m) => sent2.push(m)), "FAIL");
+  assert.equal(sent2.length, 0, "같은 단계+주문은 30분 안에 다시 안 보낸다");
+  db.sql.exec("DELETE FROM pay_alerts");
+  assert.equal(await R.handleFeedback(broken, fb(row()), (m) => sent2.push(m)), "FAIL");
+  assert.equal(sent2.length, 1);
+  assert.match(sent2[0], /리포트 결제완료·지급 실패/);
+  assert.match(sent2[0], /D1 down/);
+  assert.equal(row().status, "pending");
+  // 페이앱 재전송이 오면 정상 처리되고 결제 알림이 간다
+  assert.equal(await R.handleFeedback(db, fb(row()), (m) => sent2.push(m)), "SUCCESS");
+  assert.equal(row().status, "paid");
+  assert.equal(firstLine(sent2[1]), "🧩 MBTI테스트 · 결제 · INFP 리포트 · 9,900원");
+});
+
+test("결제오류 알림: 주문 없는 결제완료 통보는 알리고, 지운 주문의 취소·만료 통보(고아)는 조용히 SUCCESS", async () => {
+  const db = await setup();
+  const sent = [];
+  const ghost = (state) => new URLSearchParams({ userid: "charry333", linkkey: KEY, linkval: VAL, mul_no: "777", price: "1000", var1: "MR261001-123456", pay_state: state });
+  for (const s of ["8", "32", "9", "64", "70", "71"]) assert.equal(await R.handleFeedback(db, ghost(s), (m) => sent.push(m)), "SUCCESS", s);
+  assert.equal(sent.length, 0, "고아 통보는 알리지 않는다");
+  assert.equal(db.sql.prepare("SELECT COUNT(*) AS n FROM report_events WHERE kind = 'feedback_orphan'").get().n, 6);
+  assert.equal(await R.handleFeedback(db, ghost("4"), (m) => sent.push(m)), "FAIL");
+  assert.equal(sent.length, 1);
+  assert.match(sent[0], /리포트 결제완료·지급 실패 · 1,000원/);
+  assert.match(sent[0], /원인: 주문 없음/);
+});
+
+test("결제오류 알림: 결제요청 실패(state≠1·API 예외)", async () => {
+  const db = await setup();
+  const real = globalThis.fetch;
+  const sent = [];
+  try {
+    globalThis.fetch = async () => new Response("state=0&errno=70010&errorMessage=bad");
+    const a = await R.createOrder(db, order, { price: 9900, test: false, alert: (m) => sent.push(m) });
+    assert.equal(a.ok, false);
+    assert.equal(sent.length, 1);
+    assert.equal(firstLine(sent[0]), "🧩 MBTI테스트 · 🚨결제오류 · 리포트 결제요청 실패 · 9,900원");
+    assert.match(sent[0], /state=0 70010 bad/);
+    globalThis.fetch = async () => { throw new Error("network"); };
+    const b = await R.createOrder(db, order, { price: 9900, test: false, alert: (m) => sent.push(m) });
+    assert.equal(b.ok, false);
+    assert.equal(sent.length, 2, "다른 주문이라 따로 알린다");
+    assert.match(sent[1], /페이앱 API 호출 예외/);
+    assert.ok(!sent.join("").includes("01012345678"));
+  } finally {
+    globalThis.fetch = real;
+  }
 });

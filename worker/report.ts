@@ -33,6 +33,7 @@ import { classifyDevice, classifySource } from "../lib/analytics";
 import { hasBook, loadBook } from "./report-books";
 import { readSetting } from "./naver";
 import { sendTelegram } from "./telegram";
+import { ORPHAN_STATES, payAlert, type PaySend } from "./pay-alert";
 import { handleTossGrant, TOSS_CORS_PATHS, withCors } from "./report-toss";
 import { attachCoupon, checkCoupon, markCouponPaid } from "./coupon";
 import { discounted } from "../lib/invite-coupon";
@@ -247,12 +248,33 @@ export async function payappPost(params: Record<string, string>): Promise<Record
  * 주문을 만들고 페이앱 결제요청까지 한다. 일반 주문과 관리자 시험 주문(price=1000, test=1)이 같이 쓴다.
  * 결제창 주소를 돌려준다.
  */
-export async function createOrder(
-  db: D1Database,
-  order: CleanOrder,
+type CreateOrderOpts = {
+  price: number;
+  test: boolean;
+  meta?: OrderMeta;
   /** free: 관리자 검수용 무료 리포트(2026-10-05). 결제창 없이 바로 결제 완료 상태로 만듭니다 — 관리자 화면에서만 부릅니다. */
-  opts: { price: number; test: boolean; meta?: OrderMeta; free?: boolean; coupon?: { code: string; discount: number } },
-): Promise<{ ok: true; payurl: string; orderNo: string; token: string } | { ok: false; error: string }> {
+  free?: boolean;
+  coupon?: { code: string; discount: number };
+  /** 결제 오류 알림 보내기(pay-alert.ts). 없으면 기록만 합니다. */
+  alert?: PaySend;
+};
+type CreateOrderResult = { ok: true; payurl: string; orderNo: string; token: string } | { ok: false; error: string };
+
+export async function createOrder(db: D1Database, order: CleanOrder, opts: CreateOrderOpts): Promise<CreateOrderResult> {
+  try {
+    return await createOrderInner(db, order, opts);
+  } catch (error) {
+    // 결제요청 앞뒤의 DB 오류 등. 손님은 결제창을 못 연다(돈은 안 나감).
+    await payAlert(db, {
+      stage: "리포트 결제요청 실패", price: opts.price, test: opts.test,
+      cause: `처리 중 예외 ${error instanceof Error ? error.name : ""} ${String(error)}`,
+      todo: "손님이 결제창을 못 열었어요. 관리자 화면(/admin/report) 기록을 확인하세요.",
+    }, opts.alert);
+    return { ok: false, error: "결제창을 열지 못했어요. 잠시 뒤 다시 시도해 주세요." };
+  }
+}
+
+async function createOrderInner(db: D1Database, order: CleanOrder, opts: CreateOrderOpts): Promise<CreateOrderResult> {
   const token = newToken();
   const now = new Date();
   const today = seoulToday(now);
@@ -306,10 +328,20 @@ export async function createOrder(
     });
   } catch (error) {
     await logEvent(db, orderNo, "payrequest_error", String(error));
+    await payAlert(db, {
+      stage: "리포트 결제요청 실패", orderNo, price: opts.price, test: opts.test,
+      cause: `페이앱 API 호출 예외 ${String(error)}`,
+      todo: "손님이 결제창을 못 열었어요. 페이앱 장애인지 확인하세요(계속되면 판매 스위치를 잠시 끄기).",
+    }, opts.alert);
     return { ok: false, error: "결제창을 열지 못했어요. 잠시 뒤 다시 시도해 주세요." };
   }
   if (res.state !== "1" || !res.mul_no || !res.payurl) {
     await logEvent(db, orderNo, "payrequest_fail", `${res.errno ?? ""} ${res.errorMessage ?? ""}`);
+    await payAlert(db, {
+      stage: "리포트 결제요청 실패", orderNo, price: opts.price, test: opts.test, state: res.state ?? "",
+      cause: res.state !== "1" ? `state=${res.state ?? "없음"} ${res.errno ?? ""} ${res.errorMessage ?? ""}` : !res.mul_no ? "mul_no 없음" : "payurl 없음",
+      todo: "손님이 결제창을 못 열었어요. 페이앱 관리자·연동 설정을 확인하세요.",
+    }, opts.alert);
     await db.prepare("UPDATE report_orders SET status = 'failed', updated_at = CURRENT_TIMESTAMP WHERE token = ?").bind(token).run();
     return { ok: false, error: "결제창을 열지 못했어요. 잠시 뒤 다시 시도해 주세요." };
   }
@@ -379,23 +411,60 @@ export function feedbackMessage(to: string, order: { type: string; price: number
  */
 export async function handleFeedback(db: D1Database, form: URLSearchParams, notify?: (text: string) => void): Promise<string> {
   const get = (k: string) => (form.get(k) ?? "").trim();
+  try {
+    return await feedbackInner(db, form, notify);
+  } catch (error) {
+    // 처리 중 예외: 알리고 FAIL — 페이앱이 다시 보냅니다(checkretry=y, 최대 10회).
+    const paid = get("pay_state") === "4";
+    await payAlert(db, {
+      stage: paid ? "리포트 결제완료·지급 실패" : "리포트 결제통보 처리 예외",
+      orderNo: get("var1"), mulNo: get("mul_no"), state: get("pay_state"), price: Number(get("price")) || undefined,
+      cause: `처리 중 예외 ${error instanceof Error ? error.name : ""} ${String(error)}`,
+      todo: paid
+        ? "돈은 받았는데 지급 실패, 수동 처리 필요. 페이앱 재전송으로 풀릴 수 있으니 /admin/report 에서 주문이 「결제 완료」인지 확인하고, 아니면 직접 열어 주거나 환불하세요."
+        : "FAIL 로 돌려 페이앱이 다시 보냅니다. 계속 오면 /admin/report 기록을 확인하세요.",
+    }, notify);
+    return "FAIL";
+  }
+}
+
+async function feedbackInner(db: D1Database, form: URLSearchParams, notify?: (text: string) => void): Promise<string> {
+  const get = (k: string) => (form.get(k) ?? "").trim();
   const keys = await payappKeys(db);
   const orderNo = get("var1");
+  const state = get("pay_state");
   const authed =
     get("userid") === PAYAPP_USERID && constantEquals(get("linkkey"), keys.linkkey) && constantEquals(get("linkval"), keys.linkval);
   if (!authed) {
-    await logEvent(db, orderNo, "feedback_rejected", `auth mul_no=${get("mul_no")} state=${get("pay_state")}`);
+    await logEvent(db, orderNo, "feedback_rejected", `auth mul_no=${get("mul_no")} state=${state}`);
+    await payAlert(db, {
+      stage: "리포트 결제통보 인증 실패", orderNo, mulNo: get("mul_no"), state, untrustedOrderNo: true,
+      cause: !keys.linkkey || !keys.linkval ? "연동 KEY·VALUE 가 저장돼 있지 않음" : get("userid") !== PAYAPP_USERID ? "판매자 아이디 불일치" : "연동 KEY·VALUE 불일치",
+      todo: "위조 통보거나 연동 VALUE 가 바뀐 것. 진짜 결제면 페이앱이 다시 보내요. /admin/report 연동 KEY·VALUE 를 확인하세요.",
+    }, notify);
     return "FAIL";
   }
   const order = await db
     .prepare("SELECT token, price, status, mul_no, type, test, phone_last4, coupon FROM report_orders WHERE order_no = ?")
     .bind(orderNo)
     .first<{ token: string; price: number; status: string; mul_no: string; type: string; test: number; phone_last4: string; coupon?: string }>();
+  // 지운 시험 주문에 뒤늦게 오는 취소·만료 통보(고아 통보)는 알리지 않고 기록만 남긴 뒤 SUCCESS (다시 안 오게).
+  if (!order && ORPHAN_STATES.includes(state)) {
+    await logEvent(db, orderNo, "feedback_orphan", `mul_no=${get("mul_no")} state=${state}`);
+    return "SUCCESS";
+  }
   if (!order || !order.mul_no || order.mul_no !== get("mul_no") || String(order.price) !== get("price")) {
-    await logEvent(db, orderNo, "feedback_rejected", `mismatch mul_no=${get("mul_no")} price=${get("price")} state=${get("pay_state")}`);
+    await logEvent(db, orderNo, "feedback_rejected", `mismatch mul_no=${get("mul_no")} price=${get("price")} state=${state}`);
+    await payAlert(db, {
+      stage: state === "4" ? "리포트 결제완료·지급 실패" : "리포트 결제통보 주문 대조 실패",
+      orderNo, mulNo: get("mul_no"), state, price: Number(get("price")) || undefined, test: Boolean(order?.test),
+      cause: !order ? "주문 없음" : !order.mul_no || order.mul_no !== get("mul_no") ? `mul_no 불일치(주문 ${order.mul_no || "없음"})` : `금액 불일치(주문 ${order.price}원)`,
+      todo: state === "4"
+        ? "돈은 받았는데 지급 실패, 수동 처리 필요. 페이앱 관리자에서 이 결제를 확인하고 열람권을 열어 주거나 환불하세요."
+        : "/admin/report 기록과 페이앱 관리자 결제 내역을 대조하세요.",
+    }, notify);
     return "FAIL";
   }
-  const state = get("pay_state");
   const move = TRANSITIONS[state];
   if (move) {
     const marks = move.from.map(() => "?").join(",");
@@ -407,6 +476,14 @@ export async function handleFeedback(db: D1Database, form: URLSearchParams, noti
       .bind(...binds, order.token, ...move.from)
       .run()) as { meta?: { changes?: number }; changes?: number };
     const changed = (res?.meta?.changes ?? res?.changes ?? 0) > 0;
+    // 결제완료인데 상태를 못 바꿨고 이미 결제된 주문도 아니면(결제요청 실패·취소로 닫힌 주문 등) 열람권이 안 열린 것. 가장 급한 알림.
+    if (state === "4" && !changed && !PAID.includes(order.status)) {
+      await payAlert(db, {
+        stage: "리포트 결제완료·지급 실패", orderNo, mulNo: get("mul_no"), state, price: order.price, test: Boolean(order.test),
+        cause: `주문 상태가 「${order.status}」라 결제 완료로 못 바꿈`,
+        todo: "돈은 받았는데 지급 실패, 수동 처리 필요. /admin/report 에서 주문을 확인하고 열람권을 열어 주거나 환불하세요.",
+      }, notify);
+    }
     // 결제가 끝나야 할인권이 「사용」이 됩니다. 장부 오류로 결제 반영이 막히면 안 되므로 실패는 기록만 합니다.
     if (changed && move.to === "paid" && order.coupon) {
       await markCouponPaid(db, orderNo, order.coupon).catch((e) => logEvent(db, orderNo, "coupon_mark_error", String(e)));
@@ -481,7 +558,7 @@ function routeReport(request: Request, url: URL, env: Env, ctx: Ctx, path: strin
         price = discounted(base, Number(c.row.amount));
         coupon = { code: c.row.code, discount: base - price };
       }
-      const made = await createOrder(db, checked.value, { price, test: false, meta: orderMeta(raw, request), coupon });
+      const made = await createOrder(db, checked.value, { price, test: false, meta: orderMeta(raw, request), coupon, alert: (msg) => ctx.waitUntil(sendTelegram(db, msg)) });
       return made.ok ? json({ payurl: made.payurl, orderNo: made.orderNo }) : json({ error: made.error }, 502);
     }
 

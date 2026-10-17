@@ -40,6 +40,7 @@ import { kmaBase, kmaGrid, sceneAt, sceneHello, sceneLine, weatherFromNcst, type
 import { SITE_ORIGIN } from "../lib/site-urls";
 import { readSetting } from "./naver";
 import { sendTelegram } from "./telegram";
+import { ORPHAN_STATES, payAlert, type PaySend } from "./pay-alert";
 import { allowAttempt, constantEquals, ensureReportSchema, logEvent, newToken, payappKeys, payappPost, phoneHash, seoulToday } from "./report";
 
 type Env = { DB?: D1Database };
@@ -589,10 +590,24 @@ export function newPassOrderNo(now: Date = new Date()): string {
   return `MC${d}-${String(n).padStart(6, "0")}`;
 }
 
-export async function createPassOrder(
-  db: D1Database,
-  input: { phone: string; test?: boolean; price?: number },
-): Promise<{ ok: true; payurl: string; orderNo: string; token: string } | { ok: false; error: string }> {
+type PassOrderInput = { phone: string; test?: boolean; price?: number; /** 결제 오류 알림 보내기(pay-alert.ts). 없으면 기록만. */ alert?: PaySend };
+type PassOrderResult = { ok: true; payurl: string; orderNo: string; token: string } | { ok: false; error: string };
+
+export async function createPassOrder(db: D1Database, input: PassOrderInput): Promise<PassOrderResult> {
+  try {
+    return await createPassOrderInner(db, input);
+  } catch (error) {
+    // 결제요청 앞뒤의 DB 오류 등. 손님은 결제창을 못 연다(돈은 안 나감).
+    await payAlert(db, {
+      stage: "모리채팅 결제요청 실패", price: input.price ?? CHAT_PASS_PRICE, test: input.test,
+      cause: `처리 중 예외 ${error instanceof Error ? error.name : ""} ${String(error)}`,
+      todo: "손님이 대화권 결제창을 못 열었어요. 관리자 화면(/admin/report) 기록을 확인하세요.",
+    }, input.alert);
+    return { ok: false, error: "결제창을 열지 못했어요. 잠시 뒤 다시 시도해 주세요." };
+  }
+}
+
+async function createPassOrderInner(db: D1Database, input: PassOrderInput): Promise<PassOrderResult> {
   const token = newToken();
   const now = new Date();
   const price = input.price ?? CHAT_PASS_PRICE;
@@ -632,10 +647,20 @@ export async function createPassOrder(
     });
   } catch (error) {
     await logEvent(db, orderNo, "payrequest_error", String(error));
+    await payAlert(db, {
+      stage: "모리채팅 결제요청 실패", orderNo, price, test: input.test,
+      cause: `페이앱 API 호출 예외 ${String(error)}`,
+      todo: "손님이 대화권 결제창을 못 열었어요. 페이앱 장애인지 확인하세요.",
+    }, input.alert);
     return { ok: false, error: "결제창을 열지 못했어요. 잠시 뒤 다시 시도해 주세요." };
   }
   if (res.state !== "1" || !res.mul_no || !res.payurl) {
     await logEvent(db, orderNo, "payrequest_fail", `${res.errno ?? ""} ${res.errorMessage ?? ""}`);
+    await payAlert(db, {
+      stage: "모리채팅 결제요청 실패", orderNo, price, test: input.test, state: res.state ?? "",
+      cause: res.state !== "1" ? `state=${res.state ?? "없음"} ${res.errno ?? ""} ${res.errorMessage ?? ""}` : !res.mul_no ? "mul_no 없음" : "payurl 없음",
+      todo: "손님이 대화권 결제창을 못 열었어요. 페이앱 관리자·연동 설정을 확인하세요.",
+    }, input.alert);
     await db.prepare("UPDATE mori_chat_passes SET status = 'failed', updated_at = CURRENT_TIMESTAMP WHERE token = ?").bind(token).run();
     return { ok: false, error: "결제창을 열지 못했어요. 잠시 뒤 다시 시도해 주세요." };
   }
@@ -663,22 +688,59 @@ const PASS_HEAD: Record<string, string> = {
 
 export async function handlePassFeedback(db: D1Database, form: URLSearchParams, notify?: (text: string) => void): Promise<string> {
   const get = (k: string) => (form.get(k) ?? "").trim();
+  try {
+    return await passFeedbackInner(db, form, notify);
+  } catch (error) {
+    // 처리 중 예외: 알리고 FAIL. 페이앱이 다시 보냅니다(checkretry=y). 바깥 noteError 로는 넘기지 않아 알림이 두 번 가지 않습니다.
+    const paid = get("pay_state") === "4";
+    await payAlert(db, {
+      stage: paid ? "모리채팅 결제완료·지급 실패" : "모리채팅 결제통보 처리 예외",
+      orderNo: get("var1"), mulNo: get("mul_no"), state: get("pay_state"), price: Number(get("price")) || undefined,
+      cause: `처리 중 예외 ${error instanceof Error ? error.name : ""} ${String(error)}`,
+      todo: paid
+        ? "돈은 받았는데 지급 실패, 수동 처리 필요. 페이앱 재전송으로 풀릴 수 있으니 /admin/report 모리 대화 칸에서 대화권이 「결제 완료」인지 확인하고, 아니면 직접 열어 주거나 환불하세요."
+        : "FAIL 로 돌려 페이앱이 다시 보냅니다. 계속 오면 /admin/report 기록을 확인하세요.",
+    }, notify);
+    return "FAIL";
+  }
+}
+
+async function passFeedbackInner(db: D1Database, form: URLSearchParams, notify?: (text: string) => void): Promise<string> {
+  const get = (k: string) => (form.get(k) ?? "").trim();
   const keys = await payappKeys(db);
   const orderNo = get("var1");
+  const state = get("pay_state");
   const authed = get("userid") === PAYAPP_USERID && constantEquals(get("linkkey"), keys.linkkey) && constantEquals(get("linkval"), keys.linkval);
   if (!authed) {
-    await logEvent(db, orderNo, "feedback_rejected", `chat-pass auth mul_no=${get("mul_no")} state=${get("pay_state")}`);
+    await logEvent(db, orderNo, "feedback_rejected", `chat-pass auth mul_no=${get("mul_no")} state=${state}`);
+    await payAlert(db, {
+      stage: "모리채팅 결제통보 인증 실패", orderNo, mulNo: get("mul_no"), state, untrustedOrderNo: true,
+      cause: !keys.linkkey || !keys.linkval ? "연동 KEY·VALUE 가 저장돼 있지 않음" : get("userid") !== PAYAPP_USERID ? "판매자 아이디 불일치" : "연동 KEY·VALUE 불일치",
+      todo: "위조 통보거나 연동 VALUE 가 바뀐 것. 진짜 결제면 페이앱이 다시 보내요. /admin/report 연동 KEY·VALUE 를 확인하세요.",
+    }, notify);
     return "FAIL";
   }
   const row = await db
     .prepare("SELECT token, price, status, mul_no, used, size, test, phone_last4 FROM mori_chat_passes WHERE order_no = ?")
     .bind(orderNo)
     .first<{ token: string; price: number; status: string; mul_no: string; used: number; size: number; test: number; phone_last4: string }>();
+  // 지운 시험 주문에 뒤늦게 오는 취소·만료 통보(고아 통보)는 알리지 않고 기록만 남긴 뒤 SUCCESS (다시 안 오게).
+  if (!row && ORPHAN_STATES.includes(state)) {
+    await logEvent(db, orderNo, "feedback_orphan", `chat-pass mul_no=${get("mul_no")} state=${state}`);
+    return "SUCCESS";
+  }
   if (!row || !row.mul_no || row.mul_no !== get("mul_no") || String(row.price) !== get("price")) {
-    await logEvent(db, orderNo, "feedback_rejected", `chat-pass mismatch mul_no=${get("mul_no")} price=${get("price")} state=${get("pay_state")}`);
+    await logEvent(db, orderNo, "feedback_rejected", `chat-pass mismatch mul_no=${get("mul_no")} price=${get("price")} state=${state}`);
+    await payAlert(db, {
+      stage: state === "4" ? "모리채팅 결제완료·지급 실패" : "모리채팅 결제통보 주문 대조 실패",
+      orderNo, mulNo: get("mul_no"), state, price: Number(get("price")) || undefined, test: Boolean(row?.test),
+      cause: !row ? "주문 없음" : !row.mul_no || row.mul_no !== get("mul_no") ? `mul_no 불일치(주문 ${row.mul_no || "없음"})` : `금액 불일치(주문 ${row.price}원)`,
+      todo: state === "4"
+        ? "돈은 받았는데 지급 실패, 수동 처리 필요. 페이앱 관리자에서 이 결제를 확인하고 대화권을 열어 주거나 환불하세요."
+        : "/admin/report 기록과 페이앱 관리자 결제 내역을 대조하세요.",
+    }, notify);
     return "FAIL";
   }
-  const state = get("pay_state");
   const move = PASS_TRANSITIONS[state];
   if (move) {
     const marks = move.from.map(() => "?").join(",");
@@ -690,6 +752,14 @@ export async function handlePassFeedback(db: D1Database, form: URLSearchParams, 
       .bind(...binds, row.token, ...move.from)
       .run()) as { meta?: { changes?: number }; changes?: number };
     const changed = (res?.meta?.changes ?? res?.changes ?? 0) > 0;
+    // 결제완료인데 상태를 못 바꿨고 이미 결제된 대화권도 아니면 대화권이 안 열린 것. 가장 급한 알림.
+    if (state === "4" && !changed && !["paid", "partial"].includes(row.status)) {
+      await payAlert(db, {
+        stage: "모리채팅 결제완료·지급 실패", orderNo, mulNo: get("mul_no"), state, price: row.price, test: Boolean(row.test),
+        cause: `대화권 상태가 「${row.status}」라 결제 완료로 못 바꿈`,
+        todo: "돈은 받았는데 지급 실패, 수동 처리 필요. /admin/report 에서 대화권을 확인하고 열어 주거나 환불하세요.",
+      }, notify);
+    }
     if (notify && changed) {
       const at = new Date(Date.now() + 9 * 3600_000).toISOString().slice(5, 16).replace("T", " ");
       notify([
@@ -792,7 +862,7 @@ export function handleMoriChat(request: Request, url: URL, env: Env, ctx: Ctx): 
       const phone = String(raw.phone ?? "").replace(/\D/g, "");
       if (!/^01[016789]\d{7,8}$/.test(phone)) return json({ error: "휴대폰 번호를 다시 확인해 주세요." }, 400);
       if (raw.agree !== true || raw.consentVersion !== CHAT_CONSENT_VERSION) return json({ error: "안내에 동의해 주세요." }, 400);
-      const made = await createPassOrder(db, { phone });
+      const made = await createPassOrder(db, { phone, alert: (msg) => ctx.waitUntil(sendTelegram(db, msg)) });
       return made.ok ? json({ payurl: made.payurl, orderNo: made.orderNo, token: made.token }) : json({ error: made.error }, 502);
     }
 

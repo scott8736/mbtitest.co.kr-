@@ -631,3 +631,32 @@ test("시험 기기: 표시한 기기 기록은 관리자 통계에서 빠지고
   bad.set("device", "x");
   assert.match(await C.moriChatAdminPost("/admin/report/mori-chat/qa-device", bad, db), /err=qadevice/);
 });
+
+test("대화권 결제오류 알림: 지급 실패·인증 실패·고아 통보 (2026-10-18)", async () => {
+  const db = await setup();
+  await C.writeSetting(db, "payapp_linkkey", KEY);
+  await C.writeSetting(db, "payapp_linkval", VAL);
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response("state=1&mul_no=9191&payurl=https%3A%2F%2Fpay.example%2Fp");
+  try {
+    const made = await C.createPassOrder(db, { phone: "01012345678" });
+    const row = () => db.sql.prepare("SELECT * FROM mori_chat_passes WHERE token = ?").get(made.token);
+    const fb = (extra = {}) => new URLSearchParams({ userid: "charry333", linkkey: KEY, linkval: VAL, mul_no: row().mul_no, price: String(row().price), var1: row().order_no, pay_state: "4", pay_type: "1", ...extra });
+    const sent = [];
+    const notify = (t) => sent.push(t);
+    assert.equal(await C.handlePassFeedback(db, fb({ linkkey: "z".repeat(44) }), notify), "FAIL");
+    assert.equal(sent.length, 1);
+    assert.equal(sent[0].split("\n")[0], "🧩 MBTI테스트 · 🚨결제오류 · 모리채팅 결제통보 인증 실패");
+    db.sql.prepare("UPDATE mori_chat_passes SET status = 'cancelled' WHERE token = ?").run(made.token);
+    assert.equal(await C.handlePassFeedback(db, fb(), notify), "SUCCESS");
+    assert.equal(sent.length, 2);
+    assert.equal(sent[1].split("\n")[0], `🧩 MBTI테스트 · 🚨결제오류 · 모리채팅 결제완료·지급 실패 · ${C.CHAT_PASS_PRICE.toLocaleString()}원`);
+    assert.match(sent[1], /돈은 받았는데 지급 실패, 수동 처리 필요/);
+    assert.ok(!sent.join("").includes("01012345678"));
+    const ghost = new URLSearchParams({ userid: "charry333", linkkey: KEY, linkval: VAL, mul_no: "1", price: "1000", var1: "MC261001-000001", pay_state: "9" });
+    assert.equal(await C.handlePassFeedback(db, ghost, notify), "SUCCESS");
+    assert.equal(sent.length, 2, "고아 통보는 알리지 않는다");
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
