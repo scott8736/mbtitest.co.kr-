@@ -525,7 +525,7 @@ function PromoCard({ promo, tests, recs, price, onTest, onRec, mori }: { promo: 
       <Link className="mc-promo is-report" href="/report/?from=mori-chat-card" onClick={() => chatEvent("promo_click", mori, "report")}>
         <small>마음숲 안내</small>
         <b>📖 내 점수로 만든 104쪽 「MBTI 유형 마음숲 안내서」</b>
-        <span>연애·일·돈·충전법까지 11가지 주제, 미리보기 22쪽은 무료예요{price ? ` · ${won(price)}` : ""}. 사면 {CHAT_REPORT_DAYS}일 동안 하루 {CHAT_REPORT_PER_DAY}번 모리와 이야기할 수 있어요.</span>
+        <span>연애·일·돈·충전법까지 11가지 주제, 미리보기 21쪽은 무료예요{price ? ` · ${won(price)}` : ""}. 사면 {CHAT_REPORT_DAYS}일 동안 하루 {CHAT_REPORT_PER_DAY}번 모리와 이야기할 수 있어요.</span>
         <i>미리보기 보기 →</i>
       </Link>
     );

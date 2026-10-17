@@ -23,7 +23,7 @@ import { REPORT_READY_TYPES } from "../report/content/ready";
  * (리포트 MY SCORES 쪽과 같은 단계 규칙: 60 이하 거의 반반 · 61~79 분명한 편 · 80 이상 아주 뚜렷)입니다.
  * 둘째 쪽 이상 넘겨 본 사람을 report_peek 으로 셉니다.
  *
- * 2026-10-18 흐린 미리보기: 띠를 22쪽(선명 10 + 군데군데 가린 12)으로 늘리고, 아래에 104쪽 전체를 장별 흐린 격자로 보여 줍니다.
+ * 2026-10-18 흐린 미리보기: 띠를 21쪽(선명 9 + 군데군데 가린 12, 표지는 사용자 요청으로 뺌)으로 늘리고, 아래에 104쪽 전체를 장별 흐린 격자로 보여 줍니다.
  * 그림은 public/report-app/teaser/ (리포트_디자인/render_teaser.py 가 운영 열람 화면을 찍어 픽셀에서 흐림 — 가린 글은 글자로 실리지 않음).
  * 격자가 보이면 report_blur_seen, 가린 쪽·격자를 누르면 report_blur_tap 을 셉니다.
  */
@@ -46,7 +46,7 @@ const band = (pct: number) => (pct <= 60 ? "거의 반반" : pct <= 79 ? "분명
 const PAGES = [1, 2, 5, 4, 6];
 
 /** render_teaser.py 가 만든 쪽 정보(본문 없음). */
-type TeaserMeta = { total: number; cols: number; clear: number[]; half: number[]; chapters: { n: number; no: string; title: string }[] };
+type TeaserMeta = { total: number; cols: number; clear: number[]; half: number[]; scores?: number; chapters: { n: number; no: string; title: string }[] };
 
 /** 104쪽 흐린 격자. 장마다 한 줄, 쪽은 rest.webp 한 장에서 잘라 씁니다(요청 1번). */
 function BlurGrid({ code, meta, slug }: { code: string; meta: TeaserMeta; slug: string }) {
@@ -154,7 +154,7 @@ export default function ReportTeaser({ code, slug = "mbti", scores, showMori = t
   }, [code, ready]);
 
   // 띠에 들어갈 쪽(책 순서). 내 점수가 있으면 견본 점수 쪽(MY SCORES) 자리에 내 점수 쪽을 그립니다.
-  const scoresPage = meta?.clear[3];
+  const scoresPage = meta?.scores ?? meta?.clear[3];
   const slides = meta
     ? [...meta.clear.map((n) => ({ n, half: false })), ...meta.half.map((n) => ({ n, half: true }))].sort((a, b) => a.n - b.n)
     : [];

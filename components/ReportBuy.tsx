@@ -229,7 +229,7 @@ export function ReportPreview() {
   const [at, setAt] = useState(0);
   const [open, setOpen] = useState<number | null>(null);
   const strip = useRef<HTMLDivElement>(null);
-  // 2026-10-18 흐린 미리보기(결과 화면 카드와 같은 22쪽: 선명 10 + 군데군데 가린 12). 쪽 정보를 못 받으면 예전 6쪽.
+  // 2026-10-18 흐린 미리보기(결과 화면 카드와 같은 21쪽: 선명 9 + 군데군데 가린 12, 표지 제외). 쪽 정보를 못 받으면 예전 6쪽.
   const [teaser, setTeaser] = useState<{ type: string; clear: number[]; half: number[] } | null>(null);
   useEffect(() => {
     let alive = true;
