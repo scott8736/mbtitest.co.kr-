@@ -98,7 +98,6 @@ export default function MbtiResult() {
       <h1>{resultInfo.name}</h1>
       <p className="result-tagline">{resultInfo.tagline}</p>
       <p className="result-description">{resultInfo.description}</p>
-      <MoriShare code={result} name={resultInfo.name} tagline={resultInfo.tagline} percents={percentages} best={MORI_BEST[result]} compact />
       <div className="result-grid">
         <article className="axis-card">
           <h2>나의 성향 지표</h2>
@@ -109,10 +108,7 @@ export default function MbtiResult() {
         <article className="trait-card"><h2>빛나는 강점</h2>{resultInfo.strengths.map((x) => <p key={x}>✦ {x}</p>)}</article>
         <article className="trait-card watch"><h2>기억하면 좋은 점</h2>{resultInfo.watch.map((x) => <p key={x}>○ {x}</p>)}</article>
       </div>
-      {/* 유료 리포트 카드: 무료 결과(지표·강점·주의)를 다 읽은 바로 뒤. 10-03~07 아래에 있을 때 노출 44%·결제 3건,
-          10-08 2.4화면으로 올린 뒤 노출 52%·결제 0건 — 위에 둘수록 팔린다는 근거는 없었습니다. */}
-      <ReportTeaser code={result} scores={stored?.scores} showMori={false} />
-      {/* 104쪽 전체 샘플 링크는 2026-10-18 뺐습니다(사용자: 흐린 미리보기가 있는데 전부 보여 주면 의미가 없다). */}
+      {/* 연애·일·스트레스 세 칸은 리포트 카드 위로(2026-10-18 사용자). 104쪽 전체 샘플 링크는 같은 날 뺐습니다. */}
       <div className="mbti-deep-result">
         {DEEP.map(([tag, title, key, chapter, from]) => (
           <article key={tag}>
@@ -122,8 +118,13 @@ export default function MbtiResult() {
           </article>
         ))}
       </div>
+      {/* 유료 리포트 카드: 무료 결과(지표·강점·주의)를 다 읽은 바로 뒤. 10-03~07 아래에 있을 때 노출 44%·결제 3건,
+          10-08 2.4화면으로 올린 뒤 노출 52%·결제 0건 — 위에 둘수록 팔린다는 근거는 없었습니다. */}
+      <ReportTeaser code={result} scores={stored?.scores} showMori={false} />
+      {/* 공유 칸(compact)은 결과·리포트를 다 본 뒤로 내렸습니다(2026-10-18 사용자, 전에는 제목 바로 아래). */}
+      <MoriShare code={result} name={resultInfo.name} tagline={resultInfo.tagline} percents={percentages} best={MORI_BEST[result]} compact />
       <AdUnit key={`result-middle-${result}`} position="resultMiddle" label="MBTI 결과 본문 광고" />
-      <div className="growth-plan mbti-growth"><span>GROWTH POINT</span><h2>나를 더 편안하게 만드는 실천</h2>{typeDetails[result].growth.map((x, i) => <p key={x}><b>{String(i + 1).padStart(2, "0")}</b>{x}</p>)}</div>
+      {/* 「나를 더 편안하게 만드는 실천」(GROWTH POINT) 칸은 2026-10-18 사용자 요청으로 뺐습니다. */}
       {/* 「친구가 본 내 모리」(2026-10-08 바이럴)·AI 대화·숲 게임은 결과를 다 읽은 뒤로 내렸습니다(2026-10-15). */}
       <GuessMePanel me={result} placement="mbti-guessme" />
       <MoriChatEntry code={result} />
