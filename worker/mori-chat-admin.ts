@@ -118,7 +118,7 @@ async function promoTable(db: D1Database, since: string, esc: (v: unknown) => st
   const n = (kind: string, ref?: string) => rows.filter((r) => r.kind === kind && (ref === undefined || r.ref === ref)).reduce((a, r) => a + r.n, 0);
   const rate = (a: number, b: number) => (b ? `${((a / b) * 100).toFixed(1)}%` : "-");
   const orders = await db
-    .prepare("SELECT COUNT(*) AS n, SUM(CASE WHEN status IN ('paid','partial') THEN 1 ELSE 0 END) AS paid FROM report_orders WHERE test = 0 AND entry LIKE 'mori-chat%' AND created_at >= ?")
+    .prepare("SELECT COUNT(*) AS n, SUM(CASE WHEN status IN ('paid','partial') THEN 1 ELSE 0 END) AS paid FROM report_orders WHERE test = 0 AND entry LIKE 'mori-chat%' AND created_at >= datetime(?, '-9 hours')")
     .bind(`${since} 00:00:00`)
     .first<{ n: number; paid: number }>();
   const body = refs
@@ -158,8 +158,9 @@ export async function healthChecks(db: D1Database, since: string, ctx: { relayUr
   const sessions = await count("SELECT COUNT(*) AS n FROM (SELECT 1 FROM mori_chat_usage WHERE qa = 0 AND day >= ? AND kind IN ('free','report','pass') GROUP BY day, device)", since);
   const promoSeen = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE qa = 0 AND day >= ? AND kind = 'promo_seen'", since);
   const promoClick = await count("SELECT COUNT(*) AS n FROM mori_chat_usage WHERE qa = 0 AND day >= ? AND kind = 'promo_click'", since);
-  const passPaid = await count("SELECT COUNT(*) AS n FROM mori_chat_passes WHERE test = 0 AND status IN ('paid','partial') AND created_at >= ?", `${since} 00:00:00`);
-  const rejected = await count("SELECT COUNT(*) AS n FROM report_events WHERE kind = 'feedback_rejected' AND detail LIKE 'chat-pass%' AND created_at >= ?", `${since} 00:00:00`);
+  const passPaid = await count("SELECT COUNT(*) AS n FROM mori_chat_passes WHERE test = 0 AND status IN ('paid','partial') AND created_at >= datetime(?, '-9 hours')", `${since} 00:00:00`);
+  // created_at 은 UTC(CURRENT_TIMESTAMP), since 는 한국 날짜 — 한국 0시를 UTC 로 바꿔 비교(10-18: 0~9시 기록이 빠지던 것)
+  const rejected = await count("SELECT COUNT(*) AS n FROM report_events WHERE kind = 'feedback_rejected' AND detail LIKE 'chat-pass%' AND created_at >= datetime(?, '-9 hours')", `${since} 00:00:00`);
   const stalePending = await count("SELECT COUNT(*) AS n FROM mori_chat_passes WHERE status = 'pending' AND created_at < datetime('now', '-1 day') AND created_at >= datetime('now', '-8 day')");
   const errorKinds = (await db
     .prepare("SELECT ref, COUNT(*) AS n FROM mori_chat_usage WHERE qa = 0 AND day >= ? AND kind = 'error' GROUP BY ref ORDER BY n DESC LIMIT 5")
@@ -251,7 +252,7 @@ export async function moriChatSummaryBox(db: D1Database): Promise<string> {
         .first<{ people: number; talks: number; walled: number; crisis: number; clicks: number; errors: number }>()) ?? { people: 0, talks: 0, walled: 0, crisis: 0, clicks: 0, errors: 0 };
     const [t, w] = [await stat(today), await stat(since)];
     const sales = await db
-      .prepare("SELECT COUNT(*) AS n, COALESCE(SUM(price),0) AS won FROM mori_chat_passes WHERE test = 0 AND status IN ('paid','partial') AND created_at >= ?")
+      .prepare("SELECT COUNT(*) AS n, COALESCE(SUM(price),0) AS won FROM mori_chat_passes WHERE test = 0 AND status IN ('paid','partial') AND created_at >= datetime(?, '-9 hours')")
       .bind(`${since} 00:00:00`)
       .first<{ n: number; won: number }>();
     const open = await chatOpen(db);
