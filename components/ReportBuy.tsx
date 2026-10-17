@@ -140,6 +140,11 @@ export default function ReportBuy() {
       <p className="rp-sum">
         <b>{priced ? won(price) : "9,900원"}</b> · A4 104쪽 PDF · 내 유형 캐릭터와 AI 대화 7일 포함
       </p>
+      {/* 2026-10-18 안심 두 줄(사용자 승인 문구 그대로). 결제 폼 → 입력 시작 1.7% — 처음 보는 사이트라 망설인다고 봄. */}
+      <ul className="rp-trust">
+        <li>🔒 결제는 페이앱 안전결제창</li>
+        <li>📱 번호는 주문 다시 찾기용 · 광고 문자 없음</li>
+      </ul>
       {!opened ? (
         <button
           className="rp-button"

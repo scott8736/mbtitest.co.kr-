@@ -1671,6 +1671,8 @@ main.tarot .generic-intro { min-height:auto; padding-bottom:64px; }
 .rp-preview button { padding:0; border:0; background:none; cursor:zoom-in; }
 .rp-preview button img { display:block; }
 .rp-preview button.is-half { position:relative; }
+.rp-trust { margin:10px 0 12px; padding:10px 12px; list-style:none; display:grid; gap:4px; border-radius:12px; background:#f4f8f2; border:1px solid #dfe9da; }
+.rp-trust li { font-size:14px; font-weight:750; color:#2f4a2a; }
 .rp-lock { position:absolute; left:6px; right:6px; top:46%; padding:6px 8px; border-radius:9px; background:rgba(58,42,122,.92); color:#fff; font-size:12px; font-weight:800; text-align:center; pointer-events:none; }
 .rp-preview-arrow { position:absolute; top:50%; z-index:2; width:40px; height:40px; margin-top:-20px; border:0; border-radius:50%; background:rgba(255,255,255,.95); color:#5b45b0; font-size:26px; line-height:1; box-shadow:0 4px 14px rgba(40,30,90,.22); cursor:pointer; }
 .rp-preview-arrow.is-prev { left:6px; }
