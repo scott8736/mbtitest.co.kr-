@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import ReportBuy, { ReportPreview } from "../../components/ReportBuy";
 import SiteFooter from "../../components/SiteFooter";
+import ReportQuotes from "../../components/ReportQuotes";
 import { REPORT_PRODUCT } from "../../lib/report-config";
 
 export const metadata: Metadata = {
@@ -48,6 +49,9 @@ export default function ReportPage() {
         {/* 무료 미리보기(10-18부터 22쪽)를 맨 위에(2026-10-04 사용자 요청). 아래 주문까지 내려가기 전에 실물을 먼저 보여 줍니다. */}
         <ReportPreview />
         <p className="rp-muted">무료 미리보기 22쪽(10쪽 전체 · 12쪽 일부) · 견본 이름 「하늘」 · 내 유형·점수로 만들어지는 나머지 쪽은 결제 후에 열립니다.</p>
+
+        {/* 운영자가 고른 실제 리포트 문장(2026-10-18). 지어낸 후기는 쓰지 않습니다. */}
+        <ReportQuotes />
 
         <h2>들어 있는 것</h2>
         <ol className="rp-chapters">
