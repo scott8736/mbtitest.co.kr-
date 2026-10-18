@@ -14,8 +14,7 @@
  *   - 열쇠는 256비트 난수. 주문번호만으로는 열리지 않는다.
  *   - 우회 경로·시험용 무료 열기는 두지 않는다. 시험 결제도 진짜 결제(1,000원)를 거친다.
  *   - 휴대폰 번호 원문은 저장하지 않는다. 뒤 4자리와 되돌릴 수 없는 HMAC 값(phone_hash)만 둔다.
- *   - 초대 할인권(2026-10-08, worker/coupon.ts): 서버가 코드를 확인하고 깎은 금액을 주문에 저장한다.
- *     페이앱 통보는 그 저장된 금액과 대조하고, 결제 완료 통보가 와야 할인권이 「사용」이 된다.
+ *   - 초대 할인권은 2026-10-19 없앴다. 주문에 할인권 번호가 와도 무시하고 언제나 정가로 결제한다.
  */
 import {
   isSellerInfoComplete,
@@ -35,8 +34,7 @@ import { readSetting } from "./naver";
 import { sendTelegram } from "./telegram";
 import { ORPHAN_STATES, payAlert, type PaySend } from "./pay-alert";
 import { handleTossGrant, TOSS_CORS_PATHS, withCors } from "./report-toss";
-import { attachCoupon, checkCoupon, markCouponPaid } from "./coupon";
-import { discounted } from "../lib/invite-coupon";
+import { attachCoupon, markCouponPaid } from "./coupon";
 
 const PAYAPP_API = "https://api.payapp.kr/oapi/apiLoad.html";
 
@@ -547,18 +545,8 @@ function routeReport(request: Request, url: URL, env: Env, ctx: Ctx, path: strin
       const checked = validateOrder(raw as Record<string, never>, seoulToday());
       if (!checked.ok) return json({ error: checked.error }, 400);
       if (!hasBook(checked.value.type)) return json({ error: "이 유형의 리포트는 준비 중이에요." }, 503);
-      // 초대 할인권: 서버가 확인하고 금액을 깎습니다. 브라우저가 보낸 금액은 쓰지 않습니다.
-      const base = reportPrice();
-      let price = base;
-      let coupon: { code: string; discount: number } | undefined;
-      const rawCoupon = (raw as { coupon?: unknown })?.coupon;
-      if (rawCoupon) {
-        const c = await checkCoupon(db, rawCoupon);
-        if (!c.ok) return json({ error: c.error }, 400);
-        price = discounted(base, Number(c.row.amount));
-        coupon = { code: c.row.code, discount: base - price };
-      }
-      const made = await createOrder(db, checked.value, { price, test: false, meta: orderMeta(raw, request), coupon, alert: (msg) => ctx.waitUntil(sendTelegram(db, msg)) });
+      // 금액은 언제나 서버 정가입니다. 할인권(2026-10-19 폐지) 번호가 와도 쓰지 않습니다.
+      const made = await createOrder(db, checked.value, { price: reportPrice(), test: false, meta: orderMeta(raw, request), alert: (msg) => ctx.waitUntil(sendTelegram(db, msg)) });
       return made.ok ? json({ payurl: made.payurl, orderNo: made.orderNo }) : json({ error: made.error }, 502);
     }
 

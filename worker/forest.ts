@@ -6,21 +6,20 @@
  *
  *   POST /api/forest/create        { type, nickname?, device }          → { id }
  *   GET  /api/forest/<id>                                               → { id, owner, members }
- *   POST /api/forest/<id>/join     { type, nickname?, via, device }     → { ok, already, members, friendCoupon? }
- *   POST /api/forest/<id>/guess    { guess, word, device }              → { ok, answer, right, ...view, friendCoupon? }
- *   POST /api/forest/<id>/mine     { device }  (주인만)                  → { friends, goal, coupon? }
- *   GET  /api/forest/coupon?c=코드                                      → { amount, expiresAt } (리포트 주문 화면 확인용)
+ *   POST /api/forest/<id>/join     { type, nickname?, via, device }     → { ok, already, members }
+ *   POST /api/forest/<id>/guess    { guess, word, device }              → { ok, answer, right, ...view }
+ *   POST /api/forest/<id>/mine     { device }  (주인만)                  → { friends, goal }
  *
  * 「친구가 본 내 모리」(2026-10-08): 친구는 심기 전에 「이 친구는 어떤 모리 같아?」를 고르고(guess) 정해진 한 마디(word)를 남깁니다.
- * 초대 할인권(lib/invite-coupon.ts): 친구 INVITE_GOAL 명이 참여하면 주인에게, 처음 참여한 친구에게 하나씩.
+ * 초대 할인권은 2026-10-19 사용자 결정으로 완전히 없앴습니다(10-14 화면 삭제 뒤에도 서버가 몰래 발급하던 것까지). 다시 만들지 않습니다.
  * 참여 인원은 기기 해시로 세고, 한 연결(IP 해시)에서는 2명까지만, 주인과 같은 연결은 빼고 셉니다(셀프 초대 방지).
  *
  * 저장하지 않는 것: IP 원본, 기기 값 원본(해시만), 닉네임 외 개인정보. 닉네임은 선택이고 8자까지.
  * 표는 요청 때 IF NOT EXISTS 로 만듭니다(worker/schema.ts 와 같은 이유 — 배포가 마이그레이션을 돌리지 않음).
  */
 
-import { FRIEND_COUPON, FRIEND_WORDS, INVITE_GOAL, OWNER_COUPON } from "../lib/invite-coupon";
-import { checkCoupon, couponOut, couponStats, issueCoupon, type CouponOut } from "./coupon";
+import { FRIEND_WORDS, INVITE_GOAL } from "../lib/invite-coupon";
+import { couponStats } from "./coupon";
 
 export const MBTI_CODES = ["ISTJ", "ISFJ", "INFJ", "INTJ", "ISTP", "ISFP", "INFP", "INTP", "ESTP", "ESFP", "ENFP", "ENTP", "ESTJ", "ESFJ", "ENFJ", "ENTJ"];
 const ID_CHARS = "abcdefghjkmnpqrstuvwxyz23456789"; // 헷갈리는 글자(0 o 1 l i) 뺌
@@ -200,23 +199,13 @@ export async function loadForest(db: D1Database, id: string): Promise<ForestView
   };
 }
 
-/** 주인 할인권 목표에 세는 친구 수(맞히기 또는 심기) */
+/** 내 숲에 참여한 친구 수(맞히기 또는 심기) */
 async function friendsOf(db: D1Database, id: string, owner: { device: string; ip: string }): Promise<number> {
   const rows = await db
     .prepare("SELECT device, ip FROM forest_guess WHERE forest_id = ? UNION SELECT device, ip FROM forest_member WHERE forest_id = ?")
     .bind(id, id)
     .all<{ device: string; ip: string }>();
   return countFriends(rows.results ?? [], owner);
-}
-
-/** 처음 참여한 친구 할인권. 실패해도 참여는 그대로 됩니다. */
-async function friendCoupon(db: D1Database, dev: string, ip: string, forestId: string): Promise<CouponOut | undefined> {
-  try {
-    const row = await issueCoupon(db, { kind: "friend", amount: FRIEND_COUPON, device: dev, ip, forestId });
-    return row ? couponOut(row) : undefined;
-  } catch {
-    return undefined;
-  }
 }
 
 async function body(request: Request): Promise<Record<string, unknown>> {
@@ -265,12 +254,8 @@ export function handleForest(request: Request, url: URL, env: Env, _ctx: Ctx): P
       return json({ error: "잠시 뒤 다시 시도해 주세요." }, 500);
     }
 
-    // 리포트 주문 화면이 할인권 번호를 확인합니다(금액을 정하는 건 주문 서버 — 여기는 보여 주기용).
-    if (path === "/api/forest/coupon" && request.method === "GET") {
-      if (!(await allow(db, request, "coupon", 40))) return json({ error: "잠시 뒤 다시 시도해 주세요." }, 429);
-      const c = await checkCoupon(db, url.searchParams.get("c"));
-      return c.ok ? json({ code: c.row.code, amount: Number(c.row.amount), expiresAt: Number(c.row.expires_at) }) : json({ error: c.error }, 404);
-    }
+    // 초대 할인권은 없앴습니다(2026-10-19). 옛 화면이 물어도 「없음」으로 답합니다.
+    if (path === "/api/forest/coupon") return json({ error: "할인권은 더 이상 쓰지 않아요." }, 410);
 
     const m = path.match(/^\/api\/forest\/([a-z2-9]{8})(\/join|\/guess|\/mine)?$/);
     if (!m || !isForestId(m[1])) return json({ error: "없는 숲이에요." }, 404);
@@ -289,12 +274,7 @@ export function handleForest(request: Request, url: URL, env: Env, _ctx: Ctx): P
       const f = await db.prepare("SELECT owner_ip FROM forest WHERE id = ? AND owner_device = ?").bind(id, dev).first<{ owner_ip: string }>();
       if (!f) return json({ error: "내 숲이 아니에요." }, 403);
       const friends = await friendsOf(db, id, { device: dev, ip: f.owner_ip });
-      let coupon: CouponOut | undefined;
-      if (friends >= INVITE_GOAL) {
-        const row = await issueCoupon(db, { kind: "owner", amount: OWNER_COUPON, device: dev, ip: f.owner_ip, forestId: id });
-        if (row) coupon = couponOut(row);
-      }
-      return json({ friends, goal: INVITE_GOAL, coupon });
+      return json({ friends, goal: INVITE_GOAL });
     }
 
     if (m[2] === "/guess" && request.method === "POST") {
@@ -318,7 +298,7 @@ export function handleForest(request: Request, url: URL, env: Env, _ctx: Ctx): P
       // 이미 맞혀 본 기기면 처음 고른 답으로 채점합니다(답을 바꿔 가며 맞히기 방지).
       const first = await db.prepare("SELECT guess FROM forest_guess WHERE forest_id = ? AND device = ?").bind(id, dev).first<{ guess: string }>();
       const mine = first?.guess ?? guess;
-      return json({ ok: true, already: !r.meta?.changes, guess: mine, answer: view.owner.type, right: mine === view.owner.type, friendCoupon: await friendCoupon(db, dev, ip, id), ...after });
+      return json({ ok: true, already: !r.meta?.changes, guess: mine, answer: view.owner.type, right: mine === view.owner.type, ...after });
     }
 
     if (m[2] === "/join" && request.method === "POST") {
@@ -340,7 +320,7 @@ export function handleForest(request: Request, url: URL, env: Env, _ctx: Ctx): P
         .bind(id, type, cleanNickname(b.nickname), via, dev, ip, Date.now())
         .run();
       const after = (await loadForest(db, id)) as ForestView;
-      return json({ ok: true, already: !r.meta?.changes, friendCoupon: await friendCoupon(db, dev, ip, id), ...after });
+      return json({ ok: true, already: !r.meta?.changes, ...after });
     }
 
     return json({ error: "잘못된 요청이에요." }, 405);
