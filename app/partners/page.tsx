@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteFooter from "../../components/SiteFooter";
 import PartnerForm from "../../components/PartnerForm";
+import { ContactText } from "../../components/SellerInfo";
 
 export const metadata: Metadata = {
   title: "브랜드 심리테스트 제작·제휴",
@@ -115,11 +116,9 @@ export default function PartnersPage() {
         <h2 id="inquiry">제휴 문의</h2>
         <PartnerForm />
         <div className="notice-box">
-          <strong>카카오톡으로 먼저 물어보셔도 돼요</strong>
+          <strong>이메일로 먼저 물어보셔도 돼요</strong>
           <p>
-            <a href="https://open.kakao.com/o/s2sMEJQi" rel="noopener noreferrer">
-              문의 오픈채팅 →
-            </a>
+            <ContactText />
           </p>
         </div>
       </article>
