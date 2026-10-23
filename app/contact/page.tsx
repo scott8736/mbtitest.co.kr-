@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import SiteFooter from "../../components/SiteFooter";
+import MailButton from "../../components/MailButton";
+import { ContactText } from "../../components/SellerInfo";
 
 export const metadata: Metadata = {
   title: "문의하기",
@@ -17,9 +19,9 @@ export default function ContactPage() {
         <h1>서비스 문의</h1>
         <p>검사 오류, 결과 설명, 콘텐츠 제안, 광고 및 제휴 관련 문의를 남겨주세요.</p>
         <div className="contact-card">
-          <span>문의 오픈채팅</span>
-          <strong>카카오톡 오픈채팅</strong>
-          <a href="https://open.kakao.com/o/s2sMEJQi" target="_blank" rel="noopener noreferrer">오픈채팅으로 문의하기 <span>→</span></a>
+          <span>문의 이메일</span>
+          <strong><ContactText /></strong>
+          <MailButton>이메일로 문의하기 <span>→</span></MailButton>
         </div>
         <div className="notice-box"><strong>브랜드 심리테스트 제작·제휴</strong><p>브랜드 맞춤 테스트 제작은 <Link href="/partners/">제휴 안내 페이지</Link>에서 문의해 주세요.</p></div>
         <div className="notice-box"><strong>문의 시 포함하면 좋은 내용</strong><p>이용한 테스트 이름, 사용 기기, 발생한 문제와 화면 상황을 함께 알려주시면 확인에 도움이 됩니다.</p></div>

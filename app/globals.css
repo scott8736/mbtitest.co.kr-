@@ -491,8 +491,8 @@ main > .ad-unit[data-ad-placement="resultTop"] { max-width:min(970px,calc(100% -
 .updated { font-size:13px!important; }
 .contact-card { max-width:600px; margin-top:50px; padding:34px; border-radius:24px; background:linear-gradient(145deg,#172a46,#33266d); color:white; }
 .contact-card>span { color:#c8baff; font-size:12px; }
-.contact-card>strong { display:block; margin:12px 0 28px; font-size:clamp(22px,4vw,34px); }
-.contact-card>a { display:flex; justify-content:space-between; padding:16px 18px; border-radius:12px; background:white; color:var(--navy); font-weight:750; text-decoration:none; }
+.contact-card>strong { display:block; margin:12px 0 28px; font-size:clamp(22px,4vw,34px); overflow-wrap:anywhere; }
+.contact-card>a, .contact-card>button { display:flex; justify-content:space-between; width:100%; padding:16px 18px; border:0; border-radius:12px; background:white; color:var(--navy); font:inherit; font-weight:750; text-decoration:none; cursor:pointer; }
 
 @media (max-width:900px) {
   .wellness-hero { min-height:700px; padding-top:90px; background-position:58% center; }
@@ -1760,7 +1760,7 @@ main.tarot .generic-intro { min-height:auto; padding-bottom:64px; }
 .related-page-cta a.primary, .blog-hub-cta>a, .article-final-cta a { color:#1d2440; }
 .growth-plan p { color:#3f4660; border-top-color:#e6def8; }
 .growth-plan p b { color:#e8604e; }
-.contact-card>a { border:1px solid #e6def8; }
+.contact-card>a, .contact-card>button { border:1px solid #e6def8; }
 .group-heading>b { background:#efe9ff; color:#5b45b0; }
 .result-links a { background:linear-gradient(135deg,#f1ebff,#fff4ee); color:var(--ink); border-color:#e6def8; }
 .site-nav a.active, .category-tabs button.active { background:var(--navy); border-color:var(--navy); }
