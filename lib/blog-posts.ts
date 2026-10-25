@@ -2,11 +2,18 @@ import { newSeoPosts } from "./new-seo-posts";
 import { celebrityPosts } from "./celebrity-posts";
 import { fortunePosts } from "./fortune-posts";
 import { promoPosts } from "./promo-posts";
+import { pickPosts } from "./pick-posts";
 
 export type BlogSection = {
   heading: string;
   paragraphs: string[];
   bullets?: string[];
+  /** 앵커 이름. SNS 고르기 DM 이 「내가 고른 번호」 단락(#pick-2)으로 바로 보낸다 (2026-10-26~). */
+  id?: string;
+  /** 단락 그림 (public 기준 경로). */
+  image?: { src: string; alt: string };
+  /** 단락 끝 작은 버튼 — 그 결과가 맞는지 테스트로 확인하러 가는 길. */
+  cta?: { label: string; href: string };
 };
 
 export type BlogPost = {
@@ -30,6 +37,7 @@ export type BlogPost = {
 const commonDate = "2026-07-25";
 
 export const blogPosts: BlogPost[] = [
+  ...pickPosts,
   ...promoPosts,
   ...celebrityPosts,
   ...newSeoPosts,

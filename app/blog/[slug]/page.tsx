@@ -185,9 +185,25 @@ export default async function BlogArticlePage({
             </aside>
 
             {post.sections.map((section, index) => (
-              <section className="article-section" key={section.heading}>
+              <section
+                className="article-section"
+                key={section.heading}
+                id={section.id}
+                style={section.id ? { scrollMarginTop: 72 } : undefined}
+              >
                 <span>{String(index + 1).padStart(2, "0")}</span>
                 <h2>{section.heading}</h2>
+                {section.image && (
+                  // eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기라 next/image 최적화를 쓰지 않습니다
+                  <img
+                    src={section.image.src}
+                    alt={section.image.alt}
+                    width={720}
+                    height={720}
+                    loading="lazy"
+                    style={{ width: "100%", maxWidth: 420, height: "auto", display: "block", margin: "8px auto 16px", borderRadius: 16 }}
+                  />
+                )}
                 {section.paragraphs.map((paragraph) => (
                   <p key={paragraph}>{paragraph}</p>
                 ))}
@@ -198,12 +214,21 @@ export default async function BlogArticlePage({
                     ))}
                   </ul>
                 )}
+                {section.cta && (
+                  <a
+                    href={section.cta.href}
+                    style={{ display: "block", margin: "14px 0 4px", padding: "14px 16px", borderRadius: 14, background: "#eb6978", color: "#fff", fontWeight: 800, textAlign: "center", textDecoration: "none" }}
+                  >
+                    {section.cta.label} →
+                  </a>
+                )}
               </section>
             ))}
 
+            {/* 위 본문 광고와 다른 단위를 쓴다 — 한 페이지에 같은 단위가 두 번이면 두 번째가 비기 쉽다(ad-slots.ts). 2026-10-26 */}
             {showLowerArticleAd && (
               <AdUnit
-                position="articleBody"
+                position="articleTop"
                 label={`${post.title} 하단 광고`}
               />
             )}
