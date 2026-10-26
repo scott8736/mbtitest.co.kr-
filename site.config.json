@@ -24,6 +24,13 @@
     "tossPrice": 9900
   },
 
+  "news": {
+    "_note": "두 번째 상품(2026-10-25). 휴대폰으로 보는 6면 신문. 페이앱 웹 결제만(토스 미니앱에는 열지 않는다). 가격은 서버가 이 값으로 정한다.",
+    "name": "내 성향 신문",
+    "short": "신문",
+    "price": 1900
+  },
+
   "payment": {
     "payappUserid": "charry333",
     "payTypes": "card,kakaopay,naverpay,tosspay,applepay,smilepay,payco,phone"

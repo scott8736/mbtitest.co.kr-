@@ -309,6 +309,8 @@ p.body.center { text-align: center; font-size: 8.2pt; }
   fetch("/api/report/book?o=" + token, { cache: "no-store" })
     .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
     .then(function (res) {
+      // 1,900원 「내 성향 신문」 열쇠(2026-10-25)면 신문 화면으로 넘긴다
+      if (!res.ok && res.j && res.j.product === "news") { location.replace("/news-app/?t=" + token); return; }
       if (!res.ok) { msg.textContent = res.j.error || "리포트를 불러오지 못했어요."; return; }
       var p = res.j.params;
       var q = new URLSearchParams();

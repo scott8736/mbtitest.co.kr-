@@ -13,6 +13,8 @@ export const SITE_NAME = config.brand.name;
 
 export const WORLD = config.world;
 export const PRODUCT = config.product;
+/** 두 번째 상품 「내 성향 신문」(2026-10-25) */
+export const NEWS_PRODUCT = config.news;
 export const PAYMENT = config.payment;
 export const SELLER_INFO = config.seller;
 

@@ -240,13 +240,14 @@ export async function computeQuota(
   const free = Math.max(0, Math.min(CHAT_FREE_PER_DAY - Number(devFree?.n ?? 0), CHAT_FREE_PER_IP - Number(ipFree?.n ?? 0)));
 
   // 리포트 구매자: 결제일부터 7일(CHAT_REPORT_DAYS) 동안 하루 50번. 여러 권이면 가장 최근 것.
+  // 1,900원 「내 성향 신문」(product='news', 2026-10-25)은 대화권을 주지 않는다 — 책만.
   let report = 0;
   let reportUntil = "";
   let reportRef = "";
   if (input.reports.length) {
     const marks = input.reports.map(() => "?").join(",");
     const rows = (await db
-      .prepare(`SELECT order_no, paid_at FROM report_orders WHERE token IN (${marks}) AND status IN ('paid','partial')`)
+      .prepare(`SELECT order_no, paid_at FROM report_orders WHERE token IN (${marks}) AND status IN ('paid','partial') AND product = 'book'`)
       .bind(...input.reports)
       .all<{ order_no: string; paid_at: string }>()).results ?? [];
     const best = rows

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>내 성향 신문</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;900&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #f3ecdc; --paper2: #ebe2cc; --ink: #1d1a15; --sub: #5a5245; --rule: #2a251d; --hair: #b9ad93; --red: #a3261c;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #cfc6b3; }
+body { font-family: "Noto Serif KR", serif; color: var(--ink); -webkit-text-size-adjust: 100%; }
+.wrap { max-width: 520px; margin: 0 auto; padding: 0 0 40px; }
+/* 면 이동 띠 */
+.nav { position: sticky; top: 0; z-index: 5; display: flex; gap: 6px; overflow-x: auto; padding: 8px 12px; background: rgba(29,26,21,.94); scrollbar-width: none; }
+.nav::-webkit-scrollbar { display: none; }
+.nav a { flex: none; font: 700 12.5px "Noto Sans KR", sans-serif; color: #eee4cc; text-decoration: none; padding: 6px 11px; border: 1px solid #6c6252; border-radius: 99px; }
+.nav a:active { background: #3a342a; }
+/* 지면 */
+.sheet { position: relative; margin: 14px 10px 0; padding: 16px 16px 20px; background: var(--paper); box-shadow: 0 6px 18px rgba(40,30,10,.22); overflow: hidden; }
+.sheet::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+  background-image: radial-gradient(rgba(90,70,30,.10) 1px, transparent 1.3px); background-size: 5px 5px; }
+.sheet > * { position: relative; }
+.folio { display: flex; justify-content: space-between; font: 400 11px "Noto Sans KR", sans-serif; color: var(--sub); border-bottom: 1px solid var(--rule); padding-bottom: 5px; margin-bottom: 10px; }
+.folio b { color: var(--ink); }
+/* 제호 */
+.mast { text-align: center; border-bottom: 3px double var(--rule); padding-bottom: 8px; }
+.mast .top { display: flex; justify-content: space-between; font: 400 10.5px "Noto Sans KR", sans-serif; color: var(--sub); }
+.mast h1 { margin: 6px 0 2px; font-weight: 900; font-size: clamp(38px, 12vw, 58px); letter-spacing: -.02em; line-height: 1.05; }
+.mast .motto { font-size: 11.5px; color: var(--sub); letter-spacing: .12em; }
+.dateline { display: flex; justify-content: space-between; font: 700 11px "Noto Sans KR", sans-serif; border-bottom: 1px solid var(--rule); padding: 5px 0; margin-bottom: 12px; }
+/* 기사 */
+.kicker { display: inline-block; font: 900 11px "Noto Sans KR", sans-serif; color: #fff; background: var(--red); padding: 2px 7px; margin-bottom: 6px; letter-spacing: .06em; }
+h2.hl { margin: 0 0 6px; font-weight: 900; font-size: 27px; line-height: 1.25; letter-spacing: -.03em; word-break: keep-all; }
+.sheet:not(.front) h2.hl { font-size: 23px; }
+.deck { margin: 0 0 10px; font-size: 15px; font-weight: 600; color: #3a3328; line-height: 1.5; padding-bottom: 9px; border-bottom: 1px solid var(--hair); word-break: keep-all; }
+.fig { margin: 0 0 4px; border: 1px solid var(--rule); background: var(--paper2); }
+/* 가로 그림은 폭을 꽉, 세로 그림(잘라 낸 여백)은 높이 440px 안에서 가운데 */
+.fig { display: flex; justify-content: center; }
+.fig img { display: block; width: auto; max-width: 100%; height: auto; max-height: 440px; filter: grayscale(.85) sepia(.25) contrast(1.05); }
+.cap { font: 400 11px "Noto Sans KR", sans-serif; color: var(--sub); margin: 0 0 12px; }
+.cols { column-count: 2; column-gap: 14px; column-rule: 1px solid var(--hair); }
+.cols p, p.t { margin: 0 0 9px; font-size: 14.5px; line-height: 1.72; word-break: keep-all; }
+.sheet { scroll-margin-top: 50px; }
+body.shot .nav { display: none; }
+.cols p:first-child::first-letter { float: left; font-size: 40px; line-height: .95; font-weight: 900; margin: 3px 5px 0 0; }
+@media (max-width: 360px) { .cols { column-count: 1; } }
+.by { font: 400 11px "Noto Sans KR", sans-serif; color: var(--sub); text-align: right; margin-top: 2px; }
+hr.rule { border: 0; border-top: 2px solid var(--rule); margin: 14px 0 10px; }
+h3.sub { margin: 0 0 6px; font-weight: 900; font-size: 17px; letter-spacing: -.02em; }
+/* 여론조사 */
+.poll { border: 1px solid var(--rule); padding: 10px 12px 8px; background: rgba(255,255,255,.25); }
+.poll .q { font: 900 12px "Noto Sans KR", sans-serif; margin-bottom: 8px; }
+.bar { margin-bottom: 8px; font: 700 12px "Noto Sans KR", sans-serif; }
+.bar .lab { display: flex; justify-content: space-between; margin-bottom: 3px; }
+.bar .lab .win { color: var(--red); }
+.bar .track { display: flex; height: 13px; border: 1px solid var(--rule); }
+.bar .l { background: var(--ink); }
+.bar .r { background: repeating-linear-gradient(45deg, transparent 0 3px, rgba(29,26,21,.35) 3px 4px); }
+.poll .note { font: 400 11px "Noto Sans KR", sans-serif; color: var(--sub); margin-top: 4px; }
+.analysis { margin-top: 10px; font-size: 14px; line-height: 1.7; word-break: keep-all; }
+.analysis b { font-weight: 900; }
+/* 상자 기사 */
+.box { border: 2px solid var(--rule); padding: 10px 12px; margin: 12px 0 0; }
+.box h4 { margin: 0 0 6px; font: 900 13px "Noto Sans KR", sans-serif; }
+.box ol, .box ul { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.7; }
+.editorial { background: var(--paper2); border-left: 4px solid var(--rule); padding: 10px 12px; }
+/* 사건 기록부 */
+.inc { border-top: 1px dashed var(--hair); padding: 8px 0; }
+.inc b { display: block; font-size: 15px; font-weight: 900; margin-bottom: 2px; }
+.inc span { font-size: 14px; line-height: 1.65; }
+/* 관계 */
+.pair { display: grid; grid-template-columns: 62px 1fr; gap: 10px; align-items: start; border-top: 1px solid var(--hair); padding: 9px 0; }
+.pair .code { font-weight: 900; font-size: 17px; text-align: center; border: 2px solid var(--rule); padding: 6px 0; }
+.pair.best .code { background: var(--ink); color: var(--paper); }
+.pair .tag { font: 900 11px "Noto Sans KR", sans-serif; color: var(--red); }
+.pair p { margin: 2px 0 0; font-size: 14px; line-height: 1.65; word-break: keep-all; }
+/* 생활 */
+.wx { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.wx > div { border: 1px solid var(--rule); padding: 8px; }
+.wx .d { font: 900 12px "Noto Sans KR", sans-serif; display: flex; justify-content: space-between; }
+.wx .s { font-size: 24px; line-height: 1.2; margin: 3px 0; font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", serif; font-variant-emoji: text; }
+.wx p { margin: 0; font-size: 13px; line-height: 1.55; word-break: keep-all; }
+.ad { margin-top: 14px; border: 3px double var(--rule); text-align: center; padding: 12px; }
+.ad .t { font: 900 12px "Noto Sans KR", sans-serif; letter-spacing: .1em; }
+.ad p { margin: 6px 0 0; font-size: 15px; line-height: 1.6; word-break: keep-all; }
+.quote { margin: 16px 0 0; text-align: center; font-size: 17px; font-weight: 900; line-height: 1.5; word-break: keep-all; }
+.next { margin-top: 18px; background: var(--ink); color: var(--paper); padding: 14px 14px 16px; }
+.next .t { font: 900 12px "Noto Sans KR", sans-serif; letter-spacing: .14em; color: #e9c46a; }
+.next p { margin: 6px 0 12px; font-size: 14.5px; line-height: 1.65; word-break: keep-all; }
+.next a { display: block; text-align: center; font: 900 15px "Noto Sans KR", sans-serif; color: var(--ink); background: var(--paper); text-decoration: none; padding: 11px 0; }
+.notice { margin-top: 16px; font: 400 10.5px/1.6 "Noto Sans KR", sans-serif; color: var(--sub); border-top: 1px solid var(--hair); padding-top: 8px; word-break: keep-all; }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script id="content"></script>
+<script>
+// scripts/sync-news.mjs 가 넣은 부분. 주문 열쇠(?t=)로 결제된 신문 원고를 서버에서 받는다(원고는 이 폴더에 없다).
+(function () {
+  var app = document.getElementById("app");
+  var say = function (m) { app.innerHTML = '<p style="margin:60px 20px;text-align:center;font:15px/1.7 \'Noto Sans KR\',sans-serif;color:#3a3328">' + m + '</p>'; };
+  var q0 = new URLSearchParams(location.search);
+  var t = q0.get("t") || q0.get("o") || "";
+  if (!/^[0-9a-f]{64}$/.test(t)) { say("주소가 올바르지 않아요. 결제 완료 화면의 링크나 「주문 다시 찾기」로 열어 주세요."); return; }
+  say("신문을 찍는 중이에요…");
+  fetch("/api/report/news?o=" + t, { cache: "no-store" })
+    .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+    .then(function (res) {
+      if (!res.ok) {
+        if (res.j && res.j.product === "book") { location.replace("/report-app/?o=" + t); return; }
+        say((res.j && res.j.error) || "신문을 불러오지 못했어요."); return;
+      }
+      var p = res.j.params, q = new URLSearchParams();
+      Object.keys(p).forEach(function (k) { if (p[k] !== "" && p[k] !== null && p[k] !== undefined) q.set(k, String(p[k])); });
+      window.PARAMS = q.toString();
+      window.NEWS = res.j.news;
+      // 이 기기에 기억 — /report/find/ 의 「이 기기에서 연 리포트」(components/ReportDone.tsx 와 같은 열쇠 이름)
+      try {
+        var KEY = "mori-reports", list = JSON.parse(localStorage.getItem(KEY) || "[]");
+        if (!Array.isArray(list)) list = [];
+        list = [{ token: t, orderNo: res.j.orderNo, type: p.type, product: "news", at: new Date().toISOString() }].concat(list.filter(function (r) { return r && r.token !== t; })).slice(0, 10);
+        localStorage.setItem(KEY, JSON.stringify(list));
+      } catch (e) { /* 기억 못 해도 휴대폰 번호로 찾을 수 있다 */ }
+      var s = document.createElement("script");
+      s.src = "news.js";
+      s.onerror = function () { say("신문을 불러오지 못했어요. 잠시 뒤 새로고침해 주세요."); };
+      document.body.appendChild(s);
+    })
+    .catch(function () { say("신문을 불러오지 못했어요. 잠시 뒤 새로고침해 주세요."); });
+})();
+</script>
+</body>
+</html>

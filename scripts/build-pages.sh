@@ -36,6 +36,7 @@ cat > "${out}/_routes.json" <<'JSON'
     "/_next/*",
     "/images/*",
     "/report-app/*",
+    "/news-app/*",
     "/favicon.svg",
     "/file.svg",
     "/globe.svg",

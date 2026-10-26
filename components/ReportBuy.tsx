@@ -6,13 +6,16 @@
  * 할인권은 2026-10-14 사용자 결정("효과 없다")으로 화면에서 뺐습니다. 서버(worker/report.ts)의 할인 처리는 그대로 두되 화면은 번호를 보내지 않습니다.
  * 2026-10-14: 표지 이름은 랜덤으로 미리 채우고, 약관 동의는 미리 체크해 두고 눌러서 내용을 봅니다.
  * 판매 페이지 안 단계 기록(2026-10-08): 결과 있음/없음 → 폼 봄 → 입력 시작 → 결제 버튼 → 오류. 관리자 깔때기 표 아래 줄에 나옵니다.
+ * 2026-10-25: 두 번째 상품 「내 성향 신문」(1,900원)을 고를 수 있게 했습니다. 기본 선택은 책 그대로이고, 책을 고른 상태의 문구·흐름은 예전과 같습니다.
+ *   신문은 원고·그림이 올라간 유형(report/news/ready.ts)에서만 보입니다. 금액은 서버가 상품별로 정합니다(product 만 보냄).
  */
 import { teaserSlides, type TeaserMeta } from "../lib/report-teaser";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { questions, typeData, type Axis } from "../lib/mbti-data";
 import { readLastResult } from "../lib/my-mori";
-import { BIRTH_TIME_SLOTS, REPORT_CONSENT_TEXT, REPORT_CONSENT_VERSION, REPORT_TERMS } from "../lib/report-config";
+import { BIRTH_TIME_SLOTS, NEWS_PRICE, REPORT_CONSENT_TEXT, REPORT_CONSENT_VERSION, REPORT_TERMS, type ReportProductId } from "../lib/report-config";
+import { NEWS_READY_TYPES } from "../report/news/ready";
 import { randomNick } from "../lib/random-nick";
 import { useReportPricing, won } from "./ReportEvent";
 import { recordTestEventOnce, type ReportStep } from "../lib/test-events";
@@ -63,6 +66,8 @@ export default function ReportBuy() {
   // 2026-10-13 폼 63명 중 1명만 입력 시작 → 처음엔 결제 버튼만 보이고, 누르면 번호·동의 칸이 열립니다.
   const [opened, setOpened] = useState(false);
   const [busy, setBusy] = useState(false);
+  // 상품(2026-10-25): 기본은 책. 신문을 고르면 생년월일 칸을 숨기고(신문엔 사주 장이 없음) 주문에 product 만 실어 보냅니다.
+  const [product, setProduct] = useState<ReportProductId>("book");
   const { ready: priced, price } = useReportPricing();
   const [error, setError] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
@@ -107,11 +112,16 @@ export default function ReportBuy() {
   }
 
   const percents = leftPercents(stored.scores);
+  const newsReady = NEWS_READY_TYPES.includes(stored.result);
+  const isNews = newsReady && product === "news";
+  // 신문을 고른 채로의 단계는 _news 를 붙여 따로 셉니다(책 깔때기 숫자는 그대로).
+  const track = (s: "form_start" | "submit" | "error") => step(isNews ? (`${s}_news` as ReportStep) : s);
+  const payLabel = isNews ? `${won(NEWS_PRICE)} 결제하기` : priced ? `${won(price)} 결제하기` : "결제하기";
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
     if (!agree) {
-      step("error");
+      track("error");
       return setError("환불 안내에 동의해 주세요.");
     }
     setBusy(true);
@@ -119,7 +129,10 @@ export default function ReportBuy() {
       const response = await fetch("/api/report/order", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ type: stored.result, scores: percents, name, birth, bt: birth ? bt : 0, phone, agree, consentVersion: REPORT_CONSENT_VERSION, touch: readTouch() }),
+        body: JSON.stringify({
+          type: stored.result, scores: percents, name, birth: isNews ? "" : birth, bt: !isNews && birth ? bt : 0, phone, agree,
+          consentVersion: REPORT_CONSENT_VERSION, touch: readTouch(), ...(isNews ? { product: "news" } : {}),
+        }),
       });
       const data = (await response.json()) as { payurl?: string; error?: string };
       if (!response.ok || !data.payurl) {
@@ -127,20 +140,45 @@ export default function ReportBuy() {
       }
       location.assign(data.payurl);
     } catch (e) {
-      step("error");
+      track("error");
       setError(e instanceof Error ? e.message : "결제창을 열지 못했어요.");
       setBusy(false);
     }
   };
 
   return (
-    <form ref={formRef} className="rp-box rp-form" onSubmit={submit} onFocusCapture={() => step("form_start")} onInvalidCapture={() => step("error")}>
+    <form ref={formRef} className="rp-box rp-form" onSubmit={submit} onFocusCapture={() => track("form_start")} onInvalidCapture={() => track("error")}>
       <p className="rp-mine">
         내 결과 <b>{stored.result}</b> · {AXES.map((axis, i) => `${axis[percents[i] >= 50 ? 0 : 1]} ${Math.max(percents[i], 100 - percents[i])}%`).join(" · ")}
       </p>
+      {newsReady ? (
+        <div className="rp-pick" role="radiogroup" aria-label="상품 고르기">
+          <label className={product === "book" ? "on" : undefined}>
+            <input type="radio" name="rp-product" value="book" checked={product === "book"} onChange={() => setProduct("book")} />
+            <span><b>마음숲 안내서</b> {priced ? won(price) : "9,900원"}</span>
+          </label>
+          <label className={product === "news" ? "on" : undefined}>
+            <input type="radio" name="rp-product" value="news" checked={product === "news"} onChange={() => { setProduct("news"); step("news_pick"); }} />
+            <span><b>내 성향 신문</b> {won(NEWS_PRICE)}</span>
+          </label>
+        </div>
+      ) : null}
+      {isNews ? (
+        <>
+        <p className="rp-sum">
+          <b>{won(NEWS_PRICE)}</b> · 휴대폰으로 보는 나만의 신문 6면 · 내 이름이 제호
+        </p>
+        {/* 2026-10-25 동의 문구의 「무료 미리보기」가 신문에도 사실이 되도록 1면 윗부분 견본(scripts/sync-news.mjs 가 복사). */}
+        <figure className="rp-news-sample">
+          <img src={`/news-app/sample/${stored.result}.jpg`} alt={`${stored.result} 신문 1면 견본`} loading="lazy" width={390} height={860} />
+          <figcaption>무료 미리보기 · 1면 윗부분 (이름 「하늘」은 예시, 내 이름이 들어가요)</figcaption>
+        </figure>
+        </>
+      ) : (
       <p className="rp-sum">
         <b>{priced ? won(price) : "9,900원"}</b> · A4 104쪽 PDF · 내 유형 캐릭터와 AI 대화 7일 포함
       </p>
+      )}
       {/* 2026-10-18 안심 두 줄(사용자 승인 문구 그대로). 결제 폼 → 입력 시작 1.7% — 처음 보는 사이트라 망설인다고 봄. */}
       <ul className="rp-trust">
         <li>🔒 결제는 페이앱 안전결제창</li>
@@ -151,11 +189,11 @@ export default function ReportBuy() {
           className="rp-button"
           type="button"
           onClick={() => {
-            step("form_start");
+            track("form_start");
             setOpened(true);
           }}
         >
-          {priced ? `${won(price)} 결제하기` : "결제하기"}
+          {payLabel}
         </button>
       ) : (
       <>
@@ -166,6 +204,15 @@ export default function ReportBuy() {
         <small className="rp-hint">결제 확인과 리포트 다시 찾기에만 써요. 광고 문자는 보내지 않아요.</small>
       </label>
       {/* 2026-10-14 사용자 요청: 처음부터 펼쳐 두고, 생년월일이 없으면 사주 장이 없다는 것을 알립니다. */}
+      {isNews ? (
+      <details className="rp-extra" open>
+        <summary>신문 제호 이름 바꾸기 (선택)</summary>
+        <label>
+          <span>제호에 넣을 이름 (「○○일보」가 돼요 · 10자)</span>
+          <input value={name} onChange={(e) => setName(e.target.value)} maxLength={10} placeholder="예: 하늘" autoComplete="off" />
+        </label>
+      </details>
+      ) : (
       <details className="rp-extra" open>
         <summary>표지 이름 바꾸기 · 생년월일 넣기 (선택 · 생일을 넣으면 사주 장 6쪽 추가)</summary>
         <label>
@@ -188,6 +235,7 @@ export default function ReportBuy() {
           </label>
         ) : null}
       </details>
+      )}
       <div className="rp-terms">
         <label className="rp-agree">
           <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
@@ -208,8 +256,8 @@ export default function ReportBuy() {
       </div>
       {error ? <p className="rp-error" role="alert">{error}</p> : null}
       {/* 번호 칸이 비면 브라우저가 onSubmit 전에 막으므로, 누름은 버튼에서 셉니다. */}
-      <button className="rp-button" type="submit" disabled={busy} onClick={() => step("submit")}>
-        {busy ? "결제창 여는 중…" : priced ? `${won(price)} 결제하기` : "결제하기"}
+      <button className="rp-button" type="submit" disabled={busy} onClick={() => track("submit")}>
+        {busy ? "결제창 여는 중…" : payLabel}
       </button>
       </>
       )}

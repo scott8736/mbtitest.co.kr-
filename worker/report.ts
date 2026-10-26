@@ -6,6 +6,11 @@
  *   GET  /api/report/status   ?o=열쇠 → 결제 상태 (결제 직후 화면이 기다릴 때)
  *   GET  /api/report/book     ?o=열쇠 → 결제된 주문의 원고(JSON). 첫 열람 시각을 남긴다
  *   POST /api/report/find     휴대폰 번호 → 결제된 주문 목록, 또는 주문번호 + 휴대폰 뒤 4자리 → 열쇠 (다시 찾기)
+ *   GET  /api/report/news     ?o=열쇠 → 결제된 「내 성향 신문」 주문의 원고(JSON) (2026-10-25 두 번째 상품)
+ *
+ * 상품(2026-10-25): report_orders.product = 'book'(9,900원 책, 기본) | 'news'(1,900원 신문).
+ *   가격은 상품별로 서버가 정하고(productPrice), 통보 금액은 주문에 저장된 price 와 대조한다.
+ *   책 열쇠로 신문을, 신문 열쇠로 책을 열 수 없다(/book·/news 가 product 를 본다). 신문은 모리 AI 대화권을 주지 않는다.
  *
  * 보안 원칙 (사용자 지시 "해킹·백도어 조심"):
  *   - 금액은 서버가 정한다. 브라우저 값은 쓰지 않는다.
@@ -19,17 +24,21 @@
 import {
   isSellerInfoComplete,
   PAYAPP_USERID,
+  parseProduct,
+  productName,
+  productPrice,
+  productShort,
   REPORT_CONSENT_VERSION,
   REPORT_PAY_TYPES,
-  reportPrice,
-  REPORT_PRODUCT,
   validateOrder,
   type CleanOrder,
+  type ReportProductId,
 } from "../lib/report-config";
 import { SITE_ORIGIN } from "../lib/site-urls";
 import { SITE_DOMAIN } from "../lib/site-config";
 import { classifyDevice, classifySource } from "../lib/analytics";
 import { hasBook, loadBook } from "./report-books";
+import { hasNews, loadNews } from "./report-news";
 import { readSetting } from "./naver";
 import { sendTelegram } from "./telegram";
 import { ORPHAN_STATES, payAlert, type PaySend } from "./pay-alert";
@@ -99,6 +108,8 @@ export type OrderRow = {
   payurl: string;
   pay_type: string;
   paid_at: string;
+  /** 'book' | 'news' (2026-10-25). 열이 붙기 전 행을 읽는 경우를 위해 선택값. */
+  product?: string;
   src?: string;
   ref_host?: string;
   landing?: string;
@@ -189,6 +200,8 @@ export function ensureReportSchema(db: D1Database): Promise<void> {
         db.prepare("ALTER TABLE report_orders ADD COLUMN coupon text DEFAULT '' NOT NULL").run().catch(() => undefined),
         db.prepare("ALTER TABLE report_orders ADD COLUMN discount integer DEFAULT 0 NOT NULL").run().catch(() => undefined),
       ]))
+      // 상품 구분(2026-10-25): 예전 주문·토스 주문은 모두 책(book). 새 상품 「내 성향 신문」은 news.
+      .then(() => db.prepare("ALTER TABLE report_orders ADD COLUMN product text DEFAULT 'book' NOT NULL").run().catch(() => undefined))
       .then(() => db.prepare("CREATE INDEX IF NOT EXISTS report_orders_phone_idx ON report_orders (phone_hash)").run())
       .then(() => undefined)
       .catch((error) => {
@@ -255,6 +268,8 @@ type CreateOrderOpts = {
   coupon?: { code: string; discount: number };
   /** 결제 오류 알림 보내기(pay-alert.ts). 없으면 기록만 합니다. */
   alert?: PaySend;
+  /** 상품(2026-10-25). 없으면 책. 금액(price)은 부르는 쪽이 productPrice(product) 로 정해 넘깁니다. */
+  product?: ReportProductId;
 };
 type CreateOrderResult = { ok: true; payurl: string; orderNo: string; token: string } | { ok: false; error: string };
 
@@ -264,7 +279,7 @@ export async function createOrder(db: D1Database, order: CleanOrder, opts: Creat
   } catch (error) {
     // 결제요청 앞뒤의 DB 오류 등. 손님은 결제창을 못 연다(돈은 안 나감).
     await payAlert(db, {
-      stage: "리포트 결제요청 실패", price: opts.price, test: opts.test,
+      stage: `${productShort(opts.product)} 결제요청 실패`, price: opts.price, test: opts.test,
       cause: `처리 중 예외 ${error instanceof Error ? error.name : ""} ${String(error)}`,
       todo: "손님이 결제창을 못 열었어요. 관리자 화면(/admin/report) 기록을 확인하세요.",
     }, opts.alert);
@@ -273,6 +288,8 @@ export async function createOrder(db: D1Database, order: CleanOrder, opts: Creat
 }
 
 async function createOrderInner(db: D1Database, order: CleanOrder, opts: CreateOrderOpts): Promise<CreateOrderResult> {
+  const product: ReportProductId = opts.product ?? "book";
+  const label = productShort(product);
   const token = newToken();
   const now = new Date();
   const today = seoulToday(now);
@@ -283,11 +300,11 @@ async function createOrderInner(db: D1Database, order: CleanOrder, opts: CreateO
       await db
         .prepare(
           `INSERT INTO report_orders
-             (token, order_no, type, scores, name, birth, bt, start_month, phone_last4, phone_hash, price, test, consent_version, consent_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             (token, order_no, type, scores, name, birth, bt, start_month, phone_last4, phone_hash, price, test, consent_version, consent_at, product)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .bind(token, candidate, order.type, order.scores.join(","), order.name, order.birth, order.bt, today.slice(0, 7),
-          order.phone.slice(-4), await phoneHash(db, order.phone), opts.price, opts.test ? 1 : 0, REPORT_CONSENT_VERSION, now.toISOString())
+          order.phone.slice(-4), await phoneHash(db, order.phone), opts.price, opts.test ? 1 : 0, REPORT_CONSENT_VERSION, now.toISOString(), product)
         .run();
       orderNo = candidate;
     } catch {
@@ -314,7 +331,7 @@ async function createOrderInner(db: D1Database, order: CleanOrder, opts: CreateO
     res = await payappPost({
       cmd: "payrequest",
       userid: PAYAPP_USERID,
-      goodname: `${REPORT_PRODUCT} ${order.type}${opts.test ? " (시험)" : ""}`,
+      goodname: `${productName(product)} ${order.type}${opts.test ? " (시험)" : ""}`,
       price: String(opts.price),
       recvphone: order.phone,
       smsuse: "n",
@@ -327,7 +344,7 @@ async function createOrderInner(db: D1Database, order: CleanOrder, opts: CreateO
   } catch (error) {
     await logEvent(db, orderNo, "payrequest_error", String(error));
     await payAlert(db, {
-      stage: "리포트 결제요청 실패", orderNo, price: opts.price, test: opts.test,
+      stage: `${label} 결제요청 실패`, orderNo, price: opts.price, test: opts.test,
       cause: `페이앱 API 호출 예외 ${String(error)}`,
       todo: "손님이 결제창을 못 열었어요. 페이앱 장애인지 확인하세요(계속되면 판매 스위치를 잠시 끄기).",
     }, opts.alert);
@@ -336,7 +353,7 @@ async function createOrderInner(db: D1Database, order: CleanOrder, opts: CreateO
   if (res.state !== "1" || !res.mul_no || !res.payurl) {
     await logEvent(db, orderNo, "payrequest_fail", `${res.errno ?? ""} ${res.errorMessage ?? ""}`);
     await payAlert(db, {
-      stage: "리포트 결제요청 실패", orderNo, price: opts.price, test: opts.test, state: res.state ?? "",
+      stage: `${label} 결제요청 실패`, orderNo, price: opts.price, test: opts.test, state: res.state ?? "",
       cause: res.state !== "1" ? `state=${res.state ?? "없음"} ${res.errno ?? ""} ${res.errorMessage ?? ""}` : !res.mul_no ? "mul_no 없음" : "payurl 없음",
       todo: "손님이 결제창을 못 열었어요. 페이앱 관리자·연동 설정을 확인하세요.",
     }, opts.alert);
@@ -351,7 +368,7 @@ async function createOrderInner(db: D1Database, order: CleanOrder, opts: CreateO
       .bind(m.src, m.refHost, m.landing, m.utm, m.entry, m.device, token)
       .run();
   }
-  await logEvent(db, orderNo, "payrequest", `mul_no=${res.mul_no} price=${opts.price}${opts.test ? " test" : ""}${opts.coupon ? ` coupon=${opts.coupon.code} -${opts.coupon.discount}` : ""}`);
+  await logEvent(db, orderNo, "payrequest", `mul_no=${res.mul_no} price=${opts.price}${product !== "book" ? ` product=${product}` : ""}${opts.test ? " test" : ""}${opts.coupon ? ` coupon=${opts.coupon.code} -${opts.coupon.discount}` : ""}`);
   return { ok: true, payurl: res.payurl, orderNo, token };
 }
 
@@ -394,10 +411,10 @@ const NOTIFY_HEAD: Record<string, string> = {
 };
 
 /** 텔레그램 알림 문구. 휴대폰은 뒤 4자리만(저장도 그것뿐입니다). */
-export function feedbackMessage(to: string, order: { type: string; price: number; test: number; phone_last4: string }, orderNo: string): string {
+export function feedbackMessage(to: string, order: { type: string; price: number; test: number; phone_last4: string; product?: string }, orderNo: string): string {
   const at = new Date(Date.now() + 9 * 3600_000).toISOString().slice(5, 16).replace("T", " ");
   return [
-    `🧩 MBTI테스트 · ${order.test ? "🧪시험 " : ""}${NOTIFY_HEAD[to] ?? to} · ${order.type} 리포트 · ${order.price.toLocaleString()}원`,
+    `🧩 MBTI테스트 · ${order.test ? "🧪시험 " : ""}${NOTIFY_HEAD[to] ?? to} · ${order.type} ${productShort(order.product)} · ${order.price.toLocaleString()}원`,
     `주문 ${orderNo} · 휴대폰 ***-${order.phone_last4}`,
     `${at} (한국 시각)`,
   ].join("\n");
@@ -414,8 +431,9 @@ export async function handleFeedback(db: D1Database, form: URLSearchParams, noti
   } catch (error) {
     // 처리 중 예외: 알리고 FAIL — 페이앱이 다시 보냅니다(checkretry=y, 최대 10회).
     const paid = get("pay_state") === "4";
+    const label = productShort(await productOfOrderNo(db, get("var1")));
     await payAlert(db, {
-      stage: paid ? "리포트 결제완료·지급 실패" : "리포트 결제통보 처리 예외",
+      stage: paid ? `${label} 결제완료·지급 실패` : `${label} 결제통보 처리 예외`,
       orderNo: get("var1"), mulNo: get("mul_no"), state: get("pay_state"), price: Number(get("price")) || undefined,
       cause: `처리 중 예외 ${error instanceof Error ? error.name : ""} ${String(error)}`,
       todo: paid
@@ -435,17 +453,19 @@ async function feedbackInner(db: D1Database, form: URLSearchParams, notify?: (te
     get("userid") === PAYAPP_USERID && constantEquals(get("linkkey"), keys.linkkey) && constantEquals(get("linkval"), keys.linkval);
   if (!authed) {
     await logEvent(db, orderNo, "feedback_rejected", `auth mul_no=${get("mul_no")} state=${state}`);
+    // 주문번호(var1)는 믿을 수 없는 값이라 상품 이름 표시에만 씁니다(억제 묶음은 원인 기준 — untrustedOrderNo).
     await payAlert(db, {
-      stage: "리포트 결제통보 인증 실패", orderNo, mulNo: get("mul_no"), state, untrustedOrderNo: true,
+      stage: `${productShort(await productOfOrderNo(db, orderNo))} 결제통보 인증 실패`, orderNo, mulNo: get("mul_no"), state, untrustedOrderNo: true,
       cause: !keys.linkkey || !keys.linkval ? "연동 KEY·VALUE 가 저장돼 있지 않음" : get("userid") !== PAYAPP_USERID ? "판매자 아이디 불일치" : "연동 KEY·VALUE 불일치",
       todo: "위조 통보거나 연동 VALUE 가 바뀐 것. 진짜 결제면 페이앱이 다시 보내요. /admin/report 연동 KEY·VALUE 를 확인하세요.",
     }, notify);
     return "FAIL";
   }
   const order = await db
-    .prepare("SELECT token, price, status, mul_no, type, test, phone_last4, coupon FROM report_orders WHERE order_no = ?")
+    .prepare("SELECT token, price, status, mul_no, type, test, phone_last4, coupon, product FROM report_orders WHERE order_no = ?")
     .bind(orderNo)
-    .first<{ token: string; price: number; status: string; mul_no: string; type: string; test: number; phone_last4: string; coupon?: string }>();
+    .first<{ token: string; price: number; status: string; mul_no: string; type: string; test: number; phone_last4: string; coupon?: string; product?: string }>();
+  const label = productShort(order?.product);
   // 지운 시험 주문에 뒤늦게 오는 취소·만료 통보(고아 통보)는 알리지 않고 기록만 남긴 뒤 SUCCESS (다시 안 오게).
   if (!order && ORPHAN_STATES.includes(state)) {
     await logEvent(db, orderNo, "feedback_orphan", `mul_no=${get("mul_no")} state=${state}`);
@@ -454,7 +474,7 @@ async function feedbackInner(db: D1Database, form: URLSearchParams, notify?: (te
   if (!order || !order.mul_no || order.mul_no !== get("mul_no") || String(order.price) !== get("price")) {
     await logEvent(db, orderNo, "feedback_rejected", `mismatch mul_no=${get("mul_no")} price=${get("price")} state=${state}`);
     await payAlert(db, {
-      stage: state === "4" ? "리포트 결제완료·지급 실패" : "리포트 결제통보 주문 대조 실패",
+      stage: state === "4" ? `${label} 결제완료·지급 실패` : `${label} 결제통보 주문 대조 실패`,
       orderNo, mulNo: get("mul_no"), state, price: Number(get("price")) || undefined, test: Boolean(order?.test),
       cause: !order ? "주문 없음" : !order.mul_no || order.mul_no !== get("mul_no") ? `mul_no 불일치(주문 ${order.mul_no || "없음"})` : `금액 불일치(주문 ${order.price}원)`,
       todo: state === "4"
@@ -477,7 +497,7 @@ async function feedbackInner(db: D1Database, form: URLSearchParams, notify?: (te
     // 결제완료인데 상태를 못 바꿨고 이미 결제된 주문도 아니면(결제요청 실패·취소로 닫힌 주문 등) 열람권이 안 열린 것. 가장 급한 알림.
     if (state === "4" && !changed && !PAID.includes(order.status)) {
       await payAlert(db, {
-        stage: "리포트 결제완료·지급 실패", orderNo, mulNo: get("mul_no"), state, price: order.price, test: Boolean(order.test),
+        stage: `${label} 결제완료·지급 실패`, orderNo, mulNo: get("mul_no"), state, price: order.price, test: Boolean(order.test),
         cause: `주문 상태가 「${order.status}」라 결제 완료로 못 바꿈`,
         todo: "돈은 받았는데 지급 실패, 수동 처리 필요. /admin/report 에서 주문을 확인하고 열람권을 열어 주거나 환불하세요.",
       }, notify);
@@ -491,6 +511,31 @@ async function feedbackInner(db: D1Database, form: URLSearchParams, notify?: (te
   }
   await logEvent(db, orderNo, "feedback", `state=${state} type=${get("pay_type")} mul_no=${get("mul_no")}`);
   return "SUCCESS";
+}
+
+/** 알림에 상품 이름을 붙이려고 주문번호로 상품을 찾습니다. 못 찾거나 오류면 책(예전 문구 그대로). 예외를 던지지 않습니다. */
+async function productOfOrderNo(db: D1Database, orderNo: string): Promise<string> {
+  if (!orderNo) return "book";
+  try {
+    const row = await db.prepare("SELECT product FROM report_orders WHERE order_no = ?").bind(orderNo).first<{ product?: string }>();
+    return row?.product ?? "book";
+  } catch {
+    return "book";
+  }
+}
+
+/** 신문 열람용 묶음(2026-10-25). news.js 가 읽는 쿼리 이름(type,name,ei,sn,tf,jp,date) 그대로. 발행일 = 주문일(한국 날짜). */
+export function newsPayload(row: OrderRow, news: Record<string, unknown>) {
+  const [ei, sn, tf, jp] = row.scores.split(",").map(Number);
+  // created_at 은 D1 CURRENT_TIMESTAMP(UTC, "YYYY-MM-DD HH:MM:SS")
+  const at = new Date(`${String(row.created_at ?? "").replace(" ", "T")}Z`);
+  const date = Number.isFinite(at.getTime()) ? seoulToday(at) : seoulToday();
+  return {
+    orderNo: row.order_no,
+    product: "news",
+    params: { type: row.type, name: row.name, ei, sn, tf, jp, date },
+    news,
+  };
 }
 
 /** 리포트 열람용 묶음. 결제된 주문만. */
@@ -544,18 +589,21 @@ function routeReport(request: Request, url: URL, env: Env, ctx: Ctx, path: strin
       }
       const checked = validateOrder(raw as Record<string, never>, seoulToday());
       if (!checked.ok) return json({ error: checked.error }, 400);
-      if (!hasBook(checked.value.type)) return json({ error: "이 유형의 리포트는 준비 중이에요." }, 503);
-      // 금액은 언제나 서버 정가입니다. 할인권(2026-10-19 폐지) 번호가 와도 쓰지 않습니다.
-      const made = await createOrder(db, checked.value, { price: reportPrice(), test: false, meta: orderMeta(raw, request), alert: (msg) => ctx.waitUntil(sendTelegram(db, msg)) });
+      const product = parseProduct((raw as { product?: unknown })?.product);
+      if (!product) return json({ error: "상품을 다시 골라 주세요." }, 400);
+      if (product === "book" && !hasBook(checked.value.type)) return json({ error: "이 유형의 리포트는 준비 중이에요." }, 503);
+      if (product === "news" && !hasNews(checked.value.type)) return json({ error: "이 유형의 신문은 준비 중이에요." }, 503);
+      // 금액은 언제나 서버가 상품별 정가로 정합니다(브라우저 금액은 받지 않음). 할인권(2026-10-19 폐지) 번호가 와도 쓰지 않습니다.
+      const made = await createOrder(db, checked.value, { price: productPrice(product), product, test: false, meta: orderMeta(raw, request), alert: (msg) => ctx.waitUntil(sendTelegram(db, msg)) });
       return made.ok ? json({ payurl: made.payurl, orderNo: made.orderNo }) : json({ error: made.error }, 502);
     }
 
     if (path === "/api/report/status" && request.method === "GET") {
       const token = url.searchParams.get("o") ?? "";
       if (!/^[0-9a-f]{64}$/.test(token)) return json({ error: "주문을 찾지 못했어요." }, 404);
-      const row = await db.prepare("SELECT order_no, status FROM report_orders WHERE token = ?").bind(token).first<{ order_no: string; status: string }>();
+      const row = await db.prepare("SELECT order_no, status, product FROM report_orders WHERE token = ?").bind(token).first<{ order_no: string; status: string; product?: string }>();
       if (!row) return json({ error: "주문을 찾지 못했어요." }, 404);
-      return json({ status: PAID.includes(row.status) ? "paid" : row.status, orderNo: row.order_no });
+      return json({ status: PAID.includes(row.status) ? "paid" : row.status, orderNo: row.order_no, product: row.product ?? "book" });
     }
 
     if (path === "/api/report/book" && request.method === "GET") {
@@ -563,6 +611,8 @@ function routeReport(request: Request, url: URL, env: Env, ctx: Ctx, path: strin
       if (!/^[0-9a-f]{64}$/.test(token)) return json({ error: "주문을 찾지 못했어요." }, 404);
       const row = await db.prepare("SELECT * FROM report_orders WHERE token = ?").bind(token).first<OrderRow>();
       if (!row) return json({ error: "주문을 찾지 못했어요." }, 404);
+      // 신문(1,900원) 열쇠로 책(9,900원)을 열 수 없다. 열람 화면은 product 를 보고 신문 화면으로 넘긴다.
+      if ((row.product ?? "book") !== "book") return json({ error: "신문 주문이에요. 신문 화면에서 열어 주세요.", product: row.product }, 409);
       if (!PAID.includes(row.status)) return json({ error: row.status === "refunded" ? "환불된 주문이에요." : "결제가 확인되지 않았어요.", status: row.status }, 402);
       const book = await loadBook(db, row.type);
       if (!book) return json({ error: "리포트를 불러오지 못했어요. 잠시 뒤 다시 열어 주세요." }, 503);
@@ -577,6 +627,28 @@ function routeReport(request: Request, url: URL, env: Env, ctx: Ctx, path: strin
           .run(),
       );
       return json(bookPayload(row, book));
+    }
+
+    // 「내 성향 신문」 열람(2026-10-25). 책과 같은 규칙: 결제된 신문 주문만, 해독 키가 맞아야, 첫 열람 시각은 한 번만.
+    if (path === "/api/report/news" && request.method === "GET") {
+      const token = url.searchParams.get("o") ?? "";
+      if (!/^[0-9a-f]{64}$/.test(token)) return json({ error: "주문을 찾지 못했어요." }, 404);
+      const row = await db.prepare("SELECT * FROM report_orders WHERE token = ?").bind(token).first<OrderRow>();
+      if (!row) return json({ error: "주문을 찾지 못했어요." }, 404);
+      if (row.product !== "news") return json({ error: "신문 주문이 아니에요.", product: row.product ?? "book" }, 409);
+      if (!PAID.includes(row.status)) return json({ error: row.status === "refunded" ? "환불된 주문이에요." : "결제가 확인되지 않았어요.", status: row.status }, 402);
+      const news = await loadNews(db, row.type);
+      if (!news) return json({ error: "신문을 불러오지 못했어요. 잠시 뒤 다시 열어 주세요." }, 503);
+      ctx.waitUntil(
+        db
+          .prepare(
+            `UPDATE report_orders SET view_count = view_count + 1,
+               first_viewed_at = CASE WHEN first_viewed_at = '' THEN ? ELSE first_viewed_at END WHERE token = ?`,
+          )
+          .bind(new Date().toISOString(), token)
+          .run(),
+      );
+      return json(newsPayload(row, news));
     }
 
     if (path === "/api/report/find" && request.method === "POST") {
@@ -594,26 +666,26 @@ function routeReport(request: Request, url: URL, env: Env, ctx: Ctx, path: strin
         const rows = (
           await db
             .prepare(
-              `SELECT token, order_no, type, paid_at FROM report_orders
+              `SELECT token, order_no, type, paid_at, product FROM report_orders
                WHERE phone_hash = ? AND test = 0 AND status IN ('paid', 'partial') ORDER BY created_at DESC LIMIT 10`,
             )
             .bind(await phoneHash(db, digits))
-            .all<{ token: string; order_no: string; type: string; paid_at: string }>()
+            .all<{ token: string; order_no: string; type: string; paid_at: string; product?: string }>()
         ).results ?? [];
         if (!rows.length) return json({ error: "이 번호로 결제된 리포트가 없어요. 결제할 때 쓴 번호인지 확인해 주세요." }, 404);
-        return json({ orders: rows.map((r) => ({ token: r.token, orderNo: r.order_no, type: r.type, paidAt: r.paid_at })) });
+        return json({ orders: rows.map((r) => ({ token: r.token, orderNo: r.order_no, type: r.type, paidAt: r.paid_at, product: r.product ?? "book" })) });
       }
       const orderNo = String(raw.orderNo ?? "").trim().toUpperCase();
       const last4 = String(raw.last4 ?? "").replace(/\D/g, "");
       if (!/^MR\d{6}-\d{6}$/.test(orderNo) || !/^\d{4}$/.test(last4)) return json({ error: "주문번호와 휴대폰 뒤 4자리를 확인해 주세요." }, 400);
       const row = await db
         // 시험·검수용 주문(test=1)은 찾기로 열리지 않는다. 검수용 무료 리포트가 정해진 번호(01000000000)로 저장돼 누구나 꺼낼 수 있었다(10-08 점검 1번).
-        .prepare("SELECT token, status, phone_last4 FROM report_orders WHERE order_no = ? AND test = 0")
+        .prepare("SELECT token, status, phone_last4, product FROM report_orders WHERE order_no = ? AND test = 0")
         .bind(orderNo)
-        .first<{ token: string; status: string; phone_last4: string }>();
+        .first<{ token: string; status: string; phone_last4: string; product?: string }>();
       if (!row || !constantEquals(row.phone_last4, last4)) return json({ error: "일치하는 주문이 없어요." }, 404);
       if (!PAID.includes(row.status)) return json({ error: "결제가 완료된 주문이 아니에요." }, 404);
-      return json({ token: row.token });
+      return json({ token: row.token, product: row.product ?? "book" });
     }
 
     return json({ error: "없는 주소예요." }, 404);

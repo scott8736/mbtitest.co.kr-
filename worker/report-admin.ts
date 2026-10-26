@@ -11,6 +11,7 @@ import {
   isSellerInfoComplete,
   MBTI_TYPES,
   PAYAPP_USERID,
+  productShort,
   reportPrice,
   REPORT_TEST_PRICE,
   SELLER,
@@ -195,7 +196,8 @@ export async function handleReportAdmin(request: Request, url: URL, path: string
         return redirect("/admin/report/?saved=1");
       }
       const keys = await payappKeys(db);
-      const what = row.status === "pending" ? "리포트 관리자 결제요청 취소 실패" : "리포트 관리자 환불 실패";
+      const label = productShort(row.product);
+      const what = row.status === "pending" ? `${label} 관리자 결제요청 취소 실패` : `${label} 관리자 환불 실패`;
       const todo = row.status === "pending" ? "결제요청이 안 닫혔어요. 페이앱 관리자에서 직접 취소하세요." : "환불이 안 됐어요. 페이앱 관리자에서 직접 취소(정산 뒤면 취소요청)하세요.";
       let res: Record<string, string>;
       try {
@@ -406,12 +408,12 @@ ${orders
         ? `<input type="checkbox" class="del-pick" form="del-form" name="order_no" value="${esc(o.order_no)}">`
         : `<input type="checkbox" class="del-pick" disabled title="${o.test ? "먼저 취소(환불)해야 지울 수 있습니다" : "손님 주문은 지울 수 없습니다"}">`
     }</td><td>${esc(o.order_no)}${o.test ? " <small>(시험)</small>" : ""}<br><small class="muted">${esc(kst(o.created_at))}</small></td>
-<td>${esc(o.type)}</td><td>${o.price.toLocaleString()}</td><td>${esc(STATUS_KO[o.status] ?? o.status)}</td>
+<td>${esc(o.type)}${o.product === "news" ? " <small>(신문)</small>" : ""}</td><td>${o.price.toLocaleString()}</td><td>${esc(STATUS_KO[o.status] ?? o.status)}</td>
 <td><small>***-${esc(o.phone_last4)}</small></td><td>${sourceCell(o, esc)}</td>
 <td><small>${esc(o.paid_at)}</small></td><td><small>${esc(o.first_viewed_at ? kst(o.first_viewed_at) : "-")}</small></td><td>${o.view_count}</td>
 <td>${o.status === "pending" && o.payurl ? `<a href="${esc(o.payurl)}" target="_blank" rel="noopener">결제창</a> ` : ""}${
       // 열람 링크는 시험 주문에만 둡니다. 손님 주문을 관리자가 열면 「첫 열람」이 찍혀 환불 판단 근거가 흐려집니다.
-      o.test && ["paid", "partial"].includes(o.status) ? `<a href="/report-app/?o=${o.token}" target="_blank" rel="noopener">열기</a> ` : ""
+      o.test && ["paid", "partial"].includes(o.status) ? `<a href="${o.product === "news" ? "/news-app/?t=" : "/report-app/?o="}${o.token}" target="_blank" rel="noopener">열기</a> ` : ""
     }${["paid", "partial", "pending"].includes(o.status) && o.mul_no
       ? `<form method="post" action="/admin/report/cancel" onsubmit="return confirm('${esc(o.order_no)} 를 취소할까요? 결제된 주문이면 환불됩니다.')" style="display:inline">
 <input type="hidden" name="order_no" value="${esc(o.order_no)}"><input name="memo" placeholder="취소 사유" style="width:90px;padding:4px 6px"><button type="submit" style="padding:4px 10px">취소</button></form>`

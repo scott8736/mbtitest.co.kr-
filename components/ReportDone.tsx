@@ -6,10 +6,14 @@
  */
 import { useEffect, useState } from "react";
 
+/** 주문 열쇠 → 열람 화면. 1,900원 「내 성향 신문」(2026-10-25)은 신문 화면, 그 밖은 예전 그대로 책 화면. */
+export const viewerHref = (token: string, product?: string) => (product === "news" ? `/news-app/?t=${token}` : `/report-app/?o=${token}`);
+
 export default function ReportDone() {
   const [token, setToken] = useState("");
   const [state, setState] = useState<"loading" | "paid" | "waiting" | "error">("loading");
   const [orderNo, setOrderNo] = useState("");
+  const [product, setProduct] = useState("book");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -25,10 +29,11 @@ export default function ReportDone() {
       tries += 1;
       try {
         const response = await fetch(`/api/report/status?o=${t}`, { cache: "no-store" });
-        const data = (await response.json()) as { status?: string; orderNo?: string; error?: string };
+        const data = (await response.json()) as { status?: string; orderNo?: string; error?: string; product?: string };
         if (data.orderNo) setOrderNo(data.orderNo);
+        if (data.product) setProduct(data.product);
         if (data.status === "paid") {
-          rememberReport({ token: t, orderNo: data.orderNo ?? "", at: new Date().toISOString() });
+          rememberReport({ token: t, orderNo: data.orderNo ?? "", at: new Date().toISOString(), ...(data.product === "news" ? { product: "news" } : {}) });
           return setState("paid");
         }
         if (["cancelled", "failed", "refunded"].includes(data.status ?? "")) {
@@ -54,7 +59,7 @@ export default function ReportDone() {
       <div className="rp-box">
         <p><b>결제가 완료됐어요.</b> 주문번호 <b>{orderNo}</b></p>
         <p>나중에 「주문 다시 찾기」에서 <b>결제한 휴대폰 번호</b>만 넣으면 다시 열 수 있어요. 이 기기에서는 자동으로 기억해 둘게요.</p>
-        <a className="rp-button" href={`/report-app/?o=${token}`}>리포트 열기</a>
+        <a className="rp-button" href={viewerHref(token, product)}>{product === "news" ? "신문 열기" : "리포트 열기"}</a>
       </div>
     );
   }
@@ -68,7 +73,7 @@ export default function ReportDone() {
 }
 
 // ── 이 기기에 산 리포트 기억하기 (열람 화면 public/report-app 도 같은 열쇠 이름을 씁니다) ──
-type Remembered = { token: string; orderNo: string; type?: string; at: string };
+type Remembered = { token: string; orderNo: string; type?: string; at: string; product?: string };
 const DEVICE_KEY = "mori-reports";
 
 export function readRemembered(): Remembered[] {
@@ -89,15 +94,15 @@ export function rememberReport(item: Remembered): void {
   }
 }
 
-type Found = { token: string; orderNo: string; type?: string; paidAt?: string };
+type Found = { token: string; orderNo: string; type?: string; paidAt?: string; product?: string };
 
 function OrderList({ items }: { items: Found[] }) {
   return (
     <ul className="rp-orders">
       {items.map((r) => (
         <li key={r.token}>
-          <a href={`/report-app/?o=${r.token}`}>
-            <b>{r.type ? `${r.type} 유형 마음숲 안내서` : "MBTI 유형 마음숲 안내서"}</b>
+          <a href={viewerHref(r.token, r.product)}>
+            <b>{r.product === "news" ? `${r.type ?? ""} 내 성향 신문`.trim() : r.type ? `${r.type} 유형 마음숲 안내서` : "MBTI 유형 마음숲 안내서"}</b>
             <span>주문번호 {r.orderNo}{r.paidAt ? ` · ${r.paidAt.slice(0, 10)}` : ""}</span>
             <i>열기 →</i>
           </a>
@@ -132,10 +137,10 @@ export function ReportFind() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),
       });
-      const data = (await response.json()) as { token?: string; orders?: Found[]; error?: string };
+      const data = (await response.json()) as { token?: string; product?: string; orders?: Found[]; error?: string };
       if (!response.ok) throw new Error(data.error || "주문을 찾지 못했어요.");
-      if (data.token) return location.assign(`/report-app/?o=${data.token}`);
-      if (data.orders?.length === 1) return location.assign(`/report-app/?o=${data.orders[0].token}`);
+      if (data.token) return location.assign(viewerHref(data.token, data.product));
+      if (data.orders?.length === 1) return location.assign(viewerHref(data.orders[0].token, data.orders[0].product));
       setFound(data.orders ?? []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "주문을 찾지 못했어요.");

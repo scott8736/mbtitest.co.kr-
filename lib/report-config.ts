@@ -8,7 +8,7 @@
  * 하나라도 비어 있으면 일반 손님 주문은 열리지 않습니다(관리자 시험 결제만 가능) — isSellerInfoComplete().
  */
 
-import { PAYMENT, PRODUCT, SELLER_INFO } from "./site-config";
+import { NEWS_PRODUCT, PAYMENT, PRODUCT, SELLER_INFO } from "./site-config";
 
 /** 값은 site.config.json 에 있습니다. */
 export const REPORT_PRODUCT = PRODUCT.name;
@@ -31,6 +31,36 @@ export function reportPrice(): number {
   return REPORT_PRICE;
 }
 
+/**
+ * 상품 구분 (2026-10-25). 주문 표 report_orders.product 에 저장합니다. 기본은 책(book).
+ * news = 「내 성향 신문」 1,900원 — 페이앱 웹 결제만. 토스 미니앱(report-toss.ts)은 책만 팝니다.
+ */
+export type ReportProductId = "book" | "news";
+export const REPORT_PRODUCT_IDS: readonly ReportProductId[] = ["book", "news"];
+export const NEWS_PRODUCT_NAME = NEWS_PRODUCT.name;
+export const NEWS_PRICE = NEWS_PRODUCT.price;
+
+/** 브라우저가 보낸 상품 값 → 상품. 비어 있으면 책, 모르는 값이면 null(주문 거절). */
+export function parseProduct(raw: unknown): ReportProductId | null {
+  if (raw === undefined || raw === null || raw === "") return "book";
+  return (REPORT_PRODUCT_IDS as readonly string[]).includes(String(raw)) ? (String(raw) as ReportProductId) : null;
+}
+
+/** 상품별 정가. 서버가 이 값으로 결제창을 엽니다(브라우저 금액은 받지 않음). */
+export function productPrice(product: ReportProductId): number {
+  return product === "news" ? NEWS_PRICE : reportPrice();
+}
+
+/** 상품 이름(페이앱 goodname 앞부분) */
+export function productName(product: ReportProductId): string {
+  return product === "news" ? NEWS_PRODUCT_NAME : REPORT_PRODUCT;
+}
+
+/** 알림·관리자 표에 붙이는 짧은 이름. 책은 예전 그대로 「리포트」. */
+export function productShort(product: string | undefined | null): string {
+  return product === "news" ? NEWS_PRODUCT.short : "리포트";
+}
+
 /** 환불 동의 문구 판. 문구를 바꾸면 판을 올립니다 — 주문마다 어느 판에 동의했는지 남깁니다. */
 export const REPORT_CONSENT_VERSION = "2026-10-13";
 export const REPORT_CONSENT_TEXT =
@@ -45,6 +75,7 @@ export const REPORT_TERMS: [string, string][] = [
   ["환불 안내", "디지털 콘텐츠라 결제 후 리포트를 열람하면 청약철회가 제한됩니다(전자상거래법 제17조 제2항 제5호). 열람 전이라면 결제일로부터 7일 안에 전액 환불해 드립니다."],
   ["열람과 관계없이 환불하는 경우", "리포트가 열리지 않거나 깨져 있거나, 이 페이지의 설명과 내용이 다르면 열람 여부와 관계없이 환불해 드립니다."],
   ["상품", "내 검사 점수로 만든 A4 104쪽(생년월일을 넣으면 110쪽) PDF 리포트와 휴대폰 배경화면 3종, 결제일부터 7일간 AI 대화가 포함됩니다."],
+  ["상품 · 내 성향 신문", "내 검사 점수와 이름으로 만든, 휴대폰으로 보는 6면 신문(웹 화면)입니다. 책(PDF)·배경화면·AI 대화는 들어 있지 않습니다. 환불 기준은 위와 같습니다."],
   ["개인정보", "결제 확인과 리포트 다시 찾기에만 휴대폰 번호를 쓰고, 광고 문자는 보내지 않습니다. 자세한 내용은 개인정보처리방침을 따릅니다."],
 ];
 
