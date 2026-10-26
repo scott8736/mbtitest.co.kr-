@@ -1998,7 +1998,8 @@ main.tarot .generic-intro { min-height:auto; padding-bottom:64px; }
 .rp-pick b { display:block; font-size:15px; }
 /* 2026-10-25 신문 1면 견본 — 제호·헤드라인·삽화가 보이게 위쪽만 */
 .rp-news-sample { margin:4px 0 12px; }
-.rp-news-sample img { display:block; width:100%; height:auto; max-height:440px; object-fit:cover; object-position:top; border-radius:10px; border:1px solid #d9d2c2; }
+/* 10-26 높이 440px 자르기를 없앰 — 「이게 다야?」. 제호~삽화~첫 문단이 다 보이게, 폭은 휴대폰 신문 폭 정도로 */
+.rp-news-sample img { display:block; width:100%; max-width:340px; height:auto; margin:0 auto; border-radius:10px; border:1px solid #d9d2c2; }
 .rp-news-sample figcaption { margin-top:6px; font-size:12.5px; color:#6b6f7e; text-align:center; }
 
 /* 2026-10-14 리포트 104쪽 전체 샘플 카드(새 창) */

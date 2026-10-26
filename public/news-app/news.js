@@ -15,7 +15,8 @@ const fill = (s) => esc(String(s ?? "").replaceAll("{N}", WHO));
 
 // 발행일 = 주문일(사이트) 또는 오늘
 const d = Q.get("date") ? new Date(Q.get("date") + "T00:00:00+09:00") : new Date();
-const DATE = `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 ${"일월화수목금토"[d.getDay()]}요일`;
+// 결제 폼 견본(sample.py, ?sample=1)은 날짜가 굳어 지난 신문처럼 보이지 않게 「결제한 날 발행」
+const DATE = Q.get("sample") ? "결제한 날 발행" : `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 ${"일월화수목금토"[d.getDay()]}요일`;
 const PAPER = NAME ? `${NAME}일보` : "내 성향 신문";
 
 // ── 여론조사: 4축 ──
