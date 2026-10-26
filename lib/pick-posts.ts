@@ -32,6 +32,7 @@ export const pickPosts: BlogPost[] = [
     sections: [
       {
         heading: "모르는 번호로 갑자기 전화가 오면?",
+        image: { src: "/images/blog/picture-pick-test-call.jpg", alt: "모르는 번호 전화에 반응하는 네 가지 모습을 담은 그림 고르기 문제" },
         paragraphs: [
           "1번 일단 받는다, 2번 쳐다보며 굳는다, 3번 문자로 「누구세요?」, 4번 베개 밑에 숨긴다 중에서 고르는 문제입니다.",
           "전화를 받는 방식에는 에너지를 바깥에서 얻는지 안에서 얻는지가 잘 드러납니다. 외향(E)과 내향(I)의 차이를 풀어 둔 글로 이어집니다.",
