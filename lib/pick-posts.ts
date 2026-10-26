@@ -59,11 +59,16 @@ export const pickPosts: BlogPost[] = [
     ],
     cta: {
       eyebrow: "PICK TEST",
-      title: "다음 그림은 인스타 @aseyo8282 에서",
-      description: "그림 고르기와 틀린그림 찾기를 매일 올립니다. 댓글에 「심리」를 남기면 이 풀이 모음을 DM으로 보내 드려요.",
+      title: "다음 그림은 인스타·틱톡·유튜브에서",
+      description: "그림 고르기와 틀린그림 찾기를 매일 올립니다. 인스타에서 댓글에 「심리」를 남기면 이 풀이 모음을 DM으로 보내 드려요.",
       href: "/tests/",
       label: "기다리는 동안 심리테스트 하기",
     },
+    follow: [
+      { label: "인스타 @aseyo8282", href: "https://www.instagram.com/aseyo8282/" },
+      { label: "틱톡 @aseyo8282", href: "https://www.tiktok.com/@aseyo8282" },
+      { label: "유튜브 mbti 심리 검사", href: "https://www.youtube.com/@mbti%EC%8B%AC%EB%A6%AC%EA%B2%80%EC%82%AC" },
+    ],
     relatedSlugs: ["first-snow-love-style", "aura-color-meaning", "spot-the-difference-quiz"],
     faq: [
       { q: "그림 고르기 심리테스트 풀이는 어디서 보나요?", a: "이 글에서 고른 그림을 찾아 「번호별 풀이 보기」를 누르면 내 번호 단락이 바로 나옵니다." },
@@ -117,15 +122,20 @@ export const pickPosts: BlogPost[] = [
     ],
     cta: {
       eyebrow: "BRAIN QUIZ",
-      title: "다음 문제는 인스타 @aseyo8282 에서",
-      description: "틀린그림 찾기와 그림 고르기 심리테스트를 매일 올립니다. 댓글에 「정답」을 남기면 정답 그림을 DM으로 보내 드려요.",
+      title: "다음 문제는 인스타·틱톡·유튜브에서",
+      description: "틀린그림 찾기와 그림 고르기 심리테스트를 매일 올립니다. 인스타에서 댓글에 「정답」을 남기면 정답 그림을 DM으로 보내 드려요.",
       href: "/tests/",
       label: "기다리는 동안 심리테스트 하기",
     },
+    follow: [
+      { label: "인스타 @aseyo8282", href: "https://www.instagram.com/aseyo8282/" },
+      { label: "틱톡 @aseyo8282", href: "https://www.tiktok.com/@aseyo8282" },
+      { label: "유튜브 mbti 심리 검사", href: "https://www.youtube.com/@mbti%EC%8B%AC%EB%A6%AC%EA%B2%80%EC%82%AC" },
+    ],
     relatedSlugs: ["first-snow-love-style", "aura-color-meaning", "mental-age-guide"],
     faq: [
       { q: "이번 주 틀린그림 찾기 정답은 무엇인가요?", a: "다른 곳은 3개입니다. 마늘이 사라졌고, 꿀단지 색이 바뀌었고, 나무 숟가락 방향이 반대입니다." },
-      { q: "새 문제는 언제 올라오나요?", a: "인스타그램 @aseyo8282 에 올리고, 이 글 맨 위에도 매주 새 문제를 올립니다." },
+      { q: "새 문제는 언제 올라오나요?", a: "인스타그램·틱톡 @aseyo8282 와 유튜브 「mbti 심리 검사」에 올리고, 이 글 맨 위에도 매주 새 문제를 올립니다." },
     ],
   },
   {

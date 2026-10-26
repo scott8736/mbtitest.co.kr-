@@ -32,6 +32,8 @@ export type BlogPost = {
   sources?: { label: string; href: string }[];
   /** 자주 묻는 질문. 본문 끝에 보이고 FAQPage 구조화 데이터로도 나갑니다(지식스니펫용, 2026-10-05~). */
   faq?: { q: string; a: string }[];
+  /** 글 끝 SNS 프로필 버튼 (그림 고르기·틀린그림 글, 2026-10-26~). 새 탭으로 연다. */
+  follow?: { label: string; href: string }[];
 };
 
 const commonDate = "2026-07-25";

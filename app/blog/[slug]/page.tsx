@@ -182,6 +182,15 @@ export default async function BlogArticlePage({
               <strong>{post.cta.title}</strong>
               <p>{post.cta.description}</p>
               <a href={post.cta.href}>{post.cta.label} →</a>
+              {post.follow && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 16px" }}>
+                  {post.follow.map((f) => (
+                    <a key={f.href} href={f.href} target="_blank" rel="noopener" style={{ marginTop: 12 }}>
+                      {f.label} ↗
+                    </a>
+                  ))}
+                </div>
+              )}
             </aside>
 
             {post.sections.map((section, index) => (
@@ -276,6 +285,15 @@ export default async function BlogArticlePage({
               <h2>{post.cta.title}</h2>
               <p>{post.cta.description}</p>
               <a href={post.cta.href}>{post.cta.label}</a>
+              {post.follow && (
+                <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0 10px" }}>
+                  {post.follow.map((f) => (
+                    <a key={f.href} href={f.href} target="_blank" rel="noopener" style={{ marginTop: 14, minHeight: 48, background: "rgba(255,255,255,.14)", color: "inherit" }}>
+                      {f.label}
+                    </a>
+                  ))}
+                </div>
+              )}
             </section>
             <ReportCrossSell from="blog" />
           </div>
