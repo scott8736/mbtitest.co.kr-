@@ -288,7 +288,7 @@ export default async function BlogArticlePage({
               {post.follow && (
                 <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0 10px" }}>
                   {post.follow.map((f) => (
-                    <a key={f.href} href={f.href} target="_blank" rel="noopener" style={{ marginTop: 14, minHeight: 48, background: "rgba(255,255,255,.14)", color: "inherit" }}>
+                    <a key={f.href} href={f.href} target="_blank" rel="noopener" style={{ marginTop: 12, minHeight: 48, background: "#fff", color: "#312367", border: "1px solid #ddd3f3" }}>
                       {f.label}
                     </a>
                   ))}

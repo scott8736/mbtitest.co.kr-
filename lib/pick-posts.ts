@@ -59,8 +59,8 @@ export const pickPosts: BlogPost[] = [
     ],
     cta: {
       eyebrow: "PICK TEST",
-      title: "다음 그림은 인스타·틱톡·유튜브에서",
-      description: "그림 고르기와 틀린그림 찾기를 매일 올립니다. 인스타에서 댓글에 「심리」를 남기면 이 풀이 모음을 DM으로 보내 드려요.",
+      title: "다음 그림도 매일 올라와요",
+      description: "인스타·틱톡·유튜브에 그림 고르기와 틀린그림 찾기를 매일 올립니다. 인스타에서 댓글에 「심리」를 남기면 이 풀이 모음을 DM으로 보내 드려요.",
       href: "/tests/",
       label: "기다리는 동안 심리테스트 하기",
     },
@@ -122,8 +122,8 @@ export const pickPosts: BlogPost[] = [
     ],
     cta: {
       eyebrow: "BRAIN QUIZ",
-      title: "다음 문제는 인스타·틱톡·유튜브에서",
-      description: "틀린그림 찾기와 그림 고르기 심리테스트를 매일 올립니다. 인스타에서 댓글에 「정답」을 남기면 정답 그림을 DM으로 보내 드려요.",
+      title: "다음 문제도 매일 올라와요",
+      description: "인스타·틱톡·유튜브에 틀린그림 찾기와 그림 고르기 심리테스트를 매일 올립니다. 인스타에서 댓글에 「정답」을 남기면 정답 그림을 DM으로 보내 드려요.",
       href: "/tests/",
       label: "기다리는 동안 심리테스트 하기",
     },
