@@ -65,9 +65,7 @@ export const pickPosts: BlogPost[] = [
       label: "기다리는 동안 심리테스트 하기",
     },
     follow: [
-      { label: "인스타 @aseyo8282", href: "https://www.instagram.com/aseyo8282/" },
       { label: "틱톡 @aseyo8282", href: "https://www.tiktok.com/@aseyo8282" },
-      { label: "유튜브 mbti 심리 검사", href: "https://www.youtube.com/@mbti%EC%8B%AC%EB%A6%AC%EA%B2%80%EC%82%AC" },
     ],
     relatedSlugs: ["first-snow-love-style", "aura-color-meaning", "spot-the-difference-quiz"],
     faq: [
@@ -128,9 +126,7 @@ export const pickPosts: BlogPost[] = [
       label: "기다리는 동안 심리테스트 하기",
     },
     follow: [
-      { label: "인스타 @aseyo8282", href: "https://www.instagram.com/aseyo8282/" },
       { label: "틱톡 @aseyo8282", href: "https://www.tiktok.com/@aseyo8282" },
-      { label: "유튜브 mbti 심리 검사", href: "https://www.youtube.com/@mbti%EC%8B%AC%EB%A6%AC%EA%B2%80%EC%82%AC" },
     ],
     relatedSlugs: ["first-snow-love-style", "aura-color-meaning", "mental-age-guide"],
     faq: [
