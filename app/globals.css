@@ -194,6 +194,16 @@ button:focus-visible { outline:3px solid #91a98b; outline-offset:4px; }
 .result-shell { min-height:calc(100vh - 88px); padding:72px 24px 90px; text-align:center; background:radial-gradient(circle at 50% 9%,color-mix(in srgb,var(--result-color) 13%,transparent),transparent 34%); }
 .result-code { width:130px; height:130px; margin:26px auto 22px; display:grid; place-items:center; border-radius:36px; color:white; background:var(--result-color); box-shadow:0 20px 45px color-mix(in srgb,var(--result-color) 30%,transparent); font-size:34px; font-weight:900; letter-spacing:.04em; transform:rotate(-2deg); }
 .result-shell>h1 { margin:0; font-size:clamp(35px,5vw,58px); letter-spacing:-.05em; }
+/* 결과 이름 타이핑(2026-10-27) — 글자 자리는 처음부터 잡아 두고(밀림 없음) 70ms 간격으로 나타난다.
+   커서는 방금 나온 글자 뒤에만 잠깐, 마지막 글자 뒤에서 세 번 깜빡이고 사라진다 */
+@media (prefers-reduced-motion:no-preference) {
+  .type-in>span { position:relative; animation:type-ch .01s both; }
+  .type-in>span::after { content:""; position:absolute; top:.14em; bottom:.1em; right:-.06em; width:.07em; border-radius:1px; background:var(--result-color); opacity:0; animation:type-cur 70ms step-end forwards; animation-delay:inherit; }
+  .type-in>span.type-last::after { animation:type-cur-last 1.8s step-end forwards; animation-delay:inherit; }
+}
+@keyframes type-ch { from { opacity:0; } to { opacity:1; } }
+@keyframes type-cur { 0% { opacity:1; } 100% { opacity:0; } }
+@keyframes type-cur-last { 0%,33%,66% { opacity:1; } 16%,50%,83%,100% { opacity:0; } }
 .result-tagline { margin:14px 0 0; color:var(--result-color); font-size:20px; font-weight:700; }
 .result-description { max-width:650px; margin:22px auto 48px; color:#687269; line-height:1.8; font-size:16px; }
 .result-grid { max-width:1050px; margin:auto; display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:16px; text-align:left; }

@@ -95,7 +95,12 @@ export default function MbtiResult() {
           공유 클릭 20%↑ 유지, 카드 클릭 ÷ 완주 4.4%보다 높게. tests/result-exits.test.mjs 가 순서를 지킵니다. */}
       {/* 친구 「우리 숲」 초대에서 「검사로 알아보기」로 온 사람만 보입니다(2026-10-07). */}
       <ForestInviteReturn code={result} />
-      <h1>{resultInfo.name}</h1>
+      {/* 타이핑 효과(2026-10-27): 글자는 그대로 DOM 에 두고 한 글자씩 나타나게만 한다. 움직임 줄이기면 globals.css 가 끈다. */}
+      <h1 className="type-in" aria-label={resultInfo.name}>
+        {[...resultInfo.name].map((ch, i, all) => (
+          <span key={i} aria-hidden="true" className={i === all.length - 1 ? "type-last" : undefined} style={{ animationDelay: `${i * 70}ms` }}>{ch}</span>
+        ))}
+      </h1>
       <p className="result-tagline">{resultInfo.tagline}</p>
       <p className="result-description">{resultInfo.description}</p>
       <div className="result-grid">
