@@ -29,12 +29,14 @@ import type { ShareChannel } from "./mori";
  * page_has·page_none: 이 기기에 MBTI 결과가 있는/없는 방문(없으면 주문 폼 대신 「검사 먼저」만 보입니다)
  * top_cta: 맨 위 「결제하러 가기」 버튼을 누름(2026-10-13~, 폼 봄 63 → 입력 1 대응)
  * form_seen: 주문 폼이 화면에 들어옴 · form_start: 폼 칸을 처음 누름 · submit: 결제 버튼 누름 · error: 결제창 대신 오류 문구가 뜸
+ * form_dwell(2026-10-28~): 폼이 2초 넘게 화면에 머묾. form_seen 은 스크롤로 스쳐도 세져서 「폼 → 입력」 분모가 부풀었다.
+ *   form_seen 은 지난 숫자와 비교하려고 그대로 둔다. 새 판정은 form_dwell → form_start 로 본다.
  * 1,900원 「내 성향 신문」(2026-10-25~): 폼에서 신문을 고르면 news_pick, 신문을 고른 채로의 단계는 끝에 _news 를 붙입니다
  *   (form_start_news·submit_news·error_news). 책 쪽 키는 예전 그대로라 책 깔때기 숫자는 바뀌지 않습니다.
  */
 export const REPORT_STEP_KEYS = [
   "page_has", "page_none", "top_cta", "form_seen", "form_start", "submit", "error",
-  "news_pick", "form_start_news", "submit_news", "error_news",
+  "news_pick", "form_start_news", "submit_news", "error_news", "form_dwell",
 ] as const;
 export type ReportStep = (typeof REPORT_STEP_KEYS)[number];
 

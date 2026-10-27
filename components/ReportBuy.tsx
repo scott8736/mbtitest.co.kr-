@@ -87,17 +87,30 @@ export default function ReportBuy() {
   }, []);
 
   // 주문 폼이 화면에 절반 이상 들어오면 「폼 봄」. 미리보기·설명에서 나간 사람과 폼까지 온 사람을 가릅니다.
+  // 2026-10-28: 2초 넘게 머물면 form_dwell 도 남긴다(스쳐 간 스크롤 빼기). form_seen 은 비교용으로 그대로.
   useEffect(() => {
     const form = formRef.current;
     if (!form || typeof IntersectionObserver === "undefined") return;
+    let seen = false;
+    let dwell: ReturnType<typeof setTimeout> | undefined;
     const io = new IntersectionObserver((entries) => {
-      if (entries.some((e) => e.isIntersecting)) {
+      const on = entries.some((e) => e.isIntersecting);
+      clearTimeout(dwell);
+      if (!on) return;
+      if (!seen) {
+        seen = true;
         step("form_seen");
-        io.disconnect();
       }
+      dwell = setTimeout(() => {
+        step("form_dwell");
+        io.disconnect();
+      }, 2000);
     }, { threshold: 0.5 });
     io.observe(form);
-    return () => io.disconnect();
+    return () => {
+      io.disconnect();
+      clearTimeout(dwell);
+    };
   }, [ready, stored]);
 
   if (!ready) return <div className="rp-box">불러오는 중…</div>;
