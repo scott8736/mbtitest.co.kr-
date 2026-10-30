@@ -20,6 +20,14 @@
 import { createHmac } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
+
+// 쿠팡 호출은 PC 공용 장부를 거친다 (10-30 분당 50회 초과 경고 2회 — 3회면 파트너스 제한).
+// 간격·분당 한도·실행당 한도·잠금은 장부가 맡는다. 숫자를 여기서 바꾸지 않는다.
+const { take, block, assertOpen, isQuotaError } = await import(
+  pathToFileURL("D:/00 cloud/_tools/coupang_guard/guard.mjs").href
+);
+assertOpen();
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 
@@ -79,6 +87,7 @@ function authorization(creds, method, apiPath, query = "") {
 }
 
 async function call(creds, method, apiPath, { body } = {}) {
+  await take();
   const res = await fetch(`${HOST}${apiPath}`, {
     method,
     headers: {
@@ -88,6 +97,7 @@ async function call(creds, method, apiPath, { body } = {}) {
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
   const json = await res.json().catch(() => ({}));
+  if (isQuotaError(`${res.status} ${json.rMessage ?? ""}`)) block(`${res.status} ${json.rMessage ?? ""}`);
   if (!res.ok || (json.rCode && json.rCode !== "0"))
     throw new Error(`${res.status} ${json.rCode ?? ""} ${json.rMessage ?? ""}`.trim());
   return json;
