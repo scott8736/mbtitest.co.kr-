@@ -11,6 +11,13 @@ export const metadata: Metadata = {
   description:
     "MBTI 궁합을 소통, 갈등, 생활 방식 관점에서 확인하고 관계를 더 편안하게 만드는 방법을 알아보세요.",
   alternates: { canonical: "/compatibility/" },
+  // 없으면 홈 og(「무료 MBTI 검사」 카드·og:url 홈)를 물려받는다 — 스레드 연애 글 CTA 가 여기로 온다(11-01)
+  openGraph: {
+    title: "MBTI 궁합 - 우리 둘은 어떻게 맞을까?",
+    description: "16유형 연애·친구 궁합. 내 유형을 고르면 나머지 15개 유형과 맞는 점, 부딪힐 때 푸는 법이 나와요.",
+    url: "/compatibility/",
+    images: [{ url: "/images/og/mbti-compat-og.jpg", width: 1200, height: 630, alt: "MBTI 궁합 — 두 캐릭터와 하트" }],
+  },
 };
 
 const pairs = [
