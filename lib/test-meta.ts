@@ -264,6 +264,11 @@ export const newTestMeta: TestMeta[] = [
     questionCount: 30, duration: "약 4분",
     description: "30문항으로 홀랜드 6유형 중 내 흥미가 가장 강한 쪽과 어울리는 직업을 찾습니다.",
     keywords: ["직업적성 테스트", "직업적성검사", "진로적성검사", "적성검사 무료", "홀랜드 유형", "직업흥미검사"] },
+  { slug: "marriage-charm", title: "결혼하면 더 반하는 매력 테스트", shortTitle: "결혼 후 매력",
+    eyebrow: "AFTER WE MARRY", category: "연애", icon: "♡", color: "#c9768a",
+    questionCount: 16, duration: "약 3분",
+    description: "16문항으로 같이 살수록 상대가 다시 반하게 되는 나의 매력 네 가지 중 하나를 찾습니다.",
+    keywords: ["결혼 후 매력 테스트", "결혼하면 반하는 사람", "부부 심리테스트", "커플 테스트", "결혼 성향 테스트"] },
 ];
 
 const bySlug = new Map(newTestMeta.map((meta) => [meta.slug, meta]));

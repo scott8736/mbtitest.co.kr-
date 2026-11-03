@@ -275,6 +275,11 @@
   "title": "직업적성 테스트"
  },
  {
+  "path": "/tests/marriage-charm/",
+  "label": "성향 테스트",
+  "title": "결혼하면 더 반하는 매력 테스트"
+ },
+ {
   "path": "/check/",
   "label": "마음 자가진단",
   "title": "무료 심리 자가진단 모음 — 우울·불안·ADHD·불면"

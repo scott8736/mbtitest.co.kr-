@@ -4,6 +4,7 @@ import { hspTest } from "./hsp-test";
 import { egenTetoMaleTest } from "./egen-teto-male";
 import { enneagramTest } from "./enneagram";
 import { careerTest } from "./career-test";
+import { marriageCharmTest } from "./marriage-charm";
 import { testMeta } from "./test-meta";
 
 type ResultSeed = {
@@ -440,4 +441,5 @@ export const newGenericTests: Record<string, GenericTest> = {
   [egenTetoMaleTest.slug]: egenTetoMaleTest,
   [enneagramTest.slug]: enneagramTest,
   [careerTest.slug]: careerTest,
+  [marriageCharmTest.slug]: marriageCharmTest,
 };
