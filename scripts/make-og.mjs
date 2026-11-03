@@ -154,6 +154,9 @@ async function exists(path) {
   }
 }
 
+// 그림 카드(Flow 그림 + 글자)는 scripts/make_art_og.py 가 굽습니다. --force 로도 덮지 않습니다.
+const ART_SLUGS = new Set(["marriage-charm"]);
+
 async function main() {
   const force = process.argv.includes("--force");
 
@@ -181,7 +184,7 @@ async function main() {
     const item = testCatalog.find((entry) => entry.slug === slug);
     for (const [key, result] of Object.entries(test.results)) {
       const file = join(OUT_DIR, `${slug}-${key}.png`);
-      if (!force && (await exists(file))) {
+      if ((ART_SLUGS.has(slug) || !force) && (await exists(file))) {
         skipped += 1;
         continue;
       }

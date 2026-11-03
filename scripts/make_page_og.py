@@ -208,5 +208,8 @@ if __name__ == "__main__":
     entries = json.load(open(MANIFEST, encoding="utf-8"))
     total = 0
     for e in entries:
+        # "art": 그림 카드(Flow 그림 + 글자)는 scripts/make_art_og.py 가 굽는다 — 여기서 덮지 않는다
+        if e.get("art") and os.path.exists(os.path.join(OUT_DIR, slug_of(e["path"]) + ".jpg")):
+            continue
         total += os.path.getsize(make(e))
     print(f"{len(entries)}장 -> {OUT_DIR} ({total // 1024} KB)")

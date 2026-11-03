@@ -277,7 +277,8 @@
  {
   "path": "/tests/marriage-charm/",
   "label": "성향 테스트",
-  "title": "결혼하면 더 반하는 매력 테스트"
+  "title": "결혼하면 더 반하는 매력 테스트",
+  "art": true
  },
  {
   "path": "/check/",
