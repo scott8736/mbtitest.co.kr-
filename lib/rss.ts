@@ -1,5 +1,6 @@
 import { blogPosts, type BlogPost } from "./blog-posts";
 import { SITE_ORIGIN } from "./site-urls";
+import { blogTime } from "./blog-publish";
 
 /**
  * 블로그 글 피드.
@@ -27,7 +28,8 @@ function escapeXml(value: string): string {
  * 하루 전으로 보입니다. 그래서 KST 자정으로 못박아 읽습니다.
  */
 function rfc822(date: string, fallback: Date): string {
-  const parsed = new Date(`${date}T00:00:00+09:00`);
+  // 예약 글은 "2026-11-04T07:30:00+09:00" 처럼 시각까지 있어 그대로 읽습니다(lib/blog-publish.ts).
+  const parsed = new Date(blogTime(date));
   return (Number.isNaN(parsed.getTime()) ? fallback : parsed).toUTCString();
 }
 
@@ -42,7 +44,7 @@ const MAX_ITEMS = 30;
 /** 최신 글이 위로. 같은 날짜가 많아서 slug 로 순서를 고정합니다. */
 export function feedPosts(): BlogPost[] {
   return [...blogPosts]
-    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt) || a.slug.localeCompare(b.slug))
+    .sort((a, b) => blogTime(b.publishedAt) - blogTime(a.publishedAt) || a.slug.localeCompare(b.slug))
     .slice(0, MAX_ITEMS);
 }
 

@@ -5,6 +5,7 @@ import AdUnit from "../../../components/AdUnit";
 import ContentHeader from "../../../components/ContentHeader";
 import SiteFooter from "../../../components/SiteFooter";
 import ShareButtons from "../../../components/ShareButtons";
+import BlogQuiz from "../../../components/BlogQuiz";
 import { blogPosts, getBlogPost } from "../../../lib/blog-posts";
 import { clipDescription } from "../../../lib/meta-text";
 import { SITE_ORIGIN } from "../../../lib/site-config";
@@ -140,7 +141,7 @@ export default async function BlogArticlePage({
           <h1>{post.title}</h1>
           <p>{post.description}</p>
           <div>
-            <time dateTime={post.updatedAt}>업데이트 {post.updatedAt.replaceAll("-", ".")}</time>
+            <time dateTime={post.updatedAt}>업데이트 {post.updatedAt.slice(0, 10).replaceAll("-", ".")}</time>
             <span>{post.readTime}</span>
             <span>MBTI 검사 편집팀</span>
           </div>
@@ -223,6 +224,7 @@ export default async function BlogArticlePage({
                     ))}
                   </ul>
                 )}
+                {section.quiz && <BlogQuiz quiz={section.quiz} />}
                 {section.cta && (
                   <a
                     href={section.cta.href}

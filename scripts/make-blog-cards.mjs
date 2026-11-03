@@ -40,7 +40,7 @@ const ACCENTS = ["#7657d6", "#ff8e7a", "#4f9685", "#c2763f", "#5f7fae", "#c56e93
 async function loadPosts() {
   const { outputFiles } = await build({
     stdin: {
-      contents: `export { blogPosts } from "./lib/blog-posts";`,
+      contents: `export { allBlogPosts as blogPosts } from "./lib/blog-posts";`,
       resolveDir: root,
       loader: "ts",
     },

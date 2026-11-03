@@ -23,7 +23,7 @@ const { outputFiles } = await build({
   stdin: {
     contents: `export { genericTests } from "./lib/generic-tests";
                export { typeData } from "./lib/mbti-data";
-               export { blogPosts } from "./lib/blog-posts";`,
+               export { allBlogPosts as blogPosts } from "./lib/blog-posts";`,
     resolveDir: repoRoot,
     loader: "ts",
   },

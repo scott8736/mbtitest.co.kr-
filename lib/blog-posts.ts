@@ -3,6 +3,9 @@ import { celebrityPosts } from "./celebrity-posts";
 import { fortunePosts } from "./fortune-posts";
 import { promoPosts } from "./promo-posts";
 import { pickPosts } from "./pick-posts";
+import { scheduledPosts } from "./blog-scheduled/index";
+import { isBlogPublished } from "./blog-publish";
+import type { BlogQuiz } from "./blog-quiz";
 
 export type BlogSection = {
   heading: string;
@@ -14,6 +17,8 @@ export type BlogSection = {
   image?: { src: string; alt: string };
   /** 단락 끝 작은 버튼 — 그 결과가 맞는지 테스트로 확인하러 가는 길. */
   cta?: { label: string; href: string };
+  /** 단락 끝 「미니 테스트」 — 글 안에서 바로 해 보는 5~8문항(2026-11-03~). 형식·채점은 lib/blog-quiz.ts. */
+  quiz?: BlogQuiz;
 };
 
 export type BlogPost = {
@@ -38,7 +43,11 @@ export type BlogPost = {
 
 const commonDate = "2026-07-25";
 
-export const blogPosts: BlogPost[] = [
+/**
+ * 예약 글까지 전부 담은 원본. 대표 그림 굽기·검사처럼 「미래 글도 준비돼 있어야」 하는
+ * 곳만 씁니다. 화면·사이트맵·RSS 는 아래 blogPosts(공개된 글만)를 씁니다.
+ */
+export const allBlogPosts: BlogPost[] = [
   ...pickPosts,
   ...promoPosts,
   ...celebrityPosts,
@@ -340,12 +349,17 @@ export const blogPosts: BlogPost[] = [
     cta: { eyebrow: "15문항 · 약 2분", title: "지금 내 마음의 나이는 몇 살일까요?", description: "호기심과 책임감, 변화에 대한 태도로 현재 마음의 나이를 재미있게 확인합니다.", href: "/tests/mental-age/", label: "정신연령 테스트 시작하기" },
     relatedSlugs: ["self-esteem-patterns", "mbti-result-changes", "egen-teto-difference"],
   },
+  // 예약 글은 맨 뒤에 붙인다 — 앞에 두면 make-blog-cards.mjs 의 글 번호(카드 색)가 기존 글까지 밀린다.
+  ...scheduledPosts,
 ];
 
 // 목록에 나오는 순서입니다. 트렌드가 맨 앞입니다 — 연예인 MBTI 와 평판 순위처럼
 // 시의성 있는 글이 여기 들어가고, 그게 지금 검색으로 사람이 가장 많이 들어오는
 // 자리라 목록 맨 위에 둡니다.
 export const blogCategories = ["전체", "트렌드", "MBTI 기초", "연애·관계", "마음건강", "운세"] as const;
+
+/** 빌드 시각 기준으로 publishedAt 이 지난 글만. 예약 글은 시각 전까지 어디에도 나가지 않는다(lib/blog-publish.ts). */
+export const blogPosts: BlogPost[] = allBlogPosts.filter((post) => isBlogPublished(post));
 
 export function getBlogPost(slug: string) {
   return blogPosts.find((post) => post.slug === slug);
