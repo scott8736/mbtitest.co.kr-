@@ -68,8 +68,10 @@ import type { BlogPost } from "../blog-posts";
  *   ],
  */
 
-// import { posts as w2026W45 } from "./2026-W45";
+import { posts as w2026W45a } from "./2026-W45a";
+import { posts as w2026W45b } from "./2026-W45b";
 
 export const scheduledPosts: BlogPost[] = [
-  // ...w2026W45,
+  ...w2026W45a,
+  ...w2026W45b,
 ];
