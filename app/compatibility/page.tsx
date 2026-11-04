@@ -41,7 +41,7 @@ export default function Page() {
           유형보다 중요한 것
         </h1>
         <p>좋고 나쁜 궁합을 단정하기보다 서로 다른 소통 방식과 갈등 해결법을 이해해 보세요.</p>
-        <a className="content-cta" href="/">
+        <a className="content-cta" href="/tests/mbti/">
           내 유형 먼저 확인하기 →
         </a>
         {/* 2026-10-05 궁합 = 서로 다른 두 모리 */}
