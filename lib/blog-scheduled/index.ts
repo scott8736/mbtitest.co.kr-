@@ -74,6 +74,8 @@ import { posts as w2026W46a } from "./2026-W46a";
 import { posts as w2026W46b } from "./2026-W46b";
 import { posts as w2026W47a } from "./2026-W47a";
 import { posts as w2026W47b } from "./2026-W47b";
+import { posts as w2026W48a } from "./2026-W48a";
+import { posts as w2026W48b } from "./2026-W48b";
 
 export const scheduledPosts: BlogPost[] = [
   ...w2026W45a,
@@ -82,4 +84,6 @@ export const scheduledPosts: BlogPost[] = [
   ...w2026W46b,
   ...w2026W47a,
   ...w2026W47b,
+  ...w2026W48a,
+  ...w2026W48b,
 ];
