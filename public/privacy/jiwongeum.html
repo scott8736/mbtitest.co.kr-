@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>내 지원금 찾기 개인정보 처리방침</title>
+<meta name="description" content="안드로이드 앱 「내 지원금 찾기」가 어떤 정보를 어디에 쓰고 얼마나 보관하는지 안내합니다.">
+<style>
+  :root { --fg:#191f28; --sub:#4e5968; --bg:#ffffff; --line:#e5e8eb; }
+  @media (prefers-color-scheme: dark) { :root { --fg:#f2f4f6; --sub:#b0b8c1; --bg:#17171c; --line:#333d4b; } }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.7 -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+  main { max-width:720px; margin:0 auto; padding:32px 16px 64px; }
+  h1 { font-size:24px; margin:0 0 4px; }
+  h2 { font-size:18px; margin:28px 0 8px; padding-top:20px; border-top:1px solid var(--line); }
+  p, li { color:var(--sub); }
+  table { width:100%; border-collapse:collapse; font-size:15px; }
+  th, td { border:1px solid var(--line); padding:8px; text-align:left; vertical-align:top; }
+</style>
+</head>
+<body>
+<main>
+<h1>내 지원금 찾기 개인정보 처리방침</h1>
+<p>시행일: 2026년 12월 ○일 · 대상: 안드로이드 앱 「내 지원금 찾기」(kr.co.charrymall.jiwongeum)</p>
+
+<p>이 앱은 회원가입이 없습니다. 내 조건에 맞는 정부·지자체 지원금을 찾기 위해 입력하는 정보는 <b>이 휴대폰 안에만</b> 저장되며, 아래에 적은 경우에만 휴대폰 밖으로 보냅니다. 이름·주민등록번호·휴대폰번호·주소 같은 신원 정보는 입력받지 않습니다.</p>
+
+<h2>1. 휴대폰 안에만 저장하는 정보</h2>
+<ul>
+  <li>입력한 「내 조건」 — 태어난 해, 성별, 사는 곳(시·도, 시·군·구), 가구 소득 구간, 해당하는 것(임산부·다자녀가구·무주택세대 등 범주). 전부 선택 사항이고, 입력하지 않아도 전체 혜택을 볼 수 있습니다.</li>
+  <li>저장한 혜택 목록, 저장 날짜</li>
+  <li>마감 7일 전·하루 전 알림 예약(알림은 휴대폰 안에서 아침 9시에 울리며 서버를 거치지 않습니다)</li>
+  <li>「광고 지우기」 남은 기간, 리워드 광고로 받은 광고 없는 시간</li>
+</ul>
+<p>앱을 지우면 이 정보도 함께 지워집니다. 앱 안 「내 조건 바꾸기」에서 언제든 바꾸거나 비울 수 있습니다.</p>
+
+<h2>2. 휴대폰 밖으로 보내는 정보</h2>
+<table>
+  <tr><th>언제</th><th>보내는 정보</th><th>받는 곳 · 목적</th><th>보관 기간</th></tr>
+  <tr>
+    <td>혜택 목록·상세를 받을 때</td>
+    <td>받으려는 혜택 ID, 접속 시각, 통신에 쓰이는 IP 주소</td>
+    <td>운영 서버(Cloudflare Workers) — 정부24 「공공서비스(혜택) 정보」 API 를 하루 한 번 받아 두었다가 앱에 돌려줍니다. 서버는 「내 조건」을 받지 않고, 누가 무엇을 찾아봤는지 저장하지 않습니다</td>
+    <td>Cloudflare 접속 로그(2주)</td>
+  </tr>
+  <tr>
+    <td>광고를 볼 때</td>
+    <td>광고 ID, 기기 정보, 대략적인 위치(IP 기준) 등 광고 SDK 가 수집하는 정보</td>
+    <td>Google AdMob — 광고 표시, 광고 성과 측정, 부정 클릭 방지</td>
+    <td>Google 정책에 따름</td>
+  </tr>
+  <tr>
+    <td>「광고 지우기」를 살 때</td>
+    <td>상품 정보와 구매 확인값(구매 토큰). 카드·계좌 등 결제 수단 정보는 앱이 받지 않습니다</td>
+    <td>Google Play 결제 — 결제 처리, 구매 여부 확인(앱이 휴대폰 안에서 Google Play 에 직접 확인하며 운영 서버로 보내지 않음)</td>
+    <td>Google 정책에 따름</td>
+  </tr>
+</table>
+<p>「내 조건」은 어떤 경우에도 휴대폰 밖으로 보내지 않습니다. 조건에 맞는지 가려내는 계산은 전부 앱 안에서 합니다.</p>
+
+<h2>3. 광고와 광고 ID</h2>
+<p>이 앱은 화면 아래 띠 광고를 보여 주며, 혜택 상세를 다섯 번째 열 때마다 전면 광고를 한 번 보여 줍니다. 홈 화면의 「광고 1번 보고 5분 광고 없이 쓰기」를 누르면 리워드 광고가 나옵니다. 「광고 지우기」를 산 뒤에는 광고를 보여 주지 않습니다. 휴대폰 설정 → 개인정보 보호 → 광고에서 광고 ID 를 재설정하거나 삭제할 수 있습니다.
+Google 의 정보 처리는 <a href="https://policies.google.com/technologies/partner-sites">Google 파트너 사이트 정보 사용 안내</a>를 따릅니다.</p>
+
+<h2>4. 제3자 제공·판매</h2>
+<p>위 2번의 처리 위탁(Cloudflare, Google AdMob·Play 결제) 외에 개인정보를 다른 곳에 팔거나 제공하지 않습니다.</p>
+
+<h2>5. 어린이</h2>
+<p>이 앱은 만 14세 미만 어린이를 대상으로 하지 않습니다.</p>
+
+<h2>6. 공식 앱이 아닙니다</h2>
+<p>이 앱은 정부·공공기관의 공식 앱이 아닙니다. 혜택 자료는 행정안전부 「대한민국 공공서비스(혜택) 정보」(정부24)를 받아 보여 주며, 실제 지원 대상 여부·신청·지급은 각 기관의 공식 창구에서 정합니다.</p>
+
+<h2>7. 이용자의 권리</h2>
+<p>저장된 모든 정보는 이용자의 휴대폰 안에 있으므로, 앱 안에서 바꾸거나 비우실 수 있고 앱을 지우면 함께 지워집니다. 광고·결제 관련 처리의 문의는 아래 이메일로 보내 주세요.</p>
+
+<h2>8. 문의</h2>
+<p>운영: 챠리몰 · 이메일: chiug387@gmail.com</p>
+
+<h2>9. 변경</h2>
+<p>이 방침이 바뀌면 이 페이지와 앱 업데이트 안내로 알립니다.</p>
+</main>
+</body>
+</html>
